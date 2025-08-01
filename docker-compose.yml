@@ -1,0 +1,17 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: warehouse-mongo-db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    # Khởi động MongoDB với chế độ replica set để hỗ trợ transaction
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+
+volumes:
+  mongo-data:
+    driver: local
