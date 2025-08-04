@@ -1,4 +1,4 @@
-package warehouse_management.com.warehouse_management.contorller;
+package warehouse_management.com.warehouse_management.controller;
 
 import com.github.javafaker.Faker;
 import org.bson.types.ObjectId;
@@ -24,7 +24,6 @@ import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
