@@ -81,6 +81,7 @@ public class InventoryItem {
         private LocalDateTime departureDate;    // Ngày khởi hành
         private LocalDateTime arrivalDate;      // Ngày đến
         private LocalDateTime consignmentDate;  // Ngày ký gửi (nếu có)
+        private LocalDateTime plannedProductionDate; // Ngày dự kiến sản xuất
     }
 
     public InventoryItemStatus getStatus() {

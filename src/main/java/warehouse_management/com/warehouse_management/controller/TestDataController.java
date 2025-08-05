@@ -5,6 +5,7 @@ import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.*;
 import warehouse_management.com.warehouse_management.enumerate.ActiveStatus;
 import warehouse_management.com.warehouse_management.enumerate.ContainerStatus;
@@ -42,9 +43,18 @@ public class TestDataController {
         this.inventoryItemRepository = inventoryItemRepository;
     }
 
+    private record InitDataRequest(boolean isDrop) {
+    }
 
-    @GetMapping("/init-data")
-    public ResponseEntity<String> createFakeData() {
+    @PostMapping("/init-data")
+    public ResponseEntity<String> createFakeData(@Nullable @RequestBody InitDataRequest request) {
+        // Nếu isDrop == true thì xóa dữ liệu
+        if (request != null && request.isDrop) {
+            mongoTemplate.dropCollection("warehouse");
+            mongoTemplate.dropCollection("container");
+            mongoTemplate.dropCollection("inventory_item");
+            System.out.println("🗑 Đã xóa toàn bộ dữ liệu trong 3 collections.");
+        }
 // 1. Check collection 'warehouse'
         if (!mongoTemplate.collectionExists("warehouse")) {
             mongoTemplate.createCollection("warehouse");
@@ -223,7 +233,8 @@ public class TestDataController {
                     LocalDateTime.now().minusDays(faker.number().numberBetween(30, 60)), // orderDate
                     LocalDateTime.now().minusDays(faker.number().numberBetween(15, 29)), // departureDate
                     LocalDateTime.now().minusDays(faker.number().numberBetween(1, 14)),  // arrivalDate
-                    faker.bool().bool() ? LocalDateTime.now().minusDays(faker.number().numberBetween(1, 10)) : null // consignmentDate
+                    faker.bool().bool() ? LocalDateTime.now().minusDays(faker.number().numberBetween(1, 10)) : null, // consignmentDate
+                    LocalDateTime.now().minusDays(faker.number().numberBetween(61, 90)) // plannedProductionDate
             );
             item.setLogistics(logistics);
         }
