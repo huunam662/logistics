@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
-import warehouse_management.com.warehouse_management.anotation.Validation;
+import warehouse_management.com.warehouse_management.annotation.Validation;
 
 @Data
 @Getter

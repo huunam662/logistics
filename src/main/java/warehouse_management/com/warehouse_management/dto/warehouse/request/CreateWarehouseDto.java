@@ -1,8 +1,7 @@
 package warehouse_management.com.warehouse_management.dto.warehouse.request;
 
-import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
-import warehouse_management.com.warehouse_management.anotation.Validation;
+import warehouse_management.com.warehouse_management.annotation.Validation;
 
 @Data
 public class CreateWarehouseDto {
