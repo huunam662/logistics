@@ -2,22 +2,25 @@ package warehouse_management.com.warehouse_management.dto.warehouse.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
+import warehouse_management.com.warehouse_management.anotation.Validation;
 
 @Data
 public class CreateWarehouseDto {
 
-    @NotBlank(message = "Warehouse name is mandatory")
+    @Validation(label = "name1", required = true)
     private String name;
 
-    @NotBlank(message = "Warehouse code is mandatory")
+    @Validation(label = "code", required = true)
     private String code;
 
-    @NotBlank(message = "Warehouse type is mandatory")
-    private String type; // KHO CHO SX, KHO DI, KHO DEN,
+    @Validation(required = true)
+    private String type; // KHO CHO SX, KHO DI, KHO DEN
 
     private String status; // Ví dụ: "ACTIVE", "INACTIVE"
 
     private String address;
+
     private String managedById; // ID của người quản lý dưới dạng String
+
     private String note;
 }
