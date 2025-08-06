@@ -6,9 +6,7 @@ import lombok.NoArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-import warehouse_management.com.warehouse_management.enumerate.ContainerStatus;
 import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -26,7 +24,9 @@ public class InventoryItem {
     private String model;          // Model sản phẩm – Bắt buộc
     private String type;           // Loại sản phẩm (VD: Xe nâng điện) – Bắt buộc
     private String category;       // Chủng loại sản phẩm (VD: Ngồi lái) – Bắt buộc
+    private String inventoryType;   // Loại hàng tồn (VD: phụ kiện, ...) - Bắt buộc
     private Integer manufacturingYear; // Năm sản xuất – Không bắt buộc
+    private Integer quantity;   // Số lượng hàng hóa
     private String status;         // Trạng thái hiện tại (IN_STOCK, IN_TRANSIT...) – Bắt buộc
 
     private ObjectId warehouseId;  // _id của warehouse – Có nếu đang ở kho
@@ -82,6 +82,7 @@ public class InventoryItem {
         private LocalDateTime arrivalDate;      // Ngày đến
         private LocalDateTime consignmentDate;  // Ngày ký gửi (nếu có)
         private LocalDateTime plannedProductionDate; // Ngày dự kiến sản xuất
+        private LocalDateTime estimateCompletionDate; // Ngày dự kiến sản xuất xong
     }
 
     public InventoryItemStatus getStatus() {

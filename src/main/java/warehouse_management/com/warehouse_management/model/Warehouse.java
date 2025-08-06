@@ -18,7 +18,7 @@ import warehouse_management.com.warehouse_management.enumerate.WarehouseType;
 public class Warehouse {
 
     @Id
-    private ObjectId id; // _id
+    private ObjectId id;        // _id
 
     private String name;       // Tên kho (bắt buộc)
     private String code;       // Mã kho duy nhất (bắt buộc)

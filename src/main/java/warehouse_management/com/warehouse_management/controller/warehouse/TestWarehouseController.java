@@ -18,7 +18,7 @@ import warehouse_management.com.warehouse_management.repository.WarehouseReposit
 import warehouse_management.com.warehouse_management.utils.Msg;
 
 @Controller
-@RequestMapping("/api/v1/testwarehouses")
+@RequestMapping("/v1/testwarehouses")
 @Validated
 public class TestWarehouseController {
     private static final Logger logger = LogManager.getLogger(TestWarehouseController.class);

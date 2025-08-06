@@ -2,7 +2,11 @@ package warehouse_management.com.warehouse_management.enumerate;
 
 public enum InventoryItemStatus {
     IN_STOCK("IN_STOCK"),
-    IN_TRANSIT("IN_TRANSIT");
+    IN_TRANSIT("IN_TRANSIT"),
+    IN_REPAIR("IN_REPAIR"),
+    HOLD("HOLD"),
+    SOLD("SOLD"),
+    OTHER("OTHER");
 
     private final String id;
 

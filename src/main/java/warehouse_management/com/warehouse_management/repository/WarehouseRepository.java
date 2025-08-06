@@ -7,7 +7,7 @@ import warehouse_management.com.warehouse_management.model.Warehouse;
 import java.util.List;
 import java.util.Optional;
 
-public interface WarehouseRepository extends MongoRepository<Warehouse, String> {
+public interface WarehouseRepository extends MongoRepository<Warehouse, ObjectId> {
     // Tìm kho theo mã code (duy nhất)
     Optional<Warehouse> findByCode(String code);
 
