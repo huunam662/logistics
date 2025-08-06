@@ -60,13 +60,22 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(ApiResponse.fail("Validation failed", validationErrors));
 
     }
-    //Xử lý lỗi business logic
+
+    // Xử lý lỗi logic nghiệp vụ (business logic)
     @ExceptionHandler(LogicErrException.class)
-    public ResponseEntity<?> handleLogicException(LogicErrException ex) {
-        String message = Msg.get(ex.getMessageKey(), ex.getArgs());
-        String code = ex.getCode(); // Có thể null hoặc rỗng
-        logger.warn("LOGIC ERROR EXCEPTION [{}]: {}", code, message);
-        // Nếu code null hoặc rỗng thì dùng mặc định
+    public ResponseEntity<ApiResponse<?>> handleLogicException(LogicErrException ex) {
+        String code = ex.getCode();
+        String message = null;
+
+        // 1. Ưu tiên rawMessage (throw bằng of("..."))
+        if (ex.getRawMessage() != null && !ex.getRawMessage().isBlank()) {
+            message = ex.getRawMessage();
+        }
+        // 2. Nếu có messageKey (throw bằng ofKey(...))
+        else if (ex.getMessageKey() != null && !ex.getMessageKey().isBlank()) {
+            message = Msg.get(ex.getMessageKey(), ex.getArgs());
+        }
+        // 2. Nếu có code (throw bằng ofCode(...))
         if (code == null || code.isBlank()) {
             return ResponseEntity.badRequest().body(ApiResponse.fail(message));
         } else {
