@@ -119,7 +119,7 @@ public class WarehouseService {
 
     public Page<InventoryWarehouseContainerView> getPageInventoryConsignment(ObjectId warehouseId, PageOptionsReq optionsReq) throws BadRequestException {
         Warehouse warehouse = getWarehouseToId(warehouseId);
-        if (!warehouse.getType().equals(WarehouseType.DESTINATION))
+        if (!warehouse.getType().equals(WarehouseType.CONSIGNMENT))
             throw new BadRequestException("Kết quả cần tìm không phải là kho ký gửi.");
 
         return getPageInventoryProductionAccessories(warehouse.getId(), optionsReq);
@@ -183,7 +183,7 @@ public class WarehouseService {
 
     public Page<InventoryWarehouseContainerView> getPageInventorySparePartsConsignment(ObjectId warehouseId, PageOptionsReq optionsReq) throws BadRequestException {
         Warehouse warehouse = getWarehouseToId(warehouseId);
-        if (!warehouse.getType().equals(WarehouseType.DESTINATION))
+        if (!warehouse.getType().equals(WarehouseType.CONSIGNMENT))
             throw new BadRequestException("Kết quả cần tìm không phải là kho ký gửi.");
 
         return getPageInventorySpareParts(warehouse.getId(), optionsReq);

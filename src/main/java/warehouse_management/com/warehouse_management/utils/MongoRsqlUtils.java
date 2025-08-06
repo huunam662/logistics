@@ -17,9 +17,7 @@ import org.springframework.data.mongodb.core.aggregation.CountOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import warehouse_management.com.warehouse_management.common.pagination.req.PageOptionsReq;
-
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -152,12 +150,11 @@ public class MongoRsqlUtils {
 
         private Object parseTypeValue(String value){
             if(value == null) return null;
-            try{return Long.parseLong(value);} catch(Exception ignored){}
-            try{return Double.parseDouble(value);} catch(Exception ignored){}
-            try{return LocalDateTime.parse(value, DateTimeFormatter.ISO_LOCAL_DATE_TIME);} catch(Exception ignored){}
-            try{return OffsetDateTime.parse(value, DateTimeFormatter.ISO_OFFSET_DATE_TIME).toInstant();} catch(Exception ignored){}
             if(value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false"))
                 try{return Boolean.parseBoolean(value);} catch(Exception ignored){}
+            if(value.contains(".")) try{return Double.parseDouble(value);} catch(Exception ignored){}
+            else try{return Long.parseLong(value);} catch(Exception ignored){}
+            try{return LocalDateTime.parse(value, DateTimeFormatter.ISO_LOCAL_DATE_TIME);} catch(Exception ignored){}
             return value;
         }
     }
