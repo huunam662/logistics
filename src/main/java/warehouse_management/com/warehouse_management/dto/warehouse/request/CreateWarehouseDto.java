@@ -18,7 +18,6 @@ public class CreateWarehouseDto {
     private String status; // Ví dụ: "ACTIVE", "INACTIVE"
 
     private String address;
-    private String area;
     private String managedById; // ID của người quản lý dưới dạng String
     private String note;
 }
