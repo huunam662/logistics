@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
 
-import warehouse_management.com.warehouse_management.dto.warehouse.response.ValidationErrRes;
+import warehouse_management.com.warehouse_management.dto.ValidationErrRes;
 import warehouse_management.com.warehouse_management.utils.Msg;
 
 import java.util.List;
