@@ -23,6 +23,5 @@ public interface WarehouseRepository extends MongoRepository<Warehouse, ObjectId
     // Tìm các kho do một người quản lý
     List<Warehouse> findByManagedBy(ObjectId userId);
 
-
-
+    boolean existsByCode(String code);
 }

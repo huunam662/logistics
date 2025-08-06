@@ -1,4 +1,4 @@
-package warehouse_management.com.warehouse_management.module.warehouse.dto.response;
+package warehouse_management.com.warehouse_management.dto.warehouse.response;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

@@ -1,10 +1,9 @@
-package warehouse_management.com.warehouse_management.module.warehouse.dto.response;
+package warehouse_management.com.warehouse_management.dto.Inventory.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bson.types.ObjectId;
-import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.model.Warehouse;
 
 import java.math.BigDecimal;

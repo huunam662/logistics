@@ -18,7 +18,7 @@ public class SwaggerDocs {
     public OpenAPI openAPI(){
 
         Server server = new Server();
-        server.setUrl("http://localhost:9090/api");
+        server.setUrl("http://localhost:8080/api");
         server.setDescription("Local App.");
 
         final String securitySchemaName = "Bearer Authorization";

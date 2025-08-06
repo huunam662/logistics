@@ -23,10 +23,9 @@ public class Warehouse {
     private String name;       // Tên kho (bắt buộc)
     private String code;       // Mã kho duy nhất (bắt buộc)
     private String type;       // PRODUCTION, DEPARTURE, etc. (bắt buộc)
-    private String status;     // ACTIVE, INACTIVE (bắt buộc)
+    private String status;     // ACTIVE, INACTIVE (HOẠT ĐỘNG/ ĐÓNG) (bắt buộc)
 
     private String address;    // Không bắt buộc
-    private String area;       // Không bắt buộc
 
     private ObjectId managedBy; // Tham chiếu đến users._id
 

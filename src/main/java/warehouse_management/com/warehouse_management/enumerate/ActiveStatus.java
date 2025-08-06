@@ -4,8 +4,8 @@ import org.springframework.lang.Nullable;
 
 public enum ActiveStatus implements EnumClass<String> {
 
-    ACTIVE("A"),
-    DEACTIVE("D");
+    ACTIVE("A"),   // HOẠT ĐỘNG
+    INACTIVE("D"); // KHÔNG HOẠT ĐỘNG
 
     private final String id;
 

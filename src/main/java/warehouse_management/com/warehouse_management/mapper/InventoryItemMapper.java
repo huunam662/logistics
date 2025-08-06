@@ -3,9 +3,9 @@ package warehouse_management.com.warehouse_management.mapper;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
+import warehouse_management.com.warehouse_management.dto.Inventory.response.*;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
-import warehouse_management.com.warehouse_management.module.warehouse.dto.response.*;
-import warehouse_management.com.warehouse_management.module.warehouse.dto.view.InventoryWarehouseContainerView;
+import warehouse_management.com.warehouse_management.dto.InventoryWarehouseContainerView;
 
 import java.util.List;
 

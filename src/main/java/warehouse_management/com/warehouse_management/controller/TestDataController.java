@@ -1,6 +1,7 @@
 package warehouse_management.com.warehouse_management.controller;
 
 import com.github.javafaker.Faker;
+import com.mongodb.lang.Nullable;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -22,6 +23,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
@@ -40,9 +42,18 @@ public class TestDataController {
         this.inventoryItemRepository = inventoryItemRepository;
     }
 
+    private record InitDataRequest(boolean isDrop) {
+    }
 
-    @GetMapping("/init-data")
-    public ResponseEntity<String> createFakeData() {
+    @PostMapping("/init-data")
+    public ResponseEntity<String> createFakeData(@Nullable @RequestBody InitDataRequest request) {
+        // Nếu isDrop == true thì xóa dữ liệu
+        if (request != null && request.isDrop) {
+            mongoTemplate.dropCollection("warehouse");
+            mongoTemplate.dropCollection("container");
+            mongoTemplate.dropCollection("inventory_item");
+            System.out.println("🗑 Đã xóa toàn bộ dữ liệu trong 3 collections.");
+        }
 // 1. Check collection 'warehouse'
         if (!mongoTemplate.collectionExists("warehouse")) {
             mongoTemplate.createCollection("warehouse");

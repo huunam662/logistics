@@ -3,7 +3,6 @@ package warehouse_management.com.warehouse_management.service;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.BadRequestException;
 import org.bson.types.ObjectId;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -12,19 +11,31 @@ import warehouse_management.com.warehouse_management.common.pagination.req.PageO
 import warehouse_management.com.warehouse_management.enumerate.InventoryType;
 import warehouse_management.com.warehouse_management.enumerate.WarehouseType;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
+import warehouse_management.com.warehouse_management.dto.warehouse.request.CreateWarehouseDto;
+import warehouse_management.com.warehouse_management.dto.warehouse.request.UpdateWarehouseDto;
+import warehouse_management.com.warehouse_management.dto.warehouse.response.WarehouseResponseDto;
+import warehouse_management.com.warehouse_management.mapper.warehouse.WarehouseMapper;
 import warehouse_management.com.warehouse_management.model.Warehouse;
-import warehouse_management.com.warehouse_management.module.warehouse.dto.view.InventoryWarehouseContainerView;
-import warehouse_management.com.warehouse_management.module.warehouse.dto.view.WarehouseView;
+import warehouse_management.com.warehouse_management.dto.InventoryWarehouseContainerView;
 import warehouse_management.com.warehouse_management.repository.WarehouseRepository;
 import warehouse_management.com.warehouse_management.utils.MongoRsqlUtils;
-
+import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 @Slf4j(topic = "WAREHOUSE-SERVICE")
 @Service
 public class WarehouseService {
 
-    @Autowired private WarehouseRepository warehouseRepository;
+    private final WarehouseRepository warehouseRepository;
+    private final WarehouseRepository repository;
+    private final WarehouseMapper mapper;
+
+    public WarehouseService(WarehouseRepository repository, WarehouseMapper mapper, WarehouseRepository warehouseRepository) {
+        this.repository = repository;
+        this.mapper = mapper;
+        this.warehouseRepository = warehouseRepository;
+    }
 
     public Warehouse getWarehouseToId(ObjectId warehouseId) {
         return warehouseRepository.findById(warehouseId).orElseThrow(
@@ -57,7 +68,7 @@ public class WarehouseService {
 
     public Page<InventoryWarehouseContainerView> getPageInventoryProduction(ObjectId warehouseId, PageOptionsReq optionsReq) throws BadRequestException {
         Warehouse warehouse = getWarehouseToId(warehouseId);
-        if(!warehouse.getType().equals(WarehouseType.PRODUCTION))
+        if (!warehouse.getType().equals(WarehouseType.PRODUCTION))
             throw new BadRequestException("Kết quả cần tìm không phải là kho chờ sản xuất.");
 
         return getPageInventoryProductionAccessories(warehouse.getId(), optionsReq);
@@ -65,7 +76,7 @@ public class WarehouseService {
 
     public Page<InventoryWarehouseContainerView> getPageInventoryDeparture(ObjectId warehouseId, PageOptionsReq optionsReq) throws BadRequestException {
         Warehouse warehouse = getWarehouseToId(warehouseId);
-        if(!warehouse.getType().equals(WarehouseType.DEPARTURE))
+        if (!warehouse.getType().equals(WarehouseType.DEPARTURE))
             throw new BadRequestException("Kết quả cần tìm không phải là kho di.");
 
         Criteria isWarehouseId = Criteria.where("warehouseId").is(warehouseId);
@@ -85,20 +96,38 @@ public class WarehouseService {
         return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryWarehouseContainerView.class, aggQuery, optionsReq);
     }
 
+    public WarehouseResponseDto createWarehouse(CreateWarehouseDto createDto) {
+        Warehouse warehouse = mapper.toEntity(createDto);
+        Warehouse savedWarehouse = repository.save(warehouse);
+        return mapper.toResponseDto(savedWarehouse);
+    }
+
     public Page<InventoryWarehouseContainerView> getPageInventoryDestination(ObjectId warehouseId, PageOptionsReq optionsReq) throws BadRequestException {
         Warehouse warehouse = getWarehouseToId(warehouseId);
-        if(!warehouse.getType().equals(WarehouseType.DESTINATION))
+        if (!warehouse.getType().equals(WarehouseType.DESTINATION))
             throw new BadRequestException("Kết quả cần tìm không phải là kho đích.");
 
         return getPageInventoryProductionAccessories(warehouse.getId(), optionsReq);
     }
 
+    public List<WarehouseResponseDto> getAllWarehouses() {
+        return repository.findAll()
+                .stream()
+                .map(mapper::toResponseDto)
+                .collect(Collectors.toList());
+    }
+
     public Page<InventoryWarehouseContainerView> getPageInventoryConsignment(ObjectId warehouseId, PageOptionsReq optionsReq) throws BadRequestException {
         Warehouse warehouse = getWarehouseToId(warehouseId);
-        if(!warehouse.getType().equals(WarehouseType.DESTINATION))
+        if (!warehouse.getType().equals(WarehouseType.DESTINATION))
             throw new BadRequestException("Kết quả cần tìm không phải là kho ký gửi.");
 
         return getPageInventoryProductionAccessories(warehouse.getId(), optionsReq);
+    }
+
+    public WarehouseResponseDto getWarehouseById(String id) {
+        Warehouse warehouse = findWarehouseById(id);
+        return mapper.toResponseDto(warehouse);
     }
 
     private Page<InventoryWarehouseContainerView> getPageInventorySpareParts(ObjectId warehouseId, PageOptionsReq optionsReq){
@@ -115,6 +144,13 @@ public class WarehouseService {
         return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryWarehouseContainerView.class, aggQuery, optionsReq);
     }
 
+    public WarehouseResponseDto updateWarehouse(String id, UpdateWarehouseDto updateDto) {
+        Warehouse existingWarehouse = findWarehouseById(id);
+        mapper.updateFromDto(updateDto, existingWarehouse);
+        Warehouse updatedWarehouse = repository.save(existingWarehouse);
+        return mapper.toResponseDto(updatedWarehouse);
+    }
+
     public Page<InventoryWarehouseContainerView> getPageInventorySparePartsProduction(ObjectId warehouseId, PageOptionsReq optionsReq) throws BadRequestException {
         Warehouse warehouse = getWarehouseToId(warehouseId);
         if(!warehouse.getType().equals(WarehouseType.PRODUCTION))
@@ -125,10 +161,16 @@ public class WarehouseService {
 
     public Page<InventoryWarehouseContainerView> getPageInventorySparePartsDeparture(ObjectId warehouseId, PageOptionsReq optionsReq) throws BadRequestException {
         Warehouse warehouse = getWarehouseToId(warehouseId);
-        if(!warehouse.getType().equals(WarehouseType.DEPARTURE))
-            throw new BadRequestException("Kết quả cần tìm không phải là kho di.");
+        if (!warehouse.getType().equals(WarehouseType.DEPARTURE))
+            throw new BadRequestException("Kết quả cần tìm không phải là kho đi.");
 
         return getPageInventorySpareParts(warehouse.getId(), optionsReq);
+    }
+
+    public void deleteWarehouse(String id) {
+
+        Warehouse warehouse = findWarehouseById(id);
+        repository.delete(warehouse);
     }
 
     public Page<InventoryWarehouseContainerView> getPageInventorySparePartsDestination(ObjectId warehouseId, PageOptionsReq optionsReq) throws BadRequestException {
@@ -141,9 +183,19 @@ public class WarehouseService {
 
     public Page<InventoryWarehouseContainerView> getPageInventorySparePartsConsignment(ObjectId warehouseId, PageOptionsReq optionsReq) throws BadRequestException {
         Warehouse warehouse = getWarehouseToId(warehouseId);
-        if(!warehouse.getType().equals(WarehouseType.DESTINATION))
+        if (!warehouse.getType().equals(WarehouseType.DESTINATION))
             throw new BadRequestException("Kết quả cần tìm không phải là kho ký gửi.");
 
         return getPageInventorySpareParts(warehouse.getId(), optionsReq);
+    }
+
+    private Warehouse findWarehouseById(String id) {
+        ObjectId objectId;
+        try {
+            objectId = new ObjectId(id);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+        return null;
     }
 }
