@@ -60,13 +60,18 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(ApiResponse.fail("Validation failed", validationErrors));
 
     }
-//Xử lý lỗi business logic
-
+    //Xử lý lỗi business logic
     @ExceptionHandler(LogicErrException.class)
     public ResponseEntity<?> handleLogicException(LogicErrException ex) {
         String message = Msg.get(ex.getMessageKey(), ex.getArgs());
-        logger.warn("LOGIC ERROR EXCEPTION: {}", message);
-        return ResponseEntity.badRequest().body(ApiResponse.fail(message));
+        String code = ex.getCode(); // Có thể null hoặc rỗng
+        logger.warn("LOGIC ERROR EXCEPTION [{}]: {}", code, message);
+        // Nếu code null hoặc rỗng thì dùng mặc định
+        if (code == null || code.isBlank()) {
+            return ResponseEntity.badRequest().body(ApiResponse.fail(message));
+        } else {
+            return ResponseEntity.badRequest().body(ApiResponse.fail(code, message));
+        }
     }
 
     /**
@@ -77,7 +82,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<List<String>>> handleConstraintViolationException(ConstraintViolationException ex) {
         List<String> errors = ex.getConstraintViolations()
                 .stream()
-                .map(violation -> violation.getPropertyPath() + ": " + violation.getMessage())
+                .map(violation -> violation.getMessage())
                 .collect(Collectors.toList());
 
         log.warn("Constraint violation: {}", errors);
