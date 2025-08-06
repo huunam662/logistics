@@ -10,7 +10,6 @@ public class WarehouseResponseDto {
     private String type;
     private String status;
     private String address;
-    private String area;
     private String managedById;
     private String note;
 }
