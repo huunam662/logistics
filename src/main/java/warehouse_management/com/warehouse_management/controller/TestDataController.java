@@ -6,10 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import warehouse_management.com.warehouse_management.enumerate.ActiveStatus;
-import warehouse_management.com.warehouse_management.enumerate.ContainerStatus;
-import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
-import warehouse_management.com.warehouse_management.enumerate.WarehouseType;
+import warehouse_management.com.warehouse_management.enumerate.*;
 import warehouse_management.com.warehouse_management.model.Container;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.model.Warehouse;
@@ -21,6 +18,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Year;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -146,8 +144,8 @@ public class TestDataController {
             // Gán from/to warehouse theo đúng loại
             Warehouse from = departureWarehouses.get(faker.random().nextInt(departureWarehouses.size()));
             Warehouse to = destinationWarehouses.get(faker.random().nextInt(destinationWarehouses.size()));
-            c.setFromWareHouse(from.getId());
-            c.setToWarehouse(to.getId());
+            c.setFromWareHouseId(from.getId());
+            c.setToWarehouseId(to.getId());
 
             containers.add(c);
         }
@@ -160,8 +158,12 @@ public class TestDataController {
         for (int i = 0; i < 20; i++) {
             InventoryItem item = new InventoryItem();
             item.setId(new ObjectId());
-            String poNumber = String.format("PO-%d-%03d", currentYear, i + 1);
-            item.setProductCode(poNumber);
+            String poNumber = String.format("PO-%s-%03d", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")), i + 1);
+            String productCode = String.format("PRC-%d-%03d", currentYear, i + 1);
+            item.setPoNumber(poNumber);
+            item.setProductCode(productCode);
+            item.setInventoryType(InventoryType.PRODUCT_ACCESSORIES.getId());
+            item.setQuantity(faker.number().numberBetween(i + 1, (i + 1) * 10));
             item.setSerialNumber("SERIAL_" + faker.number().digits(6));
             item.setModel("Model " + faker.letterify("M-???"));
             item.setType("Xe nâng điện");
@@ -223,7 +225,9 @@ public class TestDataController {
                     LocalDateTime.now().minusDays(faker.number().numberBetween(30, 60)), // orderDate
                     LocalDateTime.now().minusDays(faker.number().numberBetween(15, 29)), // departureDate
                     LocalDateTime.now().minusDays(faker.number().numberBetween(1, 14)),  // arrivalDate
-                    faker.bool().bool() ? LocalDateTime.now().minusDays(faker.number().numberBetween(1, 10)) : null // consignmentDate
+                    faker.bool().bool() ? LocalDateTime.now().minusDays(faker.number().numberBetween(1, 10)) : null, // consignmentDate,
+                    LocalDateTime.now().minusDays(faker.number().numberBetween(25, 50)), // plannedProductionDate
+                    LocalDateTime.now().minusDays(faker.number().numberBetween(16, 28)) // estimateCompletionDate
             );
             item.setLogistics(logistics);
         }
