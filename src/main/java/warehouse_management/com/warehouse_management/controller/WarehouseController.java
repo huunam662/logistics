@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import warehouse_management.com.warehouse_management.dto.ApiResponse;
 import warehouse_management.com.warehouse_management.dto.warehouse.request.CreateWarehouseDto;
 import warehouse_management.com.warehouse_management.dto.warehouse.request.UpdateWarehouseDto;
 import warehouse_management.com.warehouse_management.dto.warehouse.response.WarehouseResponseDto;
@@ -31,32 +32,32 @@ public class WarehouseController {
     }
 
     @PostMapping
-    public ResponseEntity<WarehouseResponseDto> createWarehouse(@Valid @RequestBody CreateWarehouseDto createDto) {
+    public ApiResponse<?> createWarehouse(@Valid @RequestBody CreateWarehouseDto createDto) {
         WarehouseResponseDto createdWarehouse = warehouseService.createWarehouse(createDto);
-        return new ResponseEntity<>(createdWarehouse, HttpStatus.CREATED);
+        return ApiResponse.success(createdWarehouse);
     }
 
     @GetMapping
-    public ResponseEntity<List<WarehouseResponseDto>> getAllWarehouses() {
+    public ApiResponse<?>  getAllWarehouses() {
         List<WarehouseResponseDto> warehouses = warehouseService.getAllWarehouses();
-        return ResponseEntity.ok(warehouses);
+        return ApiResponse.success(warehouses);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<WarehouseResponseDto> getWarehouseById(@PathVariable String id) {
+    public ApiResponse<?>  getWarehouseById(@PathVariable("id") String id) {
         WarehouseResponseDto warehouse = warehouseService.getWarehouseById(id);
-        return ResponseEntity.ok(warehouse);
+        return ApiResponse.success(warehouse);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<WarehouseResponseDto> updateWarehouse(@PathVariable String id, @Valid @RequestBody UpdateWarehouseDto updateDto) {
+    public ApiResponse<?>  updateWarehouse(@PathVariable("id") String id, @Valid @RequestBody UpdateWarehouseDto updateDto) {
         WarehouseResponseDto updatedWarehouse = warehouseService.updateWarehouse(id, updateDto);
-        return ResponseEntity.ok(updatedWarehouse);
+        return ApiResponse.success(updatedWarehouse);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteWarehouse(@PathVariable String id) {
+    public ApiResponse<?>  deleteWarehouse(@PathVariable("id") String id) {
         warehouseService.deleteWarehouse(id);
-        return ResponseEntity.noContent().build();
+        return ApiResponse.success();
     }
 }

@@ -44,12 +44,17 @@ public class ApiResponse<T> {
         this.timestamp = LocalDateTime.now();
     }
 
-    // ✅ Thành công
+    //  Thành công
+    public static <T> ApiResponse<T> success() {
+        return new ApiResponse<>(SUCCESS_CODE, SUCCESS_MESSAGE, null);
+    }
+
+    //  Thành công
     public static <T> ApiResponse<T> success(T result) {
         return new ApiResponse<>(SUCCESS_CODE, SUCCESS_MESSAGE, result);
     }
 
-    // ✅ Thất bại với code mặc định, message
+    // Thất bại với code mặc định, message
     public static <T> ApiResponse<T> fail(String message) {
         return new ApiResponse<>(FAILD_CODE, message, null);
     }
@@ -59,7 +64,7 @@ public class ApiResponse<T> {
         return new ApiResponse<>(code, message, null);
     }
 
-    // ✅ Dùng default fail code 400, result
+    //  Dùng default fail code 400, result
     public static <T> ApiResponse<T> fail(String message, T result) {
         return new ApiResponse<>(FAILD_CODE, message, result);
     }
