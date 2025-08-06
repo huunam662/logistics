@@ -6,13 +6,13 @@ import warehouse_management.com.warehouse_management.annotation.Validation;
 @Data
 public class CreateWarehouseDto {
 
-    @Validation(label = "name1", required = true)
+    @Validation(label = "name", required = true)
     private String name;
 
     @Validation(label = "code", required = true)
     private String code;
 
-    @Validation(required = true)
+    @Validation(label = "type", required = true)
     private String type; // KHO CHO SX, KHO DI, KHO DEN
 
     private String status; // Ví dụ: "ACTIVE", "INACTIVE"
