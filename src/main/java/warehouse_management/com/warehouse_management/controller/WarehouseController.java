@@ -142,7 +142,7 @@ public class WarehouseController {
             @PathVariable("warehouseId") String warehouseId,
             @ModelAttribute PageOptionsReq optionsReq
     ) throws BadRequestException {
-        Page<InventoryWarehouseContainerView> inventoryItemPage = warehouseService.getPageInventoryDestination(new ObjectId(warehouseId), optionsReq);
+        Page<InventoryWarehouseContainerView> inventoryItemPage = warehouseService.getPageInventoryConsignment(new ObjectId(warehouseId), optionsReq);
         List<InventoryWarehouseContainerView> inventoryItems = inventoryItemPage.getContent();
         List<InventoryConsignmentRes> warehouseInventoryResList = InventoryItemMapper.INSTANCE.toInventoryConsignmentResList(inventoryItems);
         Page<InventoryConsignmentRes> pageRes = new PageImpl<>(warehouseInventoryResList, inventoryItemPage.getPageable(), inventoryItemPage.getTotalElements());
