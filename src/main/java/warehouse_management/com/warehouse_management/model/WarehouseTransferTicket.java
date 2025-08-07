@@ -39,6 +39,13 @@ public class WarehouseTransferTicket {
     private LocalDateTime createdAt;          // Thời gian tạo
     private LocalDateTime processedAt;        // Thời gian xử lý (duyệt/từ chối)
 
+    private ObjectId createdBy;
+
+    private ObjectId  updatedBy;
+    private ObjectId deletedBy;
+
+    private LocalDateTime updatedAt;
+    private LocalDateTime deletedAt;
     @Data
     @Builder
     @NoArgsConstructor

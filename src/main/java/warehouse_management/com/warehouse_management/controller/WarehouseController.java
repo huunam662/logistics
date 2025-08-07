@@ -19,7 +19,7 @@ import warehouse_management.com.warehouse_management.dto.warehouse.response.Ware
 import warehouse_management.com.warehouse_management.mapper.InventoryItemMapper;
 import warehouse_management.com.warehouse_management.mapper.WarehouseMapper;
 import warehouse_management.com.warehouse_management.model.Warehouse;
-import warehouse_management.com.warehouse_management.dto.InventoryWarehouseContainerView;
+import warehouse_management.com.warehouse_management.dto.Inventory.view.InventoryWarehouseContainerView;
 import warehouse_management.com.warehouse_management.service.WarehouseService;
 import java.util.List;
 
@@ -93,7 +93,7 @@ public class WarehouseController {
     public ApiResponse<?> getPageInventoryProduction(
             @PathVariable("warehouseId") String warehouseId,
             @ModelAttribute PageOptionsReq optionsReq
-    ) throws BadRequestException {
+    ) {
         Page<InventoryWarehouseContainerView> inventoryWarehouseView = warehouseService.getPageInventoryProduction(new ObjectId(warehouseId), optionsReq);
         List<InventoryWarehouseContainerView> inventoryItems = inventoryWarehouseView.getContent();
         List<InventoryProductionRes> warehouseInventoryResList = InventoryItemMapper.INSTANCE.toInventoryProductionResList(inventoryItems);
@@ -109,7 +109,7 @@ public class WarehouseController {
     public ApiResponse<?> getPageInventoryDeparture(
             @PathVariable("warehouseId") String warehouseId,
             @ModelAttribute PageOptionsReq optionsReq
-    ) throws BadRequestException {
+    ) {
         Page<InventoryWarehouseContainerView> inventoryItemPage = warehouseService.getPageInventoryDeparture(new ObjectId(warehouseId), optionsReq);
         List<InventoryWarehouseContainerView> inventoryItems = inventoryItemPage.getContent();
         List<InventoryDepartureRes> warehouseInventoryResList = InventoryItemMapper.INSTANCE.toInventoryDepartureResList(inventoryItems);
@@ -125,7 +125,7 @@ public class WarehouseController {
     public ApiResponse<?> getPageInventoryDestination(
             @PathVariable("warehouseId") String warehouseId,
             @ModelAttribute PageOptionsReq optionsReq
-    ) throws BadRequestException {
+    ) {
         Page<InventoryWarehouseContainerView> inventoryItemPage = warehouseService.getPageInventoryDestination(new ObjectId(warehouseId), optionsReq);
         List<InventoryWarehouseContainerView> inventoryItems = inventoryItemPage.getContent();
         List<InventoryDestinationRes> warehouseInventoryResList = InventoryItemMapper.INSTANCE.toInventoryDestinationResList(inventoryItems);
@@ -141,8 +141,8 @@ public class WarehouseController {
     public ApiResponse<?> getPageInventoryConsignment(
             @PathVariable("warehouseId") String warehouseId,
             @ModelAttribute PageOptionsReq optionsReq
-    ) throws BadRequestException {
-        Page<InventoryWarehouseContainerView> inventoryItemPage = warehouseService.getPageInventoryDestination(new ObjectId(warehouseId), optionsReq);
+    ) {
+        Page<InventoryWarehouseContainerView> inventoryItemPage = warehouseService.getPageInventoryConsignment(new ObjectId(warehouseId), optionsReq);
         List<InventoryWarehouseContainerView> inventoryItems = inventoryItemPage.getContent();
         List<InventoryConsignmentRes> warehouseInventoryResList = InventoryItemMapper.INSTANCE.toInventoryConsignmentResList(inventoryItems);
         Page<InventoryConsignmentRes> pageRes = new PageImpl<>(warehouseInventoryResList, inventoryItemPage.getPageable(), inventoryItemPage.getTotalElements());
@@ -157,7 +157,7 @@ public class WarehouseController {
     public ApiResponse<?> getPageInventoryConsignmentSpareParts(
             @PathVariable("warehouseId") String warehouseId,
             @ModelAttribute PageOptionsReq optionsReq
-    ) throws BadRequestException {
+    ) {
         Page<InventoryWarehouseContainerView> inventoryItemPage = warehouseService.getPageInventorySparePartsConsignment(new ObjectId(warehouseId), optionsReq);
         List<InventoryWarehouseContainerView> inventoryItems = inventoryItemPage.getContent();
         List<InventoryConsignmentSparePartsRes> warehouseInventoryResList = InventoryItemMapper.INSTANCE.toInventoryConsignmentSparePartsResList(inventoryItems);
@@ -174,7 +174,7 @@ public class WarehouseController {
     public ApiResponse<?> getPageInventoryProductionSpareParts(
             @PathVariable("warehouseId") String warehouseId,
             @ModelAttribute PageOptionsReq optionsReq
-    ) throws BadRequestException {
+    ) {
         Page<InventoryWarehouseContainerView> inventoryWarehouseView = warehouseService.getPageInventorySparePartsProduction(new ObjectId(warehouseId), optionsReq);
         List<InventoryWarehouseContainerView> inventoryItems = inventoryWarehouseView.getContent();
         List<InventoryProductionSparePartsRes> warehouseInventoryResList = InventoryItemMapper.INSTANCE.toInventoryProductionSparePartsResList(inventoryItems);
@@ -190,7 +190,7 @@ public class WarehouseController {
     public ApiResponse<?> getPageInventoryDepartureSpareParts(
             @PathVariable("warehouseId") String warehouseId,
             @ModelAttribute PageOptionsReq optionsReq
-    ) throws BadRequestException {
+    ) {
         Page<InventoryWarehouseContainerView> inventoryItemPage = warehouseService.getPageInventorySparePartsDeparture(new ObjectId(warehouseId), optionsReq);
         List<InventoryWarehouseContainerView> inventoryItems = inventoryItemPage.getContent();
         List<InventoryDepartureSparePartsRes> warehouseInventoryResList = InventoryItemMapper.INSTANCE.toInventoryDepartureSparePartsResList(inventoryItems);
@@ -206,7 +206,7 @@ public class WarehouseController {
     public ApiResponse<?> getPageInventoryDestinationSpareParts(
             @PathVariable("warehouseId") String warehouseId,
             @ModelAttribute PageOptionsReq optionsReq
-    ) throws BadRequestException {
+    ) {
         Page<InventoryWarehouseContainerView> inventoryItemPage = warehouseService.getPageInventorySparePartsDestination(new ObjectId(warehouseId), optionsReq);
         List<InventoryWarehouseContainerView> inventoryItems = inventoryItemPage.getContent();
         List<InventoryDestinationSparePartsRes> warehouseInventoryResList = InventoryItemMapper.INSTANCE.toInventoryDestinationSparePartsResList(inventoryItems);

@@ -60,18 +60,28 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(ApiResponse.fail("Validation failed", validationErrors));
 
     }
-    //Xử lý lỗi business logic
+
+    // Xử lý lỗi logic nghiệp vụ (business logic)
     @ExceptionHandler(LogicErrException.class)
-    public ResponseEntity<?> handleLogicException(LogicErrException ex) {
-        String message = Msg.get(ex.getMessageKey(), ex.getArgs());
-        String code = ex.getCode(); // Có thể null hoặc rỗng
-        logger.warn("LOGIC ERROR EXCEPTION [{}]: {}", code, message);
-        // Nếu code null hoặc rỗng thì dùng mặc định
-        if (code == null || code.isBlank()) {
-            return ResponseEntity.badRequest().body(ApiResponse.fail(message));
-        } else {
-            return ResponseEntity.badRequest().body(ApiResponse.fail(code, message));
+    public ResponseEntity<ApiResponse<?>> handleLogicException(LogicErrException ex) {
+        String code = ex.getCode();
+        String message = null;
+
+        // 1. Ưu tiên rawMessage (throw bằng of("..."))
+        if (ex.getRawMessage() != null && !ex.getRawMessage().isBlank()) {
+            message = ex.getRawMessage();
         }
+        // 2. Nếu có messageKey (throw bằng ofKey(...))
+        else if (ex.getMessageKey() != null && !ex.getMessageKey().isBlank()) {
+            message = Msg.get(ex.getMessageKey(), ex.getArgs());
+        }
+        // Mặc định là BAD_REQUEST, trừ khi exception khai báo khác
+        HttpStatus status = ex.getHttpStatus();
+
+        ApiResponse<?> body = (code == null || code.isBlank())
+                ? ApiResponse.fail(message)
+                : ApiResponse.fail(code, message);
+        return ResponseEntity.status(status).body(body);
     }
 
     /**
@@ -130,7 +140,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<String>> handleAllUncaughtException(Exception ex) {
         logger.error("Unexpected error", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.fail(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()),"Unexpected server error."));
+                .body(ApiResponse.fail(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()), "Unexpected server error."));
     }
 
 

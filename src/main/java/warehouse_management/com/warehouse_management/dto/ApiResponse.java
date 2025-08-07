@@ -18,8 +18,8 @@ import java.time.LocalDateTime;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ApiResponse<T> {
 
-    public static final String SUCCESS_CODE = "000";
-    public static final String FAILD_CODE = "400";
+    public static final String SUCCESS_CODE = "S000";
+    public static final String FAILD_CODE = "F000";
     public static final String SUCCESS_MESSAGE = "Thành công";
     public static final String FAIL_MESSAGE = "Thất bại";
 
@@ -59,17 +59,17 @@ public class ApiResponse<T> {
         return new ApiResponse<>(FAILD_CODE, message, null);
     }
 
-    // Thêm code custom(nếu k sẽ là 400), message
+    // Thêm code custom(nếu k sẽ là F000), message
     public static <T> ApiResponse<T> fail(String code, String message) {
         return new ApiResponse<>(code, message, null);
     }
 
-    //  Dùng default fail code 400, result
+    //  Dùng default fail code F000, result
     public static <T> ApiResponse<T> fail(String message, T result) {
         return new ApiResponse<>(FAILD_CODE, message, result);
     }
 
-    // Thêm code custom(nếu k sẽ là 400), message, result
+    // Thêm code custom(nếu k sẽ là F000), message, result
     public static <T> ApiResponse<T> fail(String code, String message, T result) {
         return new ApiResponse<>(code, message, result);
     }

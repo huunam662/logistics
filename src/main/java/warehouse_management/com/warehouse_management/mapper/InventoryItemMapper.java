@@ -4,19 +4,13 @@ import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 import warehouse_management.com.warehouse_management.dto.Inventory.response.*;
-import warehouse_management.com.warehouse_management.model.InventoryItem;
-import warehouse_management.com.warehouse_management.dto.InventoryWarehouseContainerView;
-
+import warehouse_management.com.warehouse_management.dto.Inventory.view.InventoryWarehouseContainerView;
 import java.util.List;
 
 @Mapper(builder = @Builder(disableBuilder = true))
 public interface InventoryItemMapper {
 
     InventoryItemMapper INSTANCE = Mappers.getMapper(InventoryItemMapper.class);
-
-    InventoryProductionRes toWarehouseInventoryRes(InventoryItem inventoryItem);
-
-    List<InventoryProductionRes> toWarehouseInventoryResList(List<InventoryItem> inventoryItems);
 
     InventoryProductionRes toInventoryProductionRes(InventoryWarehouseContainerView inventoryWarehouseContainerView);
 
