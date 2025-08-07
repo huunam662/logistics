@@ -49,6 +49,10 @@ public class Warehouse {
         this.status = status == null ? null : status.getId();
     }
 
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
     public WarehouseType getType() {
         return type == null ? null : WarehouseType.fromId(type);
     }

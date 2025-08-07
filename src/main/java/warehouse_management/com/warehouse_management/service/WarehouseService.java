@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import warehouse_management.com.warehouse_management.common.pagination.req.PageOptionsReq;
 import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
 import warehouse_management.com.warehouse_management.enumerate.InventoryType;
@@ -18,10 +19,13 @@ import warehouse_management.com.warehouse_management.dto.warehouse.response.Ware
 import warehouse_management.com.warehouse_management.mapper.warehouse.WarehouseMapper;
 import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.dto.Inventory_item.view.InventoryWarehouseContainerView;
-import warehouse_management.com.warehouse_management.repository.WarehouseRepository;
+import warehouse_management.com.warehouse_management.repository.warehouse.WarehouseRepository;
 import warehouse_management.com.warehouse_management.utils.MongoRsqlUtils;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j(topic = "WAREHOUSE-SERVICE")
@@ -158,14 +162,19 @@ public class WarehouseService {
     }
 
     public WarehouseResponseDto getWarehouseById(String id) {
-        Warehouse warehouse = findWarehouseById(id);
+        Warehouse warehouse = getWarehouseToId(new ObjectId(id));
         return mapper.toResponseDto(warehouse);
     }
 
-    public WarehouseResponseDto updateWarehouse(String id, UpdateWarehouseDto updateDto) {
-        Warehouse existingWarehouse = findWarehouseById(id);
-        mapper.updateFromDto(updateDto, existingWarehouse);
-        Warehouse updatedWarehouse = repository.save(existingWarehouse);
+    public WarehouseResponseDto updateWarehouse(String id, UpdateWarehouseDto updateDto) throws Exception {
+        Optional<Warehouse> existingWarehouse = repository.findById(new ObjectId(id));
+
+        Warehouse warehouse = existingWarehouse.orElseThrow(
+                () -> new Exception("Not found warehouse")
+        );
+
+        mapper.updateFromDto(updateDto, warehouse);
+        Warehouse updatedWarehouse = repository.save(warehouse);
         return mapper.toResponseDto(updatedWarehouse);
     }
 
@@ -213,10 +222,13 @@ public class WarehouseService {
         return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryWarehouseContainerView.class, aggQuery, rsqlPropertyMapper, optionsReq);
     }
 
-    public void deleteWarehouse(String id) {
-
-        Warehouse warehouse = findWarehouseById(id);
-        repository.delete(warehouse);
+    public boolean deleteWarehouse(String id) {
+        Optional<Warehouse> warehouse = repository.findById(new ObjectId(id));
+        if (!warehouse.isPresent()) {
+            warehouse.get().setDeletedAt(LocalDateTime.now());
+        } else
+            return false;
+        return true;
     }
 
     public Page<InventoryWarehouseContainerView> getPageInventorySparePartsDestination(ObjectId warehouseId, PageOptionsReq optionsReq) {
@@ -265,17 +277,6 @@ public class WarehouseService {
         return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryWarehouseContainerView.class, aggQuery, rsqlPropertyMapper, optionsReq);
     }
 
-    private Warehouse findWarehouseById(String id) {
-        ObjectId objectId;
-        try {
-            objectId = new ObjectId(id);
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
-        return null;
-    }
-
-
     public Page<InventoryWarehouseContainerView> getPageInventoryCentralWarehouse(PageOptionsReq optionsReq){
         Criteria isInStockInventory = new Criteria().andOperator(
                 Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
@@ -297,4 +298,21 @@ public class WarehouseService {
         );
         return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryWarehouseContainerView.class, agg, rsqlPropertyMapper, optionsReq);
     }
+
+    @Transactional
+    public long bulkSoftDeleteWarehouses(List<String> warehouseIdStrings) {
+        // Lấy ID người dùng hiện tại
+//        ObjectId currentUserId = getCurrentUserId(); // Placeholder
+
+        List<ObjectId> warehouseIds = warehouseIdStrings.stream()
+                .map(ObjectId::new)
+                .toList();
+
+        if (warehouseIds.isEmpty()) {
+            return 0;
+        }
+
+        return warehouseRepository.bulkSoftDelete(warehouseIds, new ObjectId("6529f2e5b3a04a4a2e8b4f1c"));
+    }
+
 }
