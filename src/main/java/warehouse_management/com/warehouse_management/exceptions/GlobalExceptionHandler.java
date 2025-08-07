@@ -75,12 +75,13 @@ public class GlobalExceptionHandler {
         else if (ex.getMessageKey() != null && !ex.getMessageKey().isBlank()) {
             message = Msg.get(ex.getMessageKey(), ex.getArgs());
         }
-        // 2. Nếu có code (throw bằng ofCode(...))
-        if (code == null || code.isBlank()) {
-            return ResponseEntity.badRequest().body(ApiResponse.fail(message));
-        } else {
-            return ResponseEntity.badRequest().body(ApiResponse.fail(code, message));
-        }
+        // Mặc định là BAD_REQUEST, trừ khi exception khai báo khác
+        HttpStatus status = ex.getHttpStatus();
+
+        ApiResponse<?> body = (code == null || code.isBlank())
+                ? ApiResponse.fail(message)
+                : ApiResponse.fail(code, message);
+        return ResponseEntity.status(status).body(body);
     }
 
     /**
@@ -139,7 +140,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<String>> handleAllUncaughtException(Exception ex) {
         logger.error("Unexpected error", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.fail(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()),"Unexpected server error."));
+                .body(ApiResponse.fail(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()), "Unexpected server error."));
     }
 
 

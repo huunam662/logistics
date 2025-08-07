@@ -18,8 +18,8 @@ import java.time.LocalDateTime;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ApiResponse<T> {
 
-    public static final String SUCCESS_CODE = "000";
-    public static final String FAILD_CODE = "400";
+    public static final String SUCCESS_CODE = "S000";
+    public static final String FAILD_CODE = "F000";
     public static final String SUCCESS_MESSAGE = "Thành công";
     public static final String FAIL_MESSAGE = "Thất bại";
 
