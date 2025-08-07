@@ -10,6 +10,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import warehouse_management.com.warehouse_management.enumerate.ActiveStatus;
 import warehouse_management.com.warehouse_management.enumerate.WarehouseType;
 
+import java.time.LocalDateTime;
+
 @Document(collection = "warehouse")
 @Data
 @NoArgsConstructor
@@ -30,6 +32,14 @@ public class Warehouse {
     private ObjectId managedBy; // Tham chiếu đến users._id
 
     private String note;       // Ghi chú thêm
+
+    private ObjectId createdBy;
+    private ObjectId updatedBy;
+    private ObjectId deletedBy;
+
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private LocalDateTime deletedAt;
 
     public ActiveStatus getStatus() {
         return status == null ? null : ActiveStatus.fromId(status);

@@ -2,7 +2,6 @@ package warehouse_management.com.warehouse_management.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
-import org.apache.coyote.BadRequestException;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -211,6 +210,22 @@ public class WarehouseController {
         List<InventoryWarehouseContainerView> inventoryItems = inventoryItemPage.getContent();
         List<InventoryDestinationSparePartsRes> warehouseInventoryResList = InventoryItemMapper.INSTANCE.toInventoryDestinationSparePartsResList(inventoryItems);
         Page<InventoryDestinationSparePartsRes> pageRes = new PageImpl<>(warehouseInventoryResList, inventoryItemPage.getPageable(), inventoryItemPage.getTotalElements());
+        return ApiResponse.success(new PageInfoRes<>(pageRes));
+    }
+
+    @GetMapping("/page/inventory-central-warehouse")
+    @Operation(
+            summary = "GET data hàng tồn tại các kho đến. (phân trang)",
+            description = "GET data hàng tồn tại các kho đến. (phân trang)"
+    )
+
+    public ApiResponse<?> getPageInventoryCentralWarehouse(
+            @ModelAttribute PageOptionsReq optionsReq
+    ) {
+        Page<InventoryWarehouseContainerView> inventoryItemPage = warehouseService.getPageInventoryCentralWarehouse(optionsReq);
+        List<InventoryWarehouseContainerView> inventoryItems = inventoryItemPage.getContent();
+        List<InventoryCentralWarehouseRes> warehouseInventoryResList = InventoryItemMapper.INSTANCE.toInventoryCentralWarehouseResList(inventoryItems);
+        Page<InventoryCentralWarehouseRes> pageRes = new PageImpl<>(warehouseInventoryResList, inventoryItemPage.getPageable(), inventoryItemPage.getTotalElements());
         return ApiResponse.success(new PageInfoRes<>(pageRes));
     }
 }
