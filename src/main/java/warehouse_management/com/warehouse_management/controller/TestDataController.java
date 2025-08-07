@@ -22,7 +22,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
@@ -200,7 +199,6 @@ public class TestDataController {
             };
 
             item.setNotes(ghiChuMau[faker.random().nextInt(ghiChuMau.length)]);
-            item.setIsDeleted(false);
             item.setCreatedAt(LocalDateTime.now());
             item.setUpdatedAt(LocalDateTime.now());
 

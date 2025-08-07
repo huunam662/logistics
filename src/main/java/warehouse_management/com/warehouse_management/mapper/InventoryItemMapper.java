@@ -44,4 +44,7 @@ public interface InventoryItemMapper {
 
     List<InventoryDepartureSparePartsRes> toInventoryDepartureSparePartsResList(List<InventoryWarehouseContainerView> inventoryWarehouseContainerViews);
 
+    InventoryCentralWarehouseRes toInventoryCentralWarehouseRes(InventoryWarehouseContainerView inventoryWarehouseContainerView);
+
+    List<InventoryCentralWarehouseRes> toInventoryCentralWarehouseResList(List<InventoryWarehouseContainerView> inventoryWarehouseContainerViews);
 }

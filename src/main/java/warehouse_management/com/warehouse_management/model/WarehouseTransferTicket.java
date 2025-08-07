@@ -36,16 +36,17 @@ public class WarehouseTransferTicket {
     private String notes;                     // Ghi chú
     private String rejectReason;              // Lý do từ chối (nếu có)
 
-    private LocalDateTime createdAt;          // Thời gian tạo
     private LocalDateTime processedAt;        // Thời gian xử lý (duyệt/từ chối)
 
     private ObjectId createdBy;
-
-    private ObjectId  updatedBy;
+    private ObjectId updatedBy;
     private ObjectId deletedBy;
 
+    private LocalDateTime createdAt;          // Thời gian tạo
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;
+
+
     @Data
     @Builder
     @NoArgsConstructor

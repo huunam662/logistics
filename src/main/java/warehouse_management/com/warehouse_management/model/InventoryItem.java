@@ -39,10 +39,13 @@ public class InventoryItem {
     private String initialCondition;       // Mô tả nguyên trạng khi nhập kho – Không bắt buộc
     private String notes;                  // Ghi chú chung – Không bắt buộc
 
-    private Boolean isDeleted = false;     // Cờ xóa mềm – Bắt buộc, mặc định false
+    private ObjectId createdBy;
+    private ObjectId updatedBy;
+    private ObjectId deletedBy;
 
-    private LocalDateTime createdAt;       // Thời gian tạo – Bắt buộc
-    private LocalDateTime updatedAt;       // Thời gian cập nhật cuối – Bắt buộc
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private LocalDateTime deletedAt;
 
     // --- Inner Classes ---
 

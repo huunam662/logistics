@@ -30,6 +30,13 @@ public class Container {
     private ObjectId fromWareHouseId;     // Tham chiếu đến _id kho đi
     private ObjectId toWarehouseId;       // Tham chiếu đến _id kho đến
 
+    private ObjectId createdBy;
+    private ObjectId updatedBy;
+    private ObjectId deletedBy;
+
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private LocalDateTime deletedAt;
 
     public ContainerStatus getContainerStatus() {
         return containerStatus == null ? null : ContainerStatus.fromId(containerStatus);
