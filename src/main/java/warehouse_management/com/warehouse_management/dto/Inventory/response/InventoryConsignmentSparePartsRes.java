@@ -9,8 +9,8 @@ import warehouse_management.com.warehouse_management.model.Warehouse;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+@Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class InventoryConsignmentSparePartsRes {
 
     private ObjectId id; // _id – Khóa chính tự động tạo bởi MongoDB
