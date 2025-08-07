@@ -3,9 +3,8 @@ package warehouse_management.com.warehouse_management.mapper;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
+import warehouse_management.com.warehouse_management.dto.warehouse.response.WarehouseRes;
 import warehouse_management.com.warehouse_management.model.Warehouse;
-import warehouse_management.com.warehouse_management.dto.warehouse.response.WarehouseUserRes;
-import warehouse_management.com.warehouse_management.dto.warehouse.view.WarehouseView;
 
 import java.util.List;
 
@@ -14,11 +13,8 @@ public interface WarehouseMapper {
 
     WarehouseMapper INSTANCE = Mappers.getMapper(WarehouseMapper.class);
 
-    WarehouseUserRes toWarehouseRes(Warehouse warehouse);
+    WarehouseRes toWarehouseRes(Warehouse warehouse);
 
-    List<WarehouseUserRes> toWarehouseResList(List<Warehouse> warehouses);
+    List<WarehouseRes> toWarehouseResList(List<Warehouse> warehouses);
 
-    WarehouseUserRes toWarehouseUserRes(WarehouseView warehouseView);
-
-    List<WarehouseUserRes> toWarehouseUserResList(List<WarehouseView> warehouseViews);
 }
