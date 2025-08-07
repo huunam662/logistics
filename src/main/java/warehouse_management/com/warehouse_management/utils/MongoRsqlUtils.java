@@ -30,15 +30,13 @@ public class MongoRsqlUtils {
     public static <T> Page<T> queryPage(Class<T> entityType, Query query, Map<String, String> propertyMapper, PageOptionsReq optionsReq){
         MongoTemplate mongoTemplate = SpringContext.getBean(MongoTemplate.class);
         String filter = optionsReq.getFilter();
-        if(filter != null && !filter.trim().isEmpty()){
+        if(filter != null && !filter.isBlank()){
             Criteria filterCriteria = new RSQLParser().parse(filter).accept(new MongoRsqlVisitor(propertyMapper));
             query.addCriteria(filterCriteria);
         }
         long totalT = mongoTemplate.count(query, entityType);
         Pageable pageable = optionsReq.getPageable();
-        if(!pageable.getSort().isEmpty()){
-            query.with(pageable);
-        }
+        query.with(pageable);
         List<T> tResultList = mongoTemplate.find(query, entityType);
         return new PageImpl<>(tResultList, pageable, totalT);
     }
@@ -59,16 +57,17 @@ public class MongoRsqlUtils {
         MongoTemplate mongoTemplate = SpringContext.getBean(MongoTemplate.class);
         String filter = optionsReq.getFilter();
         List<AggregationOperation> aggOp = new ArrayList<>(agg.getPipeline().getOperations());
-        aggOp.add(Aggregation.count().as("count"));
-        if(filter != null && !filter.trim().isEmpty()){
+        if(filter != null && !filter.isBlank()){
             Criteria filterCriteria = new RSQLParser().parse(filter).accept(new MongoRsqlVisitor(propertyMapper));
             aggOp.add(Aggregation.match(filterCriteria));
         }
+        CountOperation countOp = Aggregation.count().as("count");
+        aggOp.addLast(countOp);
         Aggregation countAgg = Aggregation.newAggregation(aggOp);
         AggregationResults<Document> countResults = mongoTemplate.aggregate(countAgg, inputType, Document.class);
         List<Document> resultsCount = countResults.getMappedResults();
         long totalT = resultsCount.isEmpty() ? 0L : Optional.ofNullable(resultsCount.getFirst().get("count", Number.class)).orElse(0L).longValue();
-        aggOp.removeIf(o -> o instanceof CountOperation);
+        aggOp.remove(countOp);
         Pageable pageable = optionsReq.getPageable();
         if(!pageable.getSort().isEmpty()){
             aggOp.add(Aggregation.sort(pageable.getSort()));
@@ -127,9 +126,9 @@ public class MongoRsqlUtils {
                     if (val.startsWith("*") && val.endsWith("*"))
                         yield result.regex(val.substring(0, val.length() - 1).substring(1), "i");
                     else if (val.startsWith("*"))
-                        yield result.regex(val.substring(1), "i");
+                        yield result.regex(val.replaceFirst("\\*", "^"), "i");
                     else if (val.endsWith("*"))
-                        yield result.regex(val.substring(0, val.length() - 1), "i");
+                        yield result.regex(val.substring(0, val.length() - 1) + "$", "i");
                     else {
                         if(op.equals("==")) yield result.is(parseTypeValue(val));
                         else yield Criteria.where(field).ne(parseTypeValue(val));

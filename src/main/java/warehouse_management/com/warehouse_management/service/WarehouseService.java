@@ -16,7 +16,7 @@ import warehouse_management.com.warehouse_management.dto.warehouse.request.Updat
 import warehouse_management.com.warehouse_management.dto.warehouse.response.WarehouseResponseDto;
 import warehouse_management.com.warehouse_management.mapper.warehouse.WarehouseMapper;
 import warehouse_management.com.warehouse_management.model.Warehouse;
-import warehouse_management.com.warehouse_management.dto.InventoryWarehouseContainerView;
+import warehouse_management.com.warehouse_management.dto.Inventory.view.InventoryWarehouseContainerView;
 import warehouse_management.com.warehouse_management.repository.WarehouseRepository;
 import warehouse_management.com.warehouse_management.utils.MongoRsqlUtils;
 import java.util.List;
