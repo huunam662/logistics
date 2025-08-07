@@ -13,7 +13,8 @@ import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.repository.ContainerRepository;
 import warehouse_management.com.warehouse_management.repository.InventoryItemRepository;
-import warehouse_management.com.warehouse_management.repository.WarehouseRepository;
+import warehouse_management.com.warehouse_management.repository.warehouse.WarehouseRepository;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;

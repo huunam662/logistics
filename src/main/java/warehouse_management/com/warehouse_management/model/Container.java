@@ -25,6 +25,7 @@ public class Container {
     private LocalDateTime departureDate;  // Ngày khởi hành
     private LocalDateTime arrivalDate;    // Ngày đến nơi
 
+    private String status;
     private String note;                // Ghi chú
 
     private ObjectId fromWareHouseId;     // Tham chiếu đến _id kho đi

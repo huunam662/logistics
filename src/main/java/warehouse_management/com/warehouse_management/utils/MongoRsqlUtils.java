@@ -53,12 +53,12 @@ public class MongoRsqlUtils {
         return queryPage(entityClass, new Query(), propertyMapper, optionsReq);
     }
 
-    public static <T> Page<T> queryAggregatePage(Class<?> inputType, Class<T> outputType, Aggregation agg, Map<String, String> propertyMapper, PageOptionsReq optionsReq){
+    public static <T> Page<T> queryAggregatePage(Class<?> inputType, Class<T> outputType, Aggregation agg, Map<String, String> rsqlPropertyMapper, PageOptionsReq optionsReq){
         MongoTemplate mongoTemplate = SpringContext.getBean(MongoTemplate.class);
         String filter = optionsReq.getFilter();
         List<AggregationOperation> aggOp = new ArrayList<>(agg.getPipeline().getOperations());
         if(filter != null && !filter.isBlank()){
-            Criteria filterCriteria = new RSQLParser().parse(filter).accept(new MongoRsqlVisitor(propertyMapper));
+            Criteria filterCriteria = new RSQLParser().parse(filter).accept(new MongoRsqlVisitor(rsqlPropertyMapper));
             aggOp.add(Aggregation.match(filterCriteria));
         }
         CountOperation countOp = Aggregation.count().as("count");
@@ -86,10 +86,10 @@ public class MongoRsqlUtils {
 
     public static class MongoRsqlVisitor implements RSQLVisitor<Criteria, Void> {
 
-        private final Map<String, String> propertyMapper;
+        private final Map<String, String> rsqlPropertyMapper;
 
-        public MongoRsqlVisitor(Map<String, String> propertyMapper) {
-            this.propertyMapper = propertyMapper;
+        public MongoRsqlVisitor(Map<String, String> rsqlPropertyMapper) {
+            this.rsqlPropertyMapper = rsqlPropertyMapper;
         }
 
         @Override
@@ -115,8 +115,8 @@ public class MongoRsqlUtils {
             String field = node.getSelector();
             List<String> args = node.getArguments();
             String op = node.getOperator().getSymbol();
-            if(propertyMapper.containsKey(field))
-                field = propertyMapper.get(field);
+            if(rsqlPropertyMapper.containsKey(field))
+                field = rsqlPropertyMapper.get(field);
             return switch (op) {
                 case "==", "!=" -> {
                     String val = args.getFirst();

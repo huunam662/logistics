@@ -28,7 +28,7 @@ public class InventoryItem {
     private Integer manufacturingYear; // Năm sản xuất – Không bắt buộc
     private Integer quantity;   // Số lượng hàng hóa
     private String status;         // Trạng thái hiện tại (IN_STOCK, IN_TRANSIT...) – Bắt buộc
-
+    private String contractNumber; // Số hợp đồng
     private ObjectId warehouseId;  // _id của warehouse – Có nếu đang ở kho
     private ObjectId containerId;  // _id của container – Có nếu đang trong container
 

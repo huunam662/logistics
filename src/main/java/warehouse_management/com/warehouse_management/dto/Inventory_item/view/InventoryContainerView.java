@@ -1,4 +1,4 @@
-package warehouse_management.com.warehouse_management.dto.Inventory.view;
+package warehouse_management.com.warehouse_management.dto.Inventory_item.view;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;

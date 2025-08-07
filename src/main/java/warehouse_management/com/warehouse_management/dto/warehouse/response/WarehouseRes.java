@@ -7,7 +7,7 @@ import org.springframework.data.annotation.Id;
 
 @Data
 @NoArgsConstructor
-public class WarehouseUserRes {
+public class WarehouseRes {
 
     @Id
     private ObjectId id;        // _id
@@ -18,19 +18,9 @@ public class WarehouseUserRes {
     private String status;     // ACTIVE, INACTIVE (bắt buộc)
 
     private String address;    // Không bắt buộc
-    private String area;       // Không bắt buộc
 
     private ObjectId managedBy; // Tham chiếu đến users._id
 
     private String note;       // Ghi chú thêm
 
-    private WarehouseUserRes.User userManaged;
-
-    @Data
-    @NoArgsConstructor
-    public static class User {
-
-        private String id;
-        private String username;
-    }
 }

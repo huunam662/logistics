@@ -11,16 +11,16 @@ import org.springframework.web.bind.annotation.*;
 import warehouse_management.com.warehouse_management.common.pagination.req.PageOptionsReq;
 import warehouse_management.com.warehouse_management.common.pagination.res.PageInfoRes;
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
-import warehouse_management.com.warehouse_management.dto.Inventory.response.*;
+import warehouse_management.com.warehouse_management.dto.Inventory_item.response.*;
+import warehouse_management.com.warehouse_management.dto.Inventory_item.view.InventoryWarehouseContainerView;
 import warehouse_management.com.warehouse_management.dto.warehouse.request.BulkDeleteRequestDto;
 import warehouse_management.com.warehouse_management.dto.warehouse.request.CreateWarehouseDto;
 import warehouse_management.com.warehouse_management.dto.warehouse.request.UpdateWarehouseDto;
+import warehouse_management.com.warehouse_management.dto.warehouse.response.WarehouseRes;
 import warehouse_management.com.warehouse_management.dto.warehouse.response.WarehouseResponseDto;
-import warehouse_management.com.warehouse_management.dto.warehouse.response.WarehouseUserRes;
 import warehouse_management.com.warehouse_management.mapper.InventoryItemMapper;
 import warehouse_management.com.warehouse_management.mapper.WarehouseMapper;
 import warehouse_management.com.warehouse_management.model.Warehouse;
-import warehouse_management.com.warehouse_management.dto.Inventory.view.InventoryWarehouseContainerView;
 import warehouse_management.com.warehouse_management.service.WarehouseService;
 import java.util.List;
 import java.util.Map;
@@ -75,16 +75,11 @@ public class WarehouseController {
     public ApiResponse<?> getPageWarehouse(
             @ModelAttribute PageOptionsReq optionsReq
     ) {
-//        Page<WarehouseView> warehouseView = warehouseService.getPageWarehouse(optionsReq);
-//        List<WarehouseView> warehouseViewsList = warehouseView.getContent();
-//        List<WarehouseUserRes> warehouseResList = WarehouseMapper.INSTANCE.toWarehouseResList(warehouseViewsList);
-//        Page<WarehouseUserRes> pageRes = new PageImpl<>(warehouseResList, warehouseView.getPageable(), warehouseView.getTotalElements());
-//        return ResultApiRes.success(new PageInfoRes<>(pageRes), request);
 
         Page<Warehouse> warehousePage = warehouseService.getPageWarehouse(optionsReq);
         List<Warehouse> warehouseList = warehousePage.getContent();
-        List<WarehouseUserRes> warehouseUserResList = WarehouseMapper.INSTANCE.toWarehouseResList(warehouseList);
-        Page<WarehouseUserRes> warehouseUserResPage = new PageImpl<>(warehouseUserResList, warehousePage.getPageable(), warehousePage.getTotalElements());
+        List<WarehouseRes> warehouseUserResList = WarehouseMapper.INSTANCE.toWarehouseResList(warehouseList);
+        Page<WarehouseRes> warehouseUserResPage = new PageImpl<>(warehouseUserResList, warehousePage.getPageable(), warehousePage.getTotalElements());
         return ApiResponse.success(new PageInfoRes<>(warehouseUserResPage));
     }
 
