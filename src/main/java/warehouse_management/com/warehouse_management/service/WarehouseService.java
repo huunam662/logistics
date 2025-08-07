@@ -20,7 +20,10 @@ import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.dto.Inventory.view.InventoryWarehouseContainerView;
 import warehouse_management.com.warehouse_management.repository.WarehouseRepository;
 import warehouse_management.com.warehouse_management.utils.MongoRsqlUtils;
+
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j(topic = "WAREHOUSE-SERVICE")
@@ -132,8 +135,8 @@ public class WarehouseService {
     }
 
     public WarehouseResponseDto getWarehouseById(String id) {
-        Warehouse warehouse = findWarehouseById(id);
-        return mapper.toResponseDto(warehouse);
+        Optional<Warehouse> warehouse = repository.findById(new ObjectId(id));
+        return mapper.toResponseDto(warehouse.orElse(null));
     }
 
     private Page<InventoryWarehouseContainerView> getPageInventorySpareParts(ObjectId warehouseId, PageOptionsReq optionsReq){
@@ -151,10 +154,15 @@ public class WarehouseService {
         return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryWarehouseContainerView.class, aggQuery, optionsReq);
     }
 
-    public WarehouseResponseDto updateWarehouse(String id, UpdateWarehouseDto updateDto) {
-        Warehouse existingWarehouse = findWarehouseById(id);
-        mapper.updateFromDto(updateDto, existingWarehouse);
-        Warehouse updatedWarehouse = repository.save(existingWarehouse);
+    public WarehouseResponseDto updateWarehouse(String id, UpdateWarehouseDto updateDto) throws Exception {
+        Optional<Warehouse> existingWarehouse = repository.findById(new ObjectId(id));
+
+        Warehouse warehouse = existingWarehouse.orElseThrow(
+                () -> new Exception("Not found warehouse")
+        );
+
+        mapper.updateFromDto(updateDto, warehouse);
+        Warehouse updatedWarehouse = repository.save(warehouse);
         return mapper.toResponseDto(updatedWarehouse);
     }
 
@@ -174,10 +182,13 @@ public class WarehouseService {
         return getPageInventorySpareParts(warehouse.getId(), optionsReq);
     }
 
-    public void deleteWarehouse(String id) {
-
-        Warehouse warehouse = findWarehouseById(id);
-        repository.delete(warehouse);
+    public boolean deleteWarehouse(String id) {
+        Optional<Warehouse> warehouse = repository.findById(new ObjectId(id));
+        if (!warehouse.isPresent()) {
+            warehouse.get().setDeletedAt(LocalDateTime.now());
+        } else
+            return false;
+        return true;
     }
 
     public Page<InventoryWarehouseContainerView> getPageInventorySparePartsDestination(ObjectId warehouseId, PageOptionsReq optionsReq) {
@@ -193,17 +204,6 @@ public class WarehouseService {
             throw LogicErrException.of("Kết quả cần tìm không phải là kho ký gửi.");
         return getPageInventorySpareParts(warehouse.getId(), optionsReq);
     }
-
-    private Warehouse findWarehouseById(String id) {
-        ObjectId objectId;
-        try {
-            objectId = new ObjectId(id);
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
-        return null;
-    }
-
 
     public Page<InventoryWarehouseContainerView> getPageInventoryCentralWarehouse(PageOptionsReq optionsReq){
         Criteria isInStockInventory = new Criteria().andOperator(
