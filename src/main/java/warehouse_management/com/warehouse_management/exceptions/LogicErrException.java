@@ -1,5 +1,6 @@
 package warehouse_management.com.warehouse_management.exceptions;
 
+import org.springframework.http.HttpStatus;
 import warehouse_management.com.warehouse_management.exceptions.errormsg.LogicErrCode;
 
 public class LogicErrException extends RuntimeException {
@@ -7,6 +8,8 @@ public class LogicErrException extends RuntimeException {
     private final String messageKey;
     private final Object[] args;
     private final String code;
+    private HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+
 
     private LogicErrException(String code, String messageKey, String rawMessage, Object... args) {
         this.code = code;
@@ -27,6 +30,11 @@ public class LogicErrException extends RuntimeException {
         return new LogicErrException(code, LogicErrCode.getMessageKey(code), null, args);
     }
 
+    // ✅ Trả về chính đối tượng để hỗ trợ chaining
+    public LogicErrException setHttpStatus(HttpStatus httpStatus) {
+        this.httpStatus = httpStatus;
+        return this;
+    }
     public String getCode() {
         return code;
     }
@@ -43,5 +51,8 @@ public class LogicErrException extends RuntimeException {
         return rawMessage;
     }
 
+    public HttpStatus getHttpStatus() {
+        return httpStatus;
+    }
 }
 
