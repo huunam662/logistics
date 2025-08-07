@@ -27,8 +27,8 @@ public class Container {
 
     private String note;                // Ghi chú
 
-    private ObjectId fromWareHouse;     // Tham chiếu đến _id kho đi
-    private ObjectId toWarehouse;       // Tham chiếu đến _id kho đến
+    private ObjectId fromWareHouseId;     // Tham chiếu đến _id kho đi
+    private ObjectId toWarehouseId;       // Tham chiếu đến _id kho đến
 
 
     public ContainerStatus getContainerStatus() {
