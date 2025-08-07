@@ -4,12 +4,15 @@ import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import warehouse_management.com.warehouse_management.model.Warehouse;
 
+import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.Optional;
 
 public interface WarehouseRepository extends MongoRepository<Warehouse, ObjectId> {
     // Tìm kho theo mã code (duy nhất)
     Optional<Warehouse> findByCode(String code);
+
+    Optional<Warehouse> findById(ObjectId id);
 
     // Tìm kho theo tên gần đúng (không phân biệt hoa thường)
     List<Warehouse> findByNameRegexIgnoreCase(String namePattern);

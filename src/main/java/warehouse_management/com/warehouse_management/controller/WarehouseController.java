@@ -2,6 +2,7 @@ package warehouse_management.com.warehouse_management.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
+import lombok.SneakyThrows;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -51,6 +52,7 @@ public class WarehouseController {
         return ApiResponse.success(warehouse);
     }
 
+    @SneakyThrows
     @PutMapping("/{id}")
     public ApiResponse<?>  updateWarehouse(@PathVariable("id") String id, @Valid @RequestBody UpdateWarehouseDto updateDto) {
         WarehouseResponseDto updatedWarehouse = warehouseService.updateWarehouse(id, updateDto);
