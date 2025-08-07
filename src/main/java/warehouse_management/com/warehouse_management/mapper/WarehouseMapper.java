@@ -5,7 +5,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.dto.warehouse.response.WarehouseUserRes;
-import warehouse_management.com.warehouse_management.dto.WarehouseView;
+import warehouse_management.com.warehouse_management.dto.warehouse.view.WarehouseView;
 
 import java.util.List;
 

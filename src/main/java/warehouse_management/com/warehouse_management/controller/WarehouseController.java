@@ -19,7 +19,7 @@ import warehouse_management.com.warehouse_management.dto.warehouse.response.Ware
 import warehouse_management.com.warehouse_management.mapper.InventoryItemMapper;
 import warehouse_management.com.warehouse_management.mapper.WarehouseMapper;
 import warehouse_management.com.warehouse_management.model.Warehouse;
-import warehouse_management.com.warehouse_management.dto.InventoryWarehouseContainerView;
+import warehouse_management.com.warehouse_management.dto.Inventory.view.InventoryWarehouseContainerView;
 import warehouse_management.com.warehouse_management.service.WarehouseService;
 import java.util.List;
 
