@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
@@ -44,10 +45,12 @@ public class TestWarehouseController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createWarehouse1(@Valid @RequestBody TestValidationAnnotationRequestDto request) {
+    public ResponseEntity<?> createWarehouse1(@RequestBody TestValidationAnnotationRequestDto request) {
         logger.warn(Msg.get(LogicErrMsg.VALUE_DUPLICATE));
-//        throw LogicErrException.of(LogicErrMsg.VALUE_DUPLICATE, "ID KHO");
-        throw LogicErrException.ofCode(LogicErrCode.VD01, "ID KHO");
+//        throw LogicErrException.ofKey(LogicErrMsg.VALUE_DUPLICATE, "ID KHO");
+//        throw LogicErrException.of("fail raw message");
+//        throw LogicErrException.ofCode(LogicErrCode.F001, "ID KHO");
+        throw LogicErrException.ofCode(LogicErrCode.F001, "ID KHO").setHttpStatus(HttpStatus.FORBIDDEN);
 
         // 1. Validate input
 //        if (request.getName() == null || request.getCode() == null || request.getType() == null || request.getStatus() == null) {
