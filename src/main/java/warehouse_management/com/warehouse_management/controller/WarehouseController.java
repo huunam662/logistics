@@ -12,6 +12,7 @@ import warehouse_management.com.warehouse_management.common.pagination.req.PageO
 import warehouse_management.com.warehouse_management.common.pagination.res.PageInfoRes;
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
 import warehouse_management.com.warehouse_management.dto.Inventory.response.*;
+import warehouse_management.com.warehouse_management.dto.warehouse.request.BulkDeleteRequestDto;
 import warehouse_management.com.warehouse_management.dto.warehouse.request.CreateWarehouseDto;
 import warehouse_management.com.warehouse_management.dto.warehouse.request.UpdateWarehouseDto;
 import warehouse_management.com.warehouse_management.dto.warehouse.response.WarehouseResponseDto;
@@ -22,6 +23,7 @@ import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.dto.Inventory.view.InventoryWarehouseContainerView;
 import warehouse_management.com.warehouse_management.service.WarehouseService;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/v1/warehouses")
@@ -229,5 +231,16 @@ public class WarehouseController {
         List<InventoryCentralWarehouseRes> warehouseInventoryResList = InventoryItemMapper.INSTANCE.toInventoryCentralWarehouseResList(inventoryItems);
         Page<InventoryCentralWarehouseRes> pageRes = new PageImpl<>(warehouseInventoryResList, inventoryItemPage.getPageable(), inventoryItemPage.getTotalElements());
         return ApiResponse.success(new PageInfoRes<>(pageRes));
+    }
+
+    @PostMapping("/delete-bulk")
+    public ApiResponse<Map<String, Object>> bulkDeleteWarehouses(@Valid @RequestBody BulkDeleteRequestDto bulkDeleteRequest) {
+        long deletedCount = warehouseService.bulkSoftDeleteWarehouses(bulkDeleteRequest.warehouseIds());
+
+        Map<String, Object> response = Map.of(
+                "deletedCount", deletedCount
+        );
+
+        return ApiResponse.success(response);
     }
 }
