@@ -1,14 +1,14 @@
-package warehouse_management.com.warehouse_management.repository;
+package warehouse_management.com.warehouse_management.repository.warehouse;
 
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import warehouse_management.com.warehouse_management.model.Warehouse;
 
-import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.Optional;
 
-public interface WarehouseRepository extends MongoRepository<Warehouse, ObjectId> {
+public interface WarehouseRepository extends MongoRepository<Warehouse, ObjectId>,
+CustomWarehouseRepository {
     // Tìm kho theo mã code (duy nhất)
     Optional<Warehouse> findByCode(String code);
 
