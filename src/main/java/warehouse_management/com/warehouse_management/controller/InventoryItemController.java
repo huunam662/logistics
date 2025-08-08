@@ -1,5 +1,6 @@
 package warehouse_management.com.warehouse_management.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
@@ -15,7 +16,7 @@ import warehouse_management.com.warehouse_management.dto.Inventory.request.Creat
 import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.repository.InventoryItemRepository;
 import warehouse_management.com.warehouse_management.service.InventoryItemService;
-import warehouse_management.com.warehouse_management.utils.SimpleMapperUtil;
+
 
 import java.time.LocalDateTime;
 
@@ -27,6 +28,9 @@ public class InventoryItemController {
 
     //Api Nhập kho
     @PostMapping
+    @Operation(
+            summary = "API Nhập Kho"
+    )
     public ResponseEntity<?> createInventory(@Valid @RequestBody CreateInventoryItemReq req) {
         InventoryItem savedItem = inventoryItemService.createInventory(req);
         return ResponseEntity

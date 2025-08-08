@@ -43,6 +43,7 @@ public class CreateInventoryItemReq {
     // ====== Thông số kỹ thuật ======
     private Specifications specifications;
     private String initialCondition; // Nguyên trạng 11
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -57,7 +58,7 @@ public class CreateInventoryItemReq {
         private String batteryInfo; // Bình điện 16
         private String batterySpecification; // Thông số bình điện 17
         private String chargerSpecification; // Thông số sạc 18
-//        private String forkSpecification; // Thông số càng 19
+        //        private String forkSpecification; // Thông số càng 19
         private Integer valveCount; // Số van 20
         private String inventoryType; // Loại kho 21
     }
@@ -83,7 +84,7 @@ public class CreateInventoryItemReq {
     // ====== Thông tin khác ======
     private String notes; // Ghi chú  26
 
-
+    @Valid
     private Logistics logistics;
 
     @Data

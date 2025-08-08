@@ -4,11 +4,14 @@ import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
+import warehouse_management.com.warehouse_management.dto.Inventory.request.CreateInventoryItemReq;
 import warehouse_management.com.warehouse_management.dto.Inventory_item.response.*;
 import warehouse_management.com.warehouse_management.dto.Inventory_item.view.InventoryWarehouseContainerView;
+import warehouse_management.com.warehouse_management.model.InventoryItem;
+
 import java.util.List;
 
-@Mapper(builder = @Builder(disableBuilder = true))
+@Mapper(componentModel = "spring", builder = @Builder(disableBuilder = true))
 public interface InventoryItemMapper {
 
     InventoryItemMapper INSTANCE = Mappers.getMapper(InventoryItemMapper.class);
@@ -63,4 +66,13 @@ public interface InventoryItemMapper {
     InventoryCentralWarehouseRes toInventoryCentralWarehouseRes(InventoryWarehouseContainerView inventoryWarehouseContainerView);
 
     List<InventoryCentralWarehouseRes> toInventoryCentralWarehouseResList(List<InventoryWarehouseContainerView> inventoryWarehouseContainerViews);
+
+
+    InventoryItem toInventoryItemModel(CreateInventoryItemReq inventoryItemReq);
+
+    InventoryItem.Specifications toInventoryItemModel(CreateInventoryItemReq.Specifications inventoryItemReq);
+
+    InventoryItem.Pricing toInventoryItemModel(CreateInventoryItemReq.Pricing inventoryItemReq);
+
+    InventoryItem.Logistics toInventoryItemModel(CreateInventoryItemReq.Logistics inventoryItemReq);
 }
