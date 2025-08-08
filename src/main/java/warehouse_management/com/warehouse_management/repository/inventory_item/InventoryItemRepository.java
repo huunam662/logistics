@@ -3,12 +3,13 @@ package warehouse_management.com.warehouse_management.repository.inventory_item;
 
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
-
+import java.util.List;
 import java.util.Optional;
 
 public interface InventoryItemRepository extends MongoRepository<InventoryItem, ObjectId>,
-        CustomInventoryItemRepository {
+        CustomInventoryItemRepository, InventoryItemCustomRepository {
 
     Optional<InventoryItem> findBySerialNumber(String serialNumber);
 
@@ -18,5 +19,8 @@ public interface InventoryItemRepository extends MongoRepository<InventoryItem, 
     long countByWarehouseId(ObjectId warehouseId);
 
     long countByContainerId(ObjectId containerId);
+
+    @Query("{'_id': {'$in': ?0}}")
+    List<InventoryItem> findByIdIn(List<ObjectId> ids);
 
 }

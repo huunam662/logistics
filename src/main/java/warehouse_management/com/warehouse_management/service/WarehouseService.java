@@ -1,14 +1,18 @@
 package warehouse_management.com.warehouse_management.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import warehouse_management.com.warehouse_management.common.pagination.req.PageOptionsReq;
 import warehouse_management.com.warehouse_management.dto.inventory_item.InventoryWarehouseContainer;
+import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryPoWarehouseRes;
 import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
 import warehouse_management.com.warehouse_management.enumerate.InventoryType;
 import warehouse_management.com.warehouse_management.enumerate.WarehouseType;
@@ -19,10 +23,12 @@ import warehouse_management.com.warehouse_management.dto.warehouse.request.Updat
 import warehouse_management.com.warehouse_management.dto.warehouse.response.WarehouseResponseDto;
 import warehouse_management.com.warehouse_management.mapper.warehouse.WarehouseMapper;
 import warehouse_management.com.warehouse_management.model.Warehouse;
+import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
 import warehouse_management.com.warehouse_management.repository.warehouse.WarehouseRepository;
 import warehouse_management.com.warehouse_management.utils.MongoRsqlUtils;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -35,11 +41,13 @@ public class WarehouseService {
     private final WarehouseRepository warehouseRepository;
     private final WarehouseRepository repository;
     private final WarehouseMapper mapper;
+    private final InventoryItemRepository inventoryItemRepository;
 
-    public WarehouseService(WarehouseRepository repository, WarehouseMapper mapper, WarehouseRepository warehouseRepository) {
+    public WarehouseService(InventoryItemRepository inventoryItemRepository, WarehouseRepository repository, WarehouseMapper mapper, WarehouseRepository warehouseRepository) {
         this.repository = repository;
         this.mapper = mapper;
         this.warehouseRepository = warehouseRepository;
+        this.inventoryItemRepository = inventoryItemRepository;
     }
 
     public Warehouse getWarehouseToId(ObjectId warehouseId) {
@@ -55,21 +63,11 @@ public class WarehouseService {
 
 
     public Page<InventoryWarehouseContainer> getPageInventoryProduction(ObjectId warehouseId, PageOptionsReq optionsReq) {
-        Aggregation aggQuery = Aggregation.newAggregation(
-                Aggregation.match(new Criteria().andOperator(
-                        Criteria.where("warehouseId").is(warehouseId),
-                        Criteria.where("deletedAt").isNull(),
-                        Criteria.where("inventoryType").is(InventoryType.PRODUCT_ACCESSORIES.getId())
-                )),
-                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
-                Aggregation.unwind("warehouse"),
-                Aggregation.match(Criteria.where("warehouse.deletedAt").isNull())
-        );
-        Map<String, String> rsqlPropertyMapper = Map.of(
-                "orderDate", "logistics.orderDate",
-                "arrivalDate", "logistics.arrivalDate"
-        );
-        return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryWarehouseContainer.class, aggQuery, rsqlPropertyMapper, optionsReq);
+        Warehouse warehouse = getWarehouseToId(warehouseId);
+        if (!warehouse.getType().equals(WarehouseType.PRODUCTION))
+            throw LogicErrException.of("Kết quả cần tìm không phải là kho chờ sản xuất.");
+
+        return inventoryItemRepository.findPageInventoryProduction(warehouseId, optionsReq);
     }
 
     public Page<InventoryWarehouseContainer> getPageInventoryDeparture(ObjectId warehouseId, PageOptionsReq optionsReq) {
@@ -77,30 +75,7 @@ public class WarehouseService {
         if (!warehouse.getType().equals(WarehouseType.DEPARTURE))
             throw LogicErrException.of("Kết quả cần tìm không phải là kho di.");
 
-        Aggregation aggQuery = Aggregation.newAggregation(
-                Aggregation.match(new Criteria().andOperator(
-                        Criteria.where("warehouseId").is(warehouseId),
-                        Criteria.where("deletedAt").isNull(),
-                        Criteria.where("inventoryType").is(InventoryType.PRODUCT_ACCESSORIES.getId())
-                )),
-                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
-                Aggregation.unwind("warehouse"),
-                Aggregation.lookup("container", "containerId", "_id", "container"),
-                Aggregation.unwind("container"),
-                Aggregation.lookup("warehouse", "container.toWarehouseId", "_id", "container.toWarehouse"),
-                Aggregation.unwind("container.toWarehouse"),
-                Aggregation.match(new Criteria().andOperator(
-                        Criteria.where("warehouse.deletedAt").isNull(),
-                        Criteria.where("container.deletedAt").isNull(),
-                        Criteria.where("container.toWarehouse.deletedAt").isNull()
-                ))
-        );
-        Map<String, String> rsqlPropertyMapper = Map.of(
-                "orderDate", "logistics.orderDate",
-                "arrivalDate", "logistics.arrivalDate",
-                "container.toWarehouse", "container.toWarehouse.name"
-        );
-        return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryWarehouseContainer.class, aggQuery, rsqlPropertyMapper, optionsReq);
+        return inventoryItemRepository.findPageInventoryDeparture(warehouseId, optionsReq);
     }
 
     public WarehouseResponseDto createWarehouse(CreateWarehouseDto createDto) {
@@ -114,21 +89,7 @@ public class WarehouseService {
         if (!warehouse.getType().equals(WarehouseType.DESTINATION))
             throw LogicErrException.of("Kết quả cần tìm không phải là kho đích.");
 
-        Criteria isWarehouseId = Criteria.where("warehouseId").is(warehouseId);
-        Criteria notDeleted = Criteria.where("deletedAt").isNull();
-        Criteria isProduction = Criteria.where("inventoryType").is(InventoryType.PRODUCT_ACCESSORIES.getId());
-        Aggregation aggQuery = Aggregation.newAggregation(
-                Aggregation.match(isWarehouseId),
-                Aggregation.match(notDeleted),
-                Aggregation.match(isProduction),
-                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
-                Aggregation.unwind("warehouse"),
-                Aggregation.match(Criteria.where("warehouse.deletedAt").isNull())
-        );
-        Map<String, String> rsqlPropertyMapper = Map.of(
-                "arrivalDate", "logistics.arrivalDate"
-        );
-        return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryWarehouseContainer.class, aggQuery, rsqlPropertyMapper, optionsReq);
+        return inventoryItemRepository.findPageInventoryDestination(warehouseId, optionsReq);
     }
 
     public List<WarehouseResponseDto> getAllWarehouses() {
@@ -143,22 +104,7 @@ public class WarehouseService {
         if (!warehouse.getType().equals(WarehouseType.CONSIGNMENT))
             throw LogicErrException.of("Kết quả cần tìm không phải là kho ký gửi.");
 
-        Criteria isWarehouseId = Criteria.where("warehouseId").is(warehouseId);
-        Criteria notDeleted = Criteria.where("deletedAt").isNull();
-        Criteria isProduction = Criteria.where("inventoryType").is(InventoryType.PRODUCT_ACCESSORIES.getId());
-        Aggregation aggQuery = Aggregation.newAggregation(
-                Aggregation.match(isWarehouseId),
-                Aggregation.match(notDeleted),
-                Aggregation.match(isProduction),
-                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
-                Aggregation.unwind("warehouse"),
-                Aggregation.match(Criteria.where("warehouse.deletedAt").isNull())
-        );
-        Map<String, String> rsqlPropertyMapper = Map.of(
-                "arrivalDate", "logistics.arrivalDate",
-                "consignmentDate", "logistics.consignmentDate"
-        );
-        return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryWarehouseContainer.class, aggQuery, rsqlPropertyMapper, optionsReq);
+        return inventoryItemRepository.findPageInventoryConsignment(warehouseId, optionsReq);
     }
 
     public WarehouseResponseDto getWarehouseById(String id) {
@@ -183,43 +129,16 @@ public class WarehouseService {
         if (!warehouse.getType().equals(WarehouseType.PRODUCTION))
             throw LogicErrException.of("Kết quả cần tìm không phải là kho chờ sản xuất.");
 
-        Criteria isWarehouseId = Criteria.where("warehouseId").is(warehouseId);
-        Criteria notDeleted = Criteria.where("deletedAt").isNull();
-        Criteria isSpareParts = Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId());
-        Aggregation aggQuery = Aggregation.newAggregation(
-                Aggregation.match(isWarehouseId),
-                Aggregation.match(notDeleted),
-                Aggregation.match(isSpareParts),
-                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
-                Aggregation.unwind("warehouse"),
-                Aggregation.match(Criteria.where("warehouse.deletedAt").isNull())
-        );
-        Map<String, String> rsqlPropertyMapper = Map.of(
-                "orderDate", "logistics.orderDate"
-        );
-        return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryWarehouseContainer.class, aggQuery, rsqlPropertyMapper, optionsReq);
+        return inventoryItemRepository.findPageInventorySparePartsProduction(warehouseId, optionsReq);
     }
+
 
     public Page<InventoryWarehouseContainer> getPageInventorySparePartsDeparture(ObjectId warehouseId, PageOptionsReq optionsReq) {
         Warehouse warehouse = getWarehouseToId(warehouseId);
         if (!warehouse.getType().equals(WarehouseType.DEPARTURE))
             throw LogicErrException.of("Kết quả cần tìm không phải là kho đi.");
 
-        Criteria isWarehouseId = Criteria.where("warehouseId").is(warehouseId);
-        Criteria notDeleted = Criteria.where("deletedAt").isNull();
-        Criteria isSpareParts = Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId());
-        Aggregation aggQuery = Aggregation.newAggregation(
-                Aggregation.match(isWarehouseId),
-                Aggregation.match(notDeleted),
-                Aggregation.match(isSpareParts),
-                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
-                Aggregation.unwind("warehouse"),
-                Aggregation.match(Criteria.where("warehouse.deletedAt").isNull())
-        );
-        Map<String, String> rsqlPropertyMapper = Map.of(
-                "orderDate", "logistics.orderDate"
-        );
-        return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryWarehouseContainer.class, aggQuery, rsqlPropertyMapper, optionsReq);
+        return inventoryItemRepository.findPageInventorySparePartsDeparture(warehouseId, optionsReq);
     }
 
     public boolean deleteWarehouse(String id) {
@@ -234,21 +153,7 @@ public class WarehouseService {
         if (!warehouse.getType().equals(WarehouseType.DESTINATION))
             throw LogicErrException.of("Kết quả cần tìm không phải là kho đích.");
 
-        Criteria isWarehouseId = Criteria.where("warehouseId").is(warehouseId);
-        Criteria notDeleted = Criteria.where("deletedAt").isNull();
-        Criteria isSpareParts = Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId());
-        Aggregation aggQuery = Aggregation.newAggregation(
-                Aggregation.match(isWarehouseId),
-                Aggregation.match(notDeleted),
-                Aggregation.match(isSpareParts),
-                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
-                Aggregation.unwind("warehouse"),
-                Aggregation.match(Criteria.where("warehouse.deletedAt").isNull())
-        );
-        Map<String, String> rsqlPropertyMapper = Map.of(
-                "orderDate", "logistics.orderDate"
-        );
-        return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryWarehouseContainer.class, aggQuery, rsqlPropertyMapper, optionsReq);
+        return inventoryItemRepository.findPageInventorySparePartsDestination(warehouseId, optionsReq);
     }
 
     public Page<InventoryWarehouseContainer> getPageInventorySparePartsConsignment(ObjectId warehouseId, PageOptionsReq optionsReq) {
@@ -256,45 +161,11 @@ public class WarehouseService {
         if (!warehouse.getType().equals(WarehouseType.CONSIGNMENT))
             throw LogicErrException.of("Kết quả cần tìm không phải là kho ký gửi.");
 
-        Criteria isWarehouseId = Criteria.where("warehouseId").is(warehouseId);
-        Criteria notDeleted = Criteria.where("deletedAt").isNull();
-        Criteria isSpareParts = Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId());
-        Aggregation aggQuery = Aggregation.newAggregation(
-                Aggregation.match(isWarehouseId),
-                Aggregation.match(notDeleted),
-                Aggregation.match(isSpareParts),
-                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
-                Aggregation.unwind("warehouse"),
-                Aggregation.match(Criteria.where("warehouse.deletedAt").isNull())
-        );
-        Map<String, String> rsqlPropertyMapper = Map.of(
-                "orderDate", "logistics.orderDate",
-                "warehouseName", "warehouse.name",
-                "consignmentDate", "logistics.consignmentDate"
-        );
-        return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryWarehouseContainer.class, aggQuery, rsqlPropertyMapper, optionsReq);
+        return inventoryItemRepository.findPageInventorySparePartsConsignment(warehouseId, optionsReq);
     }
 
     public Page<InventoryWarehouseContainer> getPageInventoryCentralWarehouse(PageOptionsReq optionsReq){
-        Criteria isInStockInventory = new Criteria().andOperator(
-                Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
-                Criteria.where("deletedAt").isNull()
-        );
-        Criteria isWarehouseDestination = new Criteria().andOperator(
-                Criteria.where("warehouse.type").is(WarehouseType.DESTINATION.getId()),
-                Criteria.where("warehouse.deletedAt").isNull()
-        );
-        Aggregation agg = Aggregation.newAggregation(
-                Aggregation.match(isInStockInventory),
-                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
-                Aggregation.unwind("warehouse"),
-                Aggregation.match(isWarehouseDestination)
-        );
-        Map<String, String> rsqlPropertyMapper = Map.of(
-                "arrivalDate", "logistics.arrivalDate",
-                "warehouseType", "warehouse.type"
-        );
-        return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryWarehouseContainer.class, agg, rsqlPropertyMapper, optionsReq);
+        return inventoryItemRepository.findPageInventoryCentralWarehouse(optionsReq);
     }
 
     @Transactional

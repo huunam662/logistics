@@ -3,7 +3,6 @@ package warehouse_management.com.warehouse_management.model;
 import lombok.Getter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-import warehouse_management.com.warehouse_management.model.permission.Permission;
 
 import java.util.List;
 

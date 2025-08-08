@@ -1,4 +1,4 @@
-package warehouse_management.com.warehouse_management.model.permission;
+package warehouse_management.com.warehouse_management.model;
 
 import lombok.Getter;
 import org.springframework.data.annotation.Id;
