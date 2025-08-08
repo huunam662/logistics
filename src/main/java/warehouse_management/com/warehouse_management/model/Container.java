@@ -9,6 +9,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import warehouse_management.com.warehouse_management.enumerate.ContainerStatus;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -30,6 +31,8 @@ public class Container {
 
     private ObjectId fromWareHouseId;     // Tham chiếu đến _id kho đi
     private ObjectId toWarehouseId;       // Tham chiếu đến _id kho đến
+
+    private List<InventoryItem> items;
 
     @CreatedBy
     private ObjectId createdBy;

@@ -11,15 +11,13 @@ import org.springframework.web.bind.annotation.*;
 import warehouse_management.com.warehouse_management.common.pagination.req.PageOptionsReq;
 import warehouse_management.com.warehouse_management.common.pagination.res.PageInfoRes;
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
-import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
 import warehouse_management.com.warehouse_management.dto.inventory_item.InventoryWarehouseContainer;
+import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
 import warehouse_management.com.warehouse_management.dto.warehouse.request.BulkDeleteRequestDto;
 import warehouse_management.com.warehouse_management.dto.warehouse.request.CreateWarehouseDto;
 import warehouse_management.com.warehouse_management.dto.warehouse.request.UpdateWarehouseDto;
-import warehouse_management.com.warehouse_management.dto.warehouse.response.WarehouseRes;
 import warehouse_management.com.warehouse_management.dto.warehouse.response.WarehouseResponseDto;
 import warehouse_management.com.warehouse_management.mapper.InventoryItemMapper;
-import warehouse_management.com.warehouse_management.mapper.WarehouseMapper;
 import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.service.WarehouseService;
 import java.util.List;
@@ -77,10 +75,7 @@ public class WarehouseController {
     ) {
 
         Page<Warehouse> warehousePage = warehouseService.getPageWarehouse(optionsReq);
-        List<Warehouse> warehouseList = warehousePage.getContent();
-        List<WarehouseRes> warehouseUserResList = WarehouseMapper.INSTANCE.toWarehouseResList(warehouseList);
-        Page<WarehouseRes> warehouseUserResPage = new PageImpl<>(warehouseUserResList, warehousePage.getPageable(), warehousePage.getTotalElements());
-        return ApiResponse.success(new PageInfoRes<>(warehouseUserResPage));
+        return ApiResponse.success(new PageInfoRes<>(warehousePage));
     }
 
     @GetMapping("/{warehouseId}/page/product/inventory-production")
@@ -217,7 +212,6 @@ public class WarehouseController {
             summary = "GET data hàng tồn tại các kho đến. (phân trang)",
             description = "GET data hàng tồn tại các kho đến. (phân trang)"
     )
-
     public ApiResponse<?> getPageInventoryCentralWarehouse(
             @ModelAttribute PageOptionsReq optionsReq
     ) {
@@ -238,4 +232,6 @@ public class WarehouseController {
 
         return ApiResponse.success(response);
     }
+
+
 }
