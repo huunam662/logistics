@@ -7,6 +7,7 @@ import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -90,6 +91,10 @@ public class InventoryItem {
 
     public InventoryItemStatus getStatus() {
         return status == null ? null : InventoryItemStatus.fromId(status);
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public void setStatus(InventoryItemStatus inventoryItemStatus) {
