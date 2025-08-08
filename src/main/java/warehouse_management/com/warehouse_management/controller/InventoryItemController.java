@@ -5,12 +5,12 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import warehouse_management.com.warehouse_management.common.pagination.req.PageOptionsReq;
+import warehouse_management.com.warehouse_management.common.pagination.res.PageInfoRes;
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.CreateInventoryItemReq;
+import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryItemProductionVehicleTypeDto;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.service.InventoryItemService;
 
@@ -30,6 +30,15 @@ public class InventoryItemController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ApiResponse.success(savedItem));
+    }
+
+    @GetMapping("/warehouse/{warehouseId}")
+    public ResponseEntity<PageInfoRes<InventoryItemProductionVehicleTypeDto>> searchItemsInWarehouse(
+            @PathVariable String warehouseId,
+            @ModelAttribute PageOptionsReq optionsReq) {
+
+        PageInfoRes<InventoryItemProductionVehicleTypeDto> itemPage = inventoryItemService.getItemsFromVehicleWarehouse(warehouseId, optionsReq);
+        return ResponseEntity.ok(itemPage);
     }
 
 }

@@ -43,6 +43,7 @@ public class Warehouse {
     private LocalDateTime createdAt;
     @LastModifiedDate
     private LocalDateTime updatedAt;
+
     private LocalDateTime deletedAt;
 
     public ActiveStatus getStatus() {

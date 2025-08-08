@@ -37,4 +37,17 @@ public class CustomWarehouseRepositoryImpl implements CustomWarehouseRepository 
 
         return result.getModifiedCount();
     }
+
+    @Override
+    public boolean softDeleteById(ObjectId warehouseId, ObjectId deletedBy, String newStatus) {
+        Query query = new Query(Criteria.where("_id").is(warehouseId));
+
+        Update update = new Update()
+                .set("deletedAt", LocalDateTime.now())
+                .set("status", newStatus);
+
+        UpdateResult result = mongoTemplate.updateFirst(query, update, "warehouse");
+
+        return result.getModifiedCount() == 1;
+    }
 }

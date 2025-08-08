@@ -1,4 +1,4 @@
-package warehouse_management.com.warehouse_management.repository;
+package warehouse_management.com.warehouse_management.repository.inventory_item;
 
 
 import org.bson.types.ObjectId;
@@ -7,7 +7,8 @@ import warehouse_management.com.warehouse_management.model.InventoryItem;
 
 import java.util.Optional;
 
-public interface InventoryItemRepository extends MongoRepository<InventoryItem, ObjectId> {
+public interface InventoryItemRepository extends MongoRepository<InventoryItem, ObjectId>,
+        CustomInventoryItemRepository {
 
     Optional<InventoryItem> findBySerialNumber(String serialNumber);
 
