@@ -4,7 +4,7 @@ import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
-import warehouse_management.com.warehouse_management.dto.Inventory.request.CreateInventoryItemReq;
+import warehouse_management.com.warehouse_management.dto.Inventory_item.request.CreateInventoryItemReq;
 import warehouse_management.com.warehouse_management.dto.Inventory_item.response.*;
 import warehouse_management.com.warehouse_management.dto.Inventory_item.view.InventoryWarehouseContainerView;
 import warehouse_management.com.warehouse_management.model.InventoryItem;

@@ -2,7 +2,7 @@ package warehouse_management.com.warehouse_management.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import warehouse_management.com.warehouse_management.dto.Inventory.request.CreateInventoryItemReq;
+import warehouse_management.com.warehouse_management.dto.Inventory_item.request.CreateInventoryItemReq;
 import warehouse_management.com.warehouse_management.mapper.InventoryItemMapper;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.repository.InventoryItemRepository;
