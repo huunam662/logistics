@@ -1,4 +1,4 @@
-package warehouse_management.com.warehouse_management.dto.Inventory_item.response;
+package warehouse_management.com.warehouse_management.dto.inventory_item.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
-public class InventoryDepartureSparePartsRes {
+public class InventoryDestinationSparePartsRes {
 
     private ObjectId id; // _id – Khóa chính tự động tạo bởi MongoDB
     private String poNumber;       // Số của Đơn đặt hàng (Purchase Order) – Bắt buộc
@@ -31,5 +31,4 @@ public class InventoryDepartureSparePartsRes {
         private BigDecimal salePriceR0;         // Giá bán đề xuất R0
         private BigDecimal salePriceR1;         // Giá bán đề xuất R1
     }
-
 }

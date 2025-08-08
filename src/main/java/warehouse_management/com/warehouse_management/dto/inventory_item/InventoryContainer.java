@@ -1,4 +1,4 @@
-package warehouse_management.com.warehouse_management.dto.Inventory_item.view;
+package warehouse_management.com.warehouse_management.dto.inventory_item;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -9,7 +9,7 @@ import warehouse_management.com.warehouse_management.model.Warehouse;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @NoArgsConstructor
-public class InventoryContainerView extends Container {
+public class InventoryContainer extends Container {
 
     private Warehouse toWarehouse;
 
