@@ -1,14 +1,10 @@
-package warehouse_management.com.warehouse_management.dto.Inventory.request;
+package warehouse_management.com.warehouse_management.dto.Inventory_item.request;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import org.springframework.validation.annotation.Validated;
 import warehouse_management.com.warehouse_management.annotation.Validation;
-import warehouse_management.com.warehouse_management.model.InventoryItem;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
