@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bson.types.ObjectId;
-import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.*;
 import org.springframework.data.mongodb.core.mapping.Document;
 import warehouse_management.com.warehouse_management.enumerate.TransferTicketStatus;
 
@@ -38,11 +38,15 @@ public class WarehouseTransferTicket {
 
     private LocalDateTime processedAt;        // Thời gian xử lý (duyệt/từ chối)
 
+    @CreatedBy
     private ObjectId createdBy;
+    @LastModifiedBy
     private ObjectId updatedBy;
     private ObjectId deletedBy;
 
-    private LocalDateTime createdAt;          // Thời gian tạo
+    @CreatedDate
+    private LocalDateTime createdAt;
+    @LastModifiedDate
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;
 
