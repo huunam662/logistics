@@ -1,4 +1,4 @@
-package warehouse_management.com.warehouse_management.dto.Inventory_item.response;
+package warehouse_management.com.warehouse_management.dto.inventory_item.response;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,23 +10,35 @@ import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
-public class InventoryDestinationRes {
-
+public class InventoryDepartureRes {
     private ObjectId id; // _id – Khóa chính tự động tạo bởi MongoDB
     private String poNumber;       // Số của Đơn đặt hàng (Purchase Order) – Bắt buộc
     private String status;         // Trạng thái hiện tại (IN_STOCK, IN_TRANSIT...) – Bắt buộc
     private String productCode;    // Mã định danh của sản phẩm hoặc hàng hóa – Bắt buộc
+    private LocalDateTime orderDate;        // Ngày đặt hàng
+    private LocalDateTime arrivalDate;    // Ngày đến nơi
     private Integer manufacturingYear; // Năm sản xuất – Không bắt buộc
+    private String inventoryType;   // Loại hàng tồn (VD: phụ kiện, ...) - Bắt buộc
     private String model;          // Model sản phẩm – Bắt buộc
-    private String serialNumber;   // Số seri – Có cho xe/phụ kiện
     private String type;           // Loại sản phẩm (VD: Xe nâng điện) – Bắt buộc
     private String category;       // Chủng loại sản phẩm (VD: Ngồi lái) – Bắt buộc
-    private String inventoryType;   // Loại hàng tồn (VD: phụ kiện, ...) - Bắt buộc
+    private String serialNumber;   // Số seri – Có cho xe/phụ kiện
     private String initialCondition;       // Mô tả nguyên trạng khi nhập kho – Không bắt buộc
     private String notes;                  // Ghi chú chung – Không bắt buộc
-    private LocalDateTime arrivalDate;      // Ngày đến
     private InventoryItem.Specifications specifications; // Thông số kỹ thuật – Không bắt buộc
-    private InventoryDestinationRes.Pricing pricing; // Giá cả – Không bắt buộc
+    private InventoryDepartureRes.Pricing pricing; // Giá cả – Không bắt buộc
+    private InventoryDepartureRes.Container container; // Container được vận chuyển có chứa mặt hàng này
+
+
+    @Data
+    @NoArgsConstructor
+    public static class Container{
+        private ObjectId id;  // _id – Khóa chính
+        private String status;     // EMPTY, LOADING, IN_TRANSIT, COMPLETED
+        private LocalDateTime departureDate;  // Ngày khởi hành
+        private LocalDateTime arrivalDate;    // Ngày đến nơi
+        private String toWarehouse;
+    }
 
     @Data
     @NoArgsConstructor
@@ -36,6 +48,4 @@ public class InventoryDestinationRes {
         private BigDecimal salePriceR1;         // Giá bán đề xuất R1
         private BigDecimal actualSalePrice;     // Giá bán thực tế
     }
-
-
 }
