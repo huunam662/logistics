@@ -3,8 +3,6 @@ package warehouse_management.com.warehouse_management.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.bson.types.ObjectId;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,11 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
 import warehouse_management.com.warehouse_management.dto.Inventory.request.CreateInventoryItemReq;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
-import warehouse_management.com.warehouse_management.repository.InventoryItemRepository;
 import warehouse_management.com.warehouse_management.service.InventoryItemService;
-
-
-import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/inventory-items")
@@ -31,8 +25,8 @@ public class InventoryItemController {
     @Operation(
             summary = "API Nhập Kho"
     )
-    public ResponseEntity<?> createInventory(@Valid @RequestBody CreateInventoryItemReq req) {
-        InventoryItem savedItem = inventoryItemService.createInventory(req);
+    public ResponseEntity<?> createInventoryItem(@Valid @RequestBody CreateInventoryItemReq req) {
+        InventoryItem savedItem = inventoryItemService.createInventoryItem(req);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ApiResponse.success(savedItem));
