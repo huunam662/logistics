@@ -8,10 +8,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import warehouse_management.com.warehouse_management.common.pagination.req.PageOptionsReq;
+import warehouse_management.com.warehouse_management.common.pagination.res.PageInfoRes;
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.CreateInventoryItemReq;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryTransferWarehouseReq;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryPoWarehouseRes;
+import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryItemProductionVehicleTypeDto;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.service.InventoryItemService;
@@ -80,6 +83,15 @@ public class InventoryItemController {
         ApiResponse<?> apiResponse = ApiResponse.success();
         apiResponse.setMessage("Nhập hàng sang kho " + warehouse.getName() + " thành công.");
         return apiResponse;
+    }
+
+    @GetMapping("/warehouse/{warehouseId}")
+    public ResponseEntity<PageInfoRes<InventoryItemProductionVehicleTypeDto>> searchItemsInWarehouse(
+            @PathVariable String warehouseId,
+            @ModelAttribute PageOptionsReq optionsReq) {
+
+        PageInfoRes<InventoryItemProductionVehicleTypeDto> itemPage = inventoryItemService.getItemsFromVehicleWarehouse(warehouseId, optionsReq);
+        return ResponseEntity.ok(itemPage);
     }
 
 }

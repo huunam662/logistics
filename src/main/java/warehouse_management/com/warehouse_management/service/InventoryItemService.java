@@ -5,8 +5,11 @@ import org.apache.coyote.BadRequestException;
 import org.bson.types.ObjectId;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import warehouse_management.com.warehouse_management.common.pagination.req.PageOptionsReq;
+import warehouse_management.com.warehouse_management.common.pagination.res.PageInfoRes;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.CreateInventoryItemReq;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryTransferWarehouseReq;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryPoWarehouseRes;
@@ -14,6 +17,7 @@ import warehouse_management.com.warehouse_management.enumerate.InventoryItemStat
 import warehouse_management.com.warehouse_management.enumerate.InventoryType;
 import warehouse_management.com.warehouse_management.enumerate.WarehouseType;
 import warehouse_management.com.warehouse_management.exceptions.LogicErrException;
+import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryItemProductionVehicleTypeDto;
 import warehouse_management.com.warehouse_management.mapper.InventoryItemMapper;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.model.Warehouse;
@@ -24,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryTransferWarehouseReq.InventoryItemTransfer;
+
 
 @Service
 @RequiredArgsConstructor
@@ -37,7 +42,14 @@ public class InventoryItemService {
         InventoryItem item = mapper.toInventoryItemModel(req);
         // Lưu DB
         return inventoryItemRepository.save(item);
-//        return null;
+    }
+
+    public PageInfoRes<InventoryItemProductionVehicleTypeDto> getItemsFromVehicleWarehouse(String warehouseId, PageOptionsReq optionsReq) {
+        Page<InventoryItemProductionVehicleTypeDto> itemsPageObject = inventoryItemRepository.getItemsFromVehicleWarehouse(
+                new ObjectId(warehouseId),
+                optionsReq);
+        PageInfoRes<InventoryItemProductionVehicleTypeDto> response = new PageInfoRes<>(itemsPageObject);
+        return response;
     }
 
     public List<InventoryPoWarehouseRes> getInventoryInStockPoNumbers(String warehouseType, String filter, List<String> sortBy, Sort.Direction direction){

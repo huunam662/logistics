@@ -12,4 +12,7 @@ public class WarehouseResponseDto {
     private String address;
     private String managedById;
     private String note;
+    private String deletedAt;
+    private String deletedBy;
+    private String createdAt;
 }

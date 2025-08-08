@@ -2,6 +2,7 @@ package warehouse_management.com.warehouse_management.repository.warehouse;
 
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import warehouse_management.com.warehouse_management.model.Warehouse;
 
 import java.util.List;
@@ -9,7 +10,6 @@ import java.util.Optional;
 
 public interface WarehouseRepository extends MongoRepository<Warehouse, ObjectId>,
 CustomWarehouseRepository {
-    // Tìm kho theo mã code (duy nhất)
     Optional<Warehouse> findByCode(String code);
 
     Optional<Warehouse> findById(ObjectId id);
@@ -27,4 +27,7 @@ CustomWarehouseRepository {
     List<Warehouse> findByManagedBy(ObjectId userId);
 
     boolean existsByCode(String code);
+
+    @Query("{ 'deletedAt': null }")
+    List<Warehouse> findAll();
 }

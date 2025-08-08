@@ -142,12 +142,10 @@ public class WarehouseService {
     }
 
     public boolean deleteWarehouse(String id) {
-        Optional<Warehouse> warehouse = repository.findById(new ObjectId(id));
-        if (!warehouse.isPresent()) {
-            warehouse.get().setDeletedAt(LocalDateTime.now());
-        } else
-            return false;
-        return true;
+        boolean success = warehouseRepository.softDeleteById(new ObjectId(id),
+                new ObjectId("6529f2e5b3a04a4a2e8b4f1c"), "ACTIVE");
+
+        return success;
     }
 
     public Page<InventoryWarehouseContainer> getPageInventorySparePartsDestination(ObjectId warehouseId, PageOptionsReq optionsReq) {

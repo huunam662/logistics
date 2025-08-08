@@ -2,17 +2,14 @@ package warehouse_management.com.warehouse_management.repository.inventory_item;
 
 
 import org.bson.types.ObjectId;
-import org.springframework.data.domain.Page;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
-import warehouse_management.com.warehouse_management.common.pagination.req.PageOptionsReq;
-import warehouse_management.com.warehouse_management.dto.inventory_item.InventoryWarehouseContainer;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
-
 import java.util.List;
 import java.util.Optional;
 
-public interface InventoryItemRepository extends MongoRepository<InventoryItem, ObjectId>, InventoryItemCustomRepository {
+public interface InventoryItemRepository extends MongoRepository<InventoryItem, ObjectId>,
+        CustomInventoryItemRepository, InventoryItemCustomRepository {
 
     Optional<InventoryItem> findBySerialNumber(String serialNumber);
 

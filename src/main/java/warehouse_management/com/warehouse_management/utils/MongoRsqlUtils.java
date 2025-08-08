@@ -7,7 +7,11 @@ import cz.jirutka.rsql.parser.ast.OrNode;
 import cz.jirutka.rsql.parser.ast.RSQLVisitor;
 import lombok.NonNull;
 import org.bson.Document;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
@@ -24,7 +28,6 @@ import java.util.Map;
 import java.util.Optional;
 
 public class MongoRsqlUtils {
-
 
     public static <T> Page<T> queryPage(
             @NonNull Class<T> entityType,

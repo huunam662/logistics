@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface CustomWarehouseRepository {
     long bulkSoftDelete(List<ObjectId> warehouseIds, ObjectId deletedBy);
+    boolean softDeleteById(ObjectId warehouseId, ObjectId deletedBy, String newStatus);
 }
