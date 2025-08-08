@@ -90,8 +90,7 @@ public class WarehouseController {
         Page<InventoryWarehouseContainer> inventoryWarehouseView = warehouseService.getPageInventoryProduction(new ObjectId(warehouseId), optionsReq);
         List<InventoryWarehouseContainer> inventoryItems = inventoryWarehouseView.getContent();
         List<InventoryProductionRes> warehouseInventoryResList = InventoryItemMapper.INSTANCE.toInventoryProductionResList(inventoryItems);
-        Page<InventoryProductionRes> pageRes = new PageImpl<>(warehouseInventoryResList, inventoryWarehouseView.getPageable(), inventoryWarehouseView.getTotalElements());
-        return ApiResponse.success(new PageInfoRes<>(pageRes));
+        return ApiResponse.success(new PageInfoRes<>(warehouseInventoryResList, inventoryWarehouseView));
     }
 
     @GetMapping("/{warehouseId}/page/product/inventory-departure")
@@ -106,8 +105,7 @@ public class WarehouseController {
         Page<InventoryWarehouseContainer> inventoryItemPage = warehouseService.getPageInventoryDeparture(new ObjectId(warehouseId), optionsReq);
         List<InventoryWarehouseContainer> inventoryItems = inventoryItemPage.getContent();
         List<InventoryDepartureRes> warehouseInventoryResList = InventoryItemMapper.INSTANCE.toInventoryDepartureResList(inventoryItems);
-        Page<InventoryDepartureRes> pageRes = new PageImpl<>(warehouseInventoryResList, inventoryItemPage.getPageable(), inventoryItemPage.getTotalElements());
-        return ApiResponse.success(new PageInfoRes<>(pageRes));
+        return ApiResponse.success(new PageInfoRes<>(warehouseInventoryResList, inventoryItemPage));
     }
 
     @GetMapping("/{warehouseId}/page/product/inventory-destination")
@@ -122,8 +120,7 @@ public class WarehouseController {
         Page<InventoryWarehouseContainer> inventoryItemPage = warehouseService.getPageInventoryDestination(new ObjectId(warehouseId), optionsReq);
         List<InventoryWarehouseContainer> inventoryItems = inventoryItemPage.getContent();
         List<InventoryDestinationRes> warehouseInventoryResList = InventoryItemMapper.INSTANCE.toInventoryDestinationResList(inventoryItems);
-        Page<InventoryDestinationRes> pageRes = new PageImpl<>(warehouseInventoryResList, inventoryItemPage.getPageable(), inventoryItemPage.getTotalElements());
-        return ApiResponse.success(new PageInfoRes<>(pageRes));
+        return ApiResponse.success(new PageInfoRes<>(warehouseInventoryResList, inventoryItemPage));
     }
 
     @GetMapping("/{warehouseId}/page/product/inventory-consignment")
@@ -138,8 +135,7 @@ public class WarehouseController {
         Page<InventoryWarehouseContainer> inventoryItemPage = warehouseService.getPageInventoryConsignment(new ObjectId(warehouseId), optionsReq);
         List<InventoryWarehouseContainer> inventoryItems = inventoryItemPage.getContent();
         List<InventoryConsignmentRes> warehouseInventoryResList = InventoryItemMapper.INSTANCE.toInventoryConsignmentResList(inventoryItems);
-        Page<InventoryConsignmentRes> pageRes = new PageImpl<>(warehouseInventoryResList, inventoryItemPage.getPageable(), inventoryItemPage.getTotalElements());
-        return ApiResponse.success(new PageInfoRes<>(pageRes));
+        return ApiResponse.success(new PageInfoRes<>(warehouseInventoryResList, inventoryItemPage));
     }
 
     @GetMapping("/{warehouseId}/page/spare-parts/inventory-consignment")
@@ -154,8 +150,7 @@ public class WarehouseController {
         Page<InventoryWarehouseContainer> inventoryItemPage = warehouseService.getPageInventorySparePartsConsignment(new ObjectId(warehouseId), optionsReq);
         List<InventoryWarehouseContainer> inventoryItems = inventoryItemPage.getContent();
         List<InventoryConsignmentSparePartsRes> warehouseInventoryResList = InventoryItemMapper.INSTANCE.toInventoryConsignmentSparePartsResList(inventoryItems);
-        Page<InventoryConsignmentSparePartsRes> pageRes = new PageImpl<>(warehouseInventoryResList, inventoryItemPage.getPageable(), inventoryItemPage.getTotalElements());
-        return ApiResponse.success(new PageInfoRes<>(pageRes));
+        return ApiResponse.success(new PageInfoRes<>(warehouseInventoryResList, inventoryItemPage));
     }
 
 
@@ -171,8 +166,7 @@ public class WarehouseController {
         Page<InventoryWarehouseContainer> inventoryWarehouseView = warehouseService.getPageInventorySparePartsProduction(new ObjectId(warehouseId), optionsReq);
         List<InventoryWarehouseContainer> inventoryItems = inventoryWarehouseView.getContent();
         List<InventoryProductionSparePartsRes> warehouseInventoryResList = InventoryItemMapper.INSTANCE.toInventoryProductionSparePartsResList(inventoryItems);
-        Page<InventoryProductionSparePartsRes> pageRes = new PageImpl<>(warehouseInventoryResList, inventoryWarehouseView.getPageable(), inventoryWarehouseView.getTotalElements());
-        return ApiResponse.success(new PageInfoRes<>(pageRes));
+        return ApiResponse.success(new PageInfoRes<>(warehouseInventoryResList, inventoryWarehouseView));
     }
 
     @GetMapping("/{warehouseId}/page/spare-parts/inventory-departure")
@@ -187,8 +181,7 @@ public class WarehouseController {
         Page<InventoryWarehouseContainer> inventoryItemPage = warehouseService.getPageInventorySparePartsDeparture(new ObjectId(warehouseId), optionsReq);
         List<InventoryWarehouseContainer> inventoryItems = inventoryItemPage.getContent();
         List<InventoryDepartureSparePartsRes> warehouseInventoryResList = InventoryItemMapper.INSTANCE.toInventoryDepartureSparePartsResList(inventoryItems);
-        Page<InventoryDepartureSparePartsRes> pageRes = new PageImpl<>(warehouseInventoryResList, inventoryItemPage.getPageable(), inventoryItemPage.getTotalElements());
-        return ApiResponse.success(new PageInfoRes<>(pageRes));
+        return ApiResponse.success(new PageInfoRes<>(warehouseInventoryResList, inventoryItemPage));
     }
 
     @GetMapping("/{warehouseId}/page/spare-parts/inventory-destination")
@@ -203,8 +196,7 @@ public class WarehouseController {
         Page<InventoryWarehouseContainer> inventoryItemPage = warehouseService.getPageInventorySparePartsDestination(new ObjectId(warehouseId), optionsReq);
         List<InventoryWarehouseContainer> inventoryItems = inventoryItemPage.getContent();
         List<InventoryDestinationSparePartsRes> warehouseInventoryResList = InventoryItemMapper.INSTANCE.toInventoryDestinationSparePartsResList(inventoryItems);
-        Page<InventoryDestinationSparePartsRes> pageRes = new PageImpl<>(warehouseInventoryResList, inventoryItemPage.getPageable(), inventoryItemPage.getTotalElements());
-        return ApiResponse.success(new PageInfoRes<>(pageRes));
+        return ApiResponse.success(new PageInfoRes<>(warehouseInventoryResList, inventoryItemPage));
     }
 
     @GetMapping("/page/inventory-central-warehouse")
@@ -218,8 +210,7 @@ public class WarehouseController {
         Page<InventoryWarehouseContainer> inventoryItemPage = warehouseService.getPageInventoryCentralWarehouse(optionsReq);
         List<InventoryWarehouseContainer> inventoryItems = inventoryItemPage.getContent();
         List<InventoryCentralWarehouseRes> warehouseInventoryResList = InventoryItemMapper.INSTANCE.toInventoryCentralWarehouseResList(inventoryItems);
-        Page<InventoryCentralWarehouseRes> pageRes = new PageImpl<>(warehouseInventoryResList, inventoryItemPage.getPageable(), inventoryItemPage.getTotalElements());
-        return ApiResponse.success(new PageInfoRes<>(pageRes));
+        return ApiResponse.success(new PageInfoRes<>(warehouseInventoryResList, inventoryItemPage));
     }
 
     @PostMapping("/delete-bulk")

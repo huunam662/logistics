@@ -28,4 +28,14 @@ public class PageInfoRes<T> {
         this.hasNextPage = pageObject.hasNext();
     }
 
+    public PageInfoRes(List<T> elements, Page<?> pageObject){
+        this.page = pageObject.getNumber() + 1;
+        this.size = pageObject.getSize();
+        this.elements = elements;
+        this.elementsLength = elements.size();
+        this.totalPages = pageObject.getTotalPages();
+        this.hasPreviousPage = pageObject.hasPrevious();
+        this.hasNextPage = pageObject.hasNext();
+    }
+
 }
