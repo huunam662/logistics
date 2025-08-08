@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bson.types.ObjectId;
-import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.*;
 import org.springframework.data.mongodb.core.mapping.Document;
 import warehouse_management.com.warehouse_management.enumerate.ContainerStatus;
 
@@ -31,11 +31,15 @@ public class Container {
     private ObjectId fromWareHouseId;     // Tham chiếu đến _id kho đi
     private ObjectId toWarehouseId;       // Tham chiếu đến _id kho đến
 
+    @CreatedBy
     private ObjectId createdBy;
+    @LastModifiedBy
     private ObjectId updatedBy;
     private ObjectId deletedBy;
 
+    @CreatedDate
     private LocalDateTime createdAt;
+    @LastModifiedDate
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;
 

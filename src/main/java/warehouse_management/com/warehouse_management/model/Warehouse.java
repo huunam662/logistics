@@ -5,9 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bson.types.ObjectId;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.annotation.*;
 import org.springframework.data.mongodb.core.mapping.Document;
 import warehouse_management.com.warehouse_management.enumerate.ActiveStatus;
 import warehouse_management.com.warehouse_management.enumerate.WarehouseType;
@@ -35,7 +33,9 @@ public class Warehouse {
 
     private String note;       // Ghi chú thêm
 
+    @CreatedBy
     private ObjectId createdBy;
+    @LastModifiedBy
     private ObjectId updatedBy;
     private ObjectId deletedBy;
 
