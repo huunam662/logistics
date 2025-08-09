@@ -344,23 +344,20 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     @Override
     public List<InventoryPoWarehouseDto> findInventoryInStockPoNumbers(String warehouseType, String filter, Sort sort){
         List<AggregationOperation> aggOps = new ArrayList<>(List.of(
-                Aggregation.match(new Criteria().andOperator(
-                        Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
-                        Criteria.where("deletedAt").isNull()
-                )),
                 Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
                 Aggregation.unwind("warehouse"),
                 Aggregation.group("poNumber", "warehouse._id")
                         .first("warehouse").as("warehouse"),
                 Aggregation.match(new Criteria().andOperator(
+                        Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
+                        Criteria.where("deletedAt").isNull(),
                         Criteria.where("warehouse.deletedAt").isNull(),
                         Criteria.where("warehouse.type").is(warehouseType)
                 )),
-                Aggregation.project()
+                Aggregation.project("poNumber")
                         .andExclude("_id")
-                        .and("poNumber").as("poNumber")
-                        .and(context -> new Document("_id", "$warehouse._id")
-                                .append("name", "$warehouse.name")).as("warehouse")
+                        .and("warehouse._id").as("warehouseId")
+                        .and("warehouse.name").as("warehouseName")
         ));
         if(filter != null && !filter.isBlank()){
             Criteria filterCriteria = new RSQLParser().parse(filter).accept(new MongoRsqlUtils.MongoRsqlVisitor(Map.of()));
@@ -374,19 +371,22 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     }
 
     @Override
-    public List<InventoryItem> findInventoryInStockByPoNumber(String warehouseType, String poNumber, String filter, Sort sort) {
+    public List<InventoryItemProductionVehicleTypeDto> findInventoryInStockByPoNumber(String warehouseType, String poNumber, String filter, Sort sort) {
         List<AggregationOperation> aggOps = new ArrayList<>(List.of(
-                Aggregation.match(new Criteria().andOperator(
-                        Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
-                        Criteria.where("deletedAt").isNull(),
-                        Criteria.where("poNumber").is(poNumber)
-                )),
                 Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
                 Aggregation.unwind("warehouse"),
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("warehouse.deletedAt").isNull(),
-                        Criteria.where("warehouse.type").is(warehouseType)
-                ))
+                        Criteria.where("warehouse.type").is(warehouseType),
+                        Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
+                        Criteria.where("deletedAt").isNull(),
+                        Criteria.where("poNumber").is(poNumber)
+                )),
+                Aggregation.project("id", "productCode", "serialNumber", "model", "status", "manufacturingYear")
+                        .and("logistics.liftingCapacityKg").as("liftingCapacityKg")
+                        .and("logistics.chassisType").as("chassisType")
+                        .and("logistics.liftingHeightMm").as("liftingHeightMm")
+                        .and("logistics.engineType").as("engineType")
         ));
         if(filter != null && !filter.isBlank()){
             Criteria filterCriteria = new RSQLParser().parse(filter).accept(new MongoRsqlUtils.MongoRsqlVisitor(Map.of()));
@@ -395,7 +395,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         if(!sort.isEmpty()){
             aggOps.add(Aggregation.sort(sort));
         }
-        AggregationResults<InventoryItem> aggResults = mongoTemplate.aggregate(Aggregation.newAggregation(aggOps), InventoryItem.class, InventoryItem.class);
+        AggregationResults<InventoryItemProductionVehicleTypeDto> aggResults = mongoTemplate.aggregate(Aggregation.newAggregation(aggOps), InventoryItem.class, InventoryItemProductionVehicleTypeDto.class);
         return aggResults.getMappedResults();
     }
 

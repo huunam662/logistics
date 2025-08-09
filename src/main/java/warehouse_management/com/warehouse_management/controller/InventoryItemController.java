@@ -67,7 +67,7 @@ public class InventoryItemController {
             @RequestParam(required = false) List<String> sortBy,
             @RequestParam(required = false) Sort.Direction direction
     ){
-        List<InventoryItem> poNumbers = inventoryItemService.getInventoryInStockByPoNumber(warehouseType, poNumber, filter, sortBy, direction);
+        List<InventoryItemProductionVehicleTypeDto> poNumbers = inventoryItemService.getInventoryInStockByPoNumber(warehouseType, poNumber, filter, sortBy, direction);
         return ApiResponse.success(poNumbers);
     }
 

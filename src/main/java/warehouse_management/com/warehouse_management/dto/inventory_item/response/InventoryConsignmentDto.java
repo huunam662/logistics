@@ -9,29 +9,34 @@ import java.time.LocalDateTime;
 
 @Data
 public class InventoryConsignmentDto {
-
     private ObjectId id; // _id – Khóa chính tự động tạo bởi MongoDB
-    private String poNumber;       // Số của Đơn đặt hàng (Purchase Order) – Bắt buộc
-    private String status;         // Trạng thái hiện tại (IN_STOCK, IN_TRANSIT...) – Bắt buộc
-    private String productCode;    // Mã định danh của sản phẩm hoặc hàng hóa – Bắt buộc
-    private LocalDateTime arrivalDate;      // Ngày đến
-    private LocalDateTime consignmentDate;  // Ngày ký gửi (nếu có)
-    private String serialNumber;   // Số seri – Có cho xe/phụ kiện
+    private String poNumber;       // PO
+    private String status;      // Trạng thái
+    private String productCode;    // Mã sản phẩm
     private Integer manufacturingYear; // Năm sản xuất – Không bắt buộc
-    private String model;          // Model sản phẩm – Bắt buộc
-    private String type;           // Loại sản phẩm (VD: Xe nâng điện) – Bắt buộc
-    private String category;       // Chủng loại sản phẩm (VD: Ngồi lái) – Bắt buộc
+    private String model;          // Model
+    private String type;           // Loại
+    private String category;       // Chủng loại
+    private Boolean hasSideShift;           // SS (Side Shift)
+    private String serialNumber;   // Số seri
+    private Integer liftingCapacityKg;      // Sức nâng (kg)
+    private String chassisType;             // Loại khung nâng
+    private Integer liftingHeightMm;        // Độ cao nâng (mm)
+    private String engineType;              // Loại động cơ
+    private String batteryInfo;             // Bình điện
+    private String batterySpecification;    // Thông số bình điện
+    private String chargerSpecification;    // Thông số bộ sạc
+    private String ForkDimensions;          // Thông số càng
+    private String warehouseType;           // Loại kho
+    private Integer valveCount;             // Số lượng van
+    private String otherDetails;            // Chi tiết khác
+    private String initialCondition;       // Nguyên trạng
+    private String notes;                  // Ghi chú
+    private BigDecimal purchasePrice;       // Giá mua
+    private BigDecimal salePriceR0;         // Giá R0
+    private BigDecimal salePriceR1;         // Giá R1
+    private BigDecimal actualSalePrice;     // Giá bán thực tế
+    private LocalDateTime arrivalDate;    // Ngày giao hàng
+    private LocalDateTime consignmentDate;  // Ngày ký gửi
     private String inventoryType;   // Loại hàng tồn (VD: phụ kiện, ...) - Bắt buộc
-    private String initialCondition;       // Mô tả nguyên trạng khi nhập kho – Không bắt buộc
-    private String notes;                  // Ghi chú chung – Không bắt buộc
-    private InventoryItem.Specifications specifications; // Thông số kỹ thuật – Không bắt buộc
-    private InventoryConsignmentDto.Pricing pricing; // Giá cả – Không bắt buộc
-
-    @Data
-    public static class Pricing{
-        private BigDecimal purchasePrice;       // Giá mua vào
-        private BigDecimal salePriceR0;         // Giá bán đề xuất R0
-        private BigDecimal salePriceR1;         // Giá bán đề xuất R1
-        private BigDecimal actualSalePrice;     // Giá bán thực tế
-    }
 }

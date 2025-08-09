@@ -18,8 +18,10 @@ import warehouse_management.com.warehouse_management.enumerate.WarehouseType;
 import warehouse_management.com.warehouse_management.exceptions.LogicErrException;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryItemProductionVehicleTypeDto;
 import warehouse_management.com.warehouse_management.mapper.InventoryItemMapper;
+import warehouse_management.com.warehouse_management.model.Container;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.model.Warehouse;
+import warehouse_management.com.warehouse_management.repository.ContainerRepository;
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -34,6 +36,7 @@ import warehouse_management.com.warehouse_management.dto.inventory_item.request.
 public class InventoryItemService {
     private final InventoryItemMapper mapper;
     private final InventoryItemRepository inventoryItemRepository;
+    private final ContainerRepository containerRepository;
     private final WarehouseService warehouseService;
     private final ModelMapper modelMapper;
 
@@ -58,7 +61,7 @@ public class InventoryItemService {
         return inventoryItemRepository.findInventoryInStockPoNumbers(warehouseType, filter, sort);
     }
 
-    public List<InventoryItem> getInventoryInStockByPoNumber(String warehouseType, String poNumber, String filter, List<String> sortBy, Sort.Direction direction){
+    public List<InventoryItemProductionVehicleTypeDto> getInventoryInStockByPoNumber(String warehouseType, String poNumber, String filter, List<String> sortBy, Sort.Direction direction){
         Sort sort = Sort.unsorted();
         if(sortBy != null && !sortBy.isEmpty() && direction != null)
             sort = Sort.by(direction, sortBy.toArray(String[]::new));
@@ -81,6 +84,10 @@ public class InventoryItemService {
             List<ObjectId> itemIdToTransfer = itemIdQualityMap.keySet().stream().map(ObjectId::new).toList();
             // Lấy toàn bộ sản phẩm (theo mã sản phẩm) trong Kho chờ sản xuất có PO được chọn
             List<InventoryItem> itemsToTransfer = inventoryItemRepository.findByIdIn(itemIdToTransfer);
+            // Mã Container, Trạng thái Cont, Ngày đi, Ngày đến giữ nguyên rỗng
+            Container container = new Container();
+            container.setId(new ObjectId());
+            container.setToWarehouseId(warehouseDeparture.getId());
             List<InventoryItem> itemsSparePartToNew = new ArrayList<>();
             for(var item : itemsToTransfer){
                 if(item.getInventoryType().equals(InventoryType.SPARE_PART.getId())){
@@ -92,6 +99,7 @@ public class InventoryItemService {
                     else if(item.getQuantity() > quantityToTransfer){
                         InventoryItem sparePartToDeparture = modelMapper.map(item, InventoryItem.class);
                         sparePartToDeparture.setId(null);
+                        sparePartToDeparture.setContainerId(container.getId());
                         sparePartToDeparture.setQuantity(quantityToTransfer);
                         // Kho hiện tại → “Kho đi (TQ)”
                         sparePartToDeparture.setWarehouseId(warehouseDeparture.getId());
@@ -106,10 +114,12 @@ public class InventoryItemService {
 
                 // Kho hiện tại → “Kho đi (TQ)”
                 item.setWarehouseId(warehouseDeparture.getId());
+                item.setContainerId(container.getId());
                 item.setStatus(InventoryItemStatus.IN_TRANSIT);
                 // Ngày giao hàng = ngày đã chọn theo PO
                 item.getLogistics().setArrivalDate(LocalDate.parse(req.getArrivalDate()).atStartOfDay());
             }
+            containerRepository.save(container);
             inventoryItemRepository.insertAll(itemsSparePartToNew);
             inventoryItemRepository.bulkUpdateTransferDeparture(itemsToTransfer);
 
