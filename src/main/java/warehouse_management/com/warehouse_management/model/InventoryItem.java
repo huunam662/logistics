@@ -55,7 +55,6 @@ public class InventoryItem {
     // --- Inner Classes ---
 
     @Data
-    @NoArgsConstructor
     @AllArgsConstructor
     public static class Specifications {
         private Integer liftingCapacityKg;      // Sức nâng (kg)
@@ -65,13 +64,13 @@ public class InventoryItem {
         private String batteryInfo;             // Thông tin bình điện
         private String batterySpecification;    // Thông số bình điện
         private String chargerSpecification;    // Thông số bộ sạc
+        private String ForkDimensions;          // Thông số càng
         private Integer valveCount;             // Số lượng van
         private Boolean hasSideShift;           // Có side shift không
         private String otherDetails;            // Chi tiết khác
     }
 
     @Data
-    @NoArgsConstructor
     @AllArgsConstructor
     public static class Pricing {
         private BigDecimal purchasePrice;       // Giá mua vào
@@ -82,7 +81,6 @@ public class InventoryItem {
     }
 
     @Data
-    @NoArgsConstructor
     @AllArgsConstructor
     public static class Logistics {
         private LocalDateTime orderDate;        // Ngày đặt hàng

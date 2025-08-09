@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.*;
 import warehouse_management.com.warehouse_management.common.pagination.req.PageOptionsReq;
 import warehouse_management.com.warehouse_management.common.pagination.res.PageInfoRes;
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
-import warehouse_management.com.warehouse_management.dto.inventory_item.request.CreateInventoryItemReq;
-import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryTransferWarehouseReq;
-import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryPoWarehouseRes;
+import warehouse_management.com.warehouse_management.dto.inventory_item.request.CreateInventoryItemDto;
+import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryTransferWarehouseDto;
+import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryPoWarehouseDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryItemProductionVehicleTypeDto;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.model.Warehouse;
@@ -31,7 +31,7 @@ public class InventoryItemController {
     @Operation(
             summary = "API Nhập Kho"
     )
-    public ResponseEntity<?> createInventoryItem(@Valid @RequestBody CreateInventoryItemReq req) {
+    public ResponseEntity<?> createInventoryItem(@Valid @RequestBody CreateInventoryItemDto req) {
         InventoryItem savedItem = inventoryItemService.createInventoryItem(req);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -50,7 +50,7 @@ public class InventoryItemController {
             @RequestParam(required = false) List<String> sortBy,
             @RequestParam(required = false) Sort.Direction direction
     ){
-        List<InventoryPoWarehouseRes> poNumbers = inventoryItemService.getInventoryInStockPoNumbers(warehouseType, filter, sortBy, direction);
+        List<InventoryPoWarehouseDto> poNumbers = inventoryItemService.getInventoryInStockPoNumbers(warehouseType, filter, sortBy, direction);
         return ApiResponse.success(poNumbers);
     }
 
@@ -77,7 +77,7 @@ public class InventoryItemController {
             description = "POST chuyển hàng hóa từ kho chờ sản xuất sang kho đi."
     )
     public ApiResponse<?> transferItemsProductionToDeparture(
-            @RequestBody InventoryTransferWarehouseReq req
+            @RequestBody InventoryTransferWarehouseDto req
     ){
         Warehouse warehouse = inventoryItemService.transferItemsProductionToDeparture(req);
         ApiResponse<?> apiResponse = ApiResponse.success();

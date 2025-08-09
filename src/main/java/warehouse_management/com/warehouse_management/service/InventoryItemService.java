@@ -1,7 +1,6 @@
 package warehouse_management.com.warehouse_management.service;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.BadRequestException;
 import org.bson.types.ObjectId;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Sort;
@@ -10,9 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import warehouse_management.com.warehouse_management.common.pagination.req.PageOptionsReq;
 import warehouse_management.com.warehouse_management.common.pagination.res.PageInfoRes;
-import warehouse_management.com.warehouse_management.dto.inventory_item.request.CreateInventoryItemReq;
-import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryTransferWarehouseReq;
-import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryPoWarehouseRes;
+import warehouse_management.com.warehouse_management.dto.inventory_item.request.CreateInventoryItemDto;
+import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryTransferWarehouseDto;
+import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryPoWarehouseDto;
 import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
 import warehouse_management.com.warehouse_management.enumerate.InventoryType;
 import warehouse_management.com.warehouse_management.enumerate.WarehouseType;
@@ -27,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryTransferWarehouseReq.InventoryItemTransfer;
+import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryTransferWarehouseDto.InventoryItemTransfer;
 
 
 @Service
@@ -38,7 +37,7 @@ public class InventoryItemService {
     private final WarehouseService warehouseService;
     private final ModelMapper modelMapper;
 
-    public InventoryItem createInventoryItem(CreateInventoryItemReq req) {
+    public InventoryItem createInventoryItem(CreateInventoryItemDto req) {
         InventoryItem item = mapper.toInventoryItemModel(req);
         // Lưu DB
         return inventoryItemRepository.save(item);
@@ -52,7 +51,7 @@ public class InventoryItemService {
         return response;
     }
 
-    public List<InventoryPoWarehouseRes> getInventoryInStockPoNumbers(String warehouseType, String filter, List<String> sortBy, Sort.Direction direction){
+    public List<InventoryPoWarehouseDto> getInventoryInStockPoNumbers(String warehouseType, String filter, List<String> sortBy, Sort.Direction direction){
         Sort sort = Sort.unsorted();
         if(sortBy != null && !sortBy.isEmpty() && direction != null)
             sort = Sort.by(direction, sortBy.toArray(String[]::new));
@@ -67,7 +66,7 @@ public class InventoryItemService {
     }
 
     @Transactional
-    public Warehouse transferItemsProductionToDeparture(InventoryTransferWarehouseReq req) {
+    public Warehouse transferItemsProductionToDeparture(InventoryTransferWarehouseDto req) {
         Warehouse warehouseDeparture = warehouseService.getWarehouseToId(new ObjectId(req.getToWarehouseId()));
         if(!warehouseDeparture.getType().equals(WarehouseType.DEPARTURE))
             throw LogicErrException.of("Kho cần nhập hàng không phải là kho đi.");
@@ -83,7 +82,6 @@ public class InventoryItemService {
             // Lấy toàn bộ sản phẩm (theo mã sản phẩm) trong Kho chờ sản xuất có PO được chọn
             List<InventoryItem> itemsToTransfer = inventoryItemRepository.findByIdIn(itemIdToTransfer);
             List<InventoryItem> itemsSparePartToNew = new ArrayList<>();
-            // Tạo sẵn id cho container
             for(var item : itemsToTransfer){
                 if(item.getInventoryType().equals(InventoryType.SPARE_PART.getId())){
                     int quantityToTransfer = itemIdQualityMap.get(item.getId().toString());
