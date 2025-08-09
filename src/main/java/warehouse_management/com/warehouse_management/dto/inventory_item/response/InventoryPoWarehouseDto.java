@@ -7,11 +7,6 @@ import org.bson.types.ObjectId;
 public class InventoryPoWarehouseDto {
 
     private String poNumber;       // Số của Đơn đặt hàng (Purchase Order) – Bắt buộc
-    private InventoryPoWarehouseDto.Warehouse warehouse;
-
-    @Data
-    private static class Warehouse{
-        private ObjectId id;        // _id
-        private String name;       // Tên kho (bắt buộc)
-    }
+    private ObjectId warehouseId;        // _id
+    private String warehouseName;       // Tên kho (bắt buộc)
 }
