@@ -1,23 +1,34 @@
 package warehouse_management.com.warehouse_management.repository.inventory_item.impl;
 
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.UpdateOneModel;
+import com.mongodb.client.model.Updates;
+import com.mongodb.client.model.WriteModel;
+import cz.jirutka.rsql.parser.RSQLParser;
+import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.aggregation.Aggregation;
-import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
-import org.springframework.data.mongodb.core.aggregation.MatchOperation;
-import org.springframework.data.mongodb.core.aggregation.ProjectionOperation;
+import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import warehouse_management.com.warehouse_management.common.pagination.req.PageOptionsReq;
-import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryItemProductionVehicleTypeDto;
+import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
+import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
+import warehouse_management.com.warehouse_management.enumerate.InventoryType;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.repository.inventory_item.CustomInventoryItemRepository;
 import warehouse_management.com.warehouse_management.utils.MongoRsqlUtils;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRepository {
@@ -59,5 +70,358 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 aggregation,                  // Pipeline đã xây dựng
                 optionsReq                    // Yêu cầu từ client
         );
+    }
+
+
+    @Override
+    public Page<InventoryDestinationDto> findPageInventoryDestination(ObjectId warehouseId, PageOptionsReq optionsReq) {
+        List<AggregationOperation> pipelines = List.of(
+                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
+                Aggregation.unwind("warehouse"),
+                Aggregation.match(new Criteria().andOperator(
+                        Criteria.where("warehouseId").is(warehouseId),
+                        Criteria.where("deletedAt").isNull(),
+                        Criteria.where("inventoryType").is(InventoryType.PRODUCT_ACCESSORIES.getId()),
+                        Criteria.where("warehouse.deletedAt").isNull()
+                )),
+                Aggregation.project("poNumber", "status", "productCode", "manufacturingYear", "model", "type", "category", "serialNumber", "notes", "initialCondition", "inventoryType")
+                        .and("specifications.hasSideShift").as("hasSideShift") //
+                        .and("specifications.liftingCapacityKg").as("liftingCapacityKg")    //
+                        .and("specifications.chassisType").as("chassisType")    //
+                        .and("specifications.liftingHeightMm").as("liftingHeightMm")    //
+                        .and("specifications.engineType").as("engineType")  //
+                        .and("specifications.batteryInfo").as("batteryInfo")    //
+                        .and("specifications.batterySpecification").as("batterySpecification")  //
+                        .and("specifications.chargerSpecification").as("chargerSpecification")  //
+                        .and("specifications.ForkDimensions").as("ForkDimensions")  //
+                        .and("specifications.valveCount").as("valveCount")  //
+                        .and("specifications.otherDetails").as("otherDetails")  //
+                        .and("warehouse.type").as("warehouseType") //
+                        .and("pricing.purchasePrice").as("purchasePrice")   //
+                        .and("pricing.salePriceR0").as("salePriceR0")   //
+                        .and("pricing.salePriceR1").as("salePriceR1")   //
+                        .and("pricing.actualSalePrice").as("actualSalePrice")   //
+                        .and("logistics.arrivalDate").as("arrivalDate") //
+        );
+        Aggregation aggregation = Aggregation.newAggregation(pipelines);
+        return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryDestinationDto.class, aggregation, optionsReq);
+    }
+
+    @Override
+    public Page<InventoryProductionDto> findPageInventoryProduction(ObjectId warehouseId, PageOptionsReq optionsReq) {
+        List<AggregationOperation> pipelines = List.of(
+                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
+                Aggregation.unwind("warehouse"),
+                Aggregation.match(new Criteria().andOperator(
+                        Criteria.where("warehouseId").is(warehouseId),
+                        Criteria.where("deletedAt").isNull(),
+                        Criteria.where("inventoryType").is(InventoryType.PRODUCT_ACCESSORIES.getId()),
+                        Criteria.where("warehouse.deletedAt").isNull()
+                )),
+                Aggregation.project("poNumber", "productCode", "model", "type", "category", "serialNumber", "notes", "initialCondition", "inventoryType")
+                        .and("logistics.orderDate").as("orderDate")
+                        .and("specifications.hasSideShift").as("hasSideShift")
+                        .and("specifications.liftingCapacityKg").as("liftingCapacityKg")
+                        .and("specifications.chassisType").as("chassisType")
+                        .and("specifications.liftingHeightMm").as("liftingHeightMm")
+                        .and("specifications.engineType").as("engineType")
+                        .and("specifications.batteryInfo").as("batteryInfo")
+                        .and("specifications.batterySpecification").as("batterySpecification")
+                        .and("specifications.chargerSpecification").as("chargerSpecification")
+                        .and("specifications.ForkDimensions").as("ForkDimensions")
+                        .and("specifications.valveCount").as("valveCount")
+                        .and("specifications.otherDetails").as("otherDetails")
+                        .and("warehouse.type").as("warehouseType")
+                        .and("pricing.purchasePrice").as("purchasePrice")
+                        .and("pricing.salePriceR0").as("salePriceR0")
+                        .and("pricing.salePriceR1").as("salePriceR1")
+                        .and("pricing.actualSalePrice").as("actualSalePrice")
+                        .and("pricing.agent").as("agent")
+        );
+        Aggregation aggregation = Aggregation.newAggregation(pipelines);
+        return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryProductionDto.class, aggregation, optionsReq);
+
+    }
+
+    @Override
+    public Page<InventoryDepartureDto> findPageInventoryDeparture(ObjectId warehouseId, PageOptionsReq optionsReq) {
+        List<AggregationOperation> pipelines = List.of(
+                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
+                Aggregation.unwind("warehouse"),
+                Aggregation.lookup("container", "containerId", "_id", "container"),
+                Aggregation.unwind("container"),
+                Aggregation.lookup("warehouse", "container.toWarehouseId", "_id", "containerToWarehouse"),
+                Aggregation.unwind("containerToWarehouse"),
+                Aggregation.match(new Criteria().andOperator(
+                        Criteria.where("warehouseId").is(warehouseId),
+                        Criteria.where("deletedAt").isNull(),
+                        Criteria.where("inventoryType").is(InventoryType.PRODUCT_ACCESSORIES.getId()),
+                        Criteria.where("warehouse.deletedAt").isNull(),
+                        Criteria.where("container.deletedAt").isNull()
+                )),
+                Aggregation.project("poNumber", "status", "productCode", "manufacturingYear", "model", "type", "category", "serialNumber", "notes", "initialCondition", "inventoryType")
+                        .and("logistics.orderDate").as("orderDate") //
+                        .and("logistics.arrivalDate").as("arrivalDate") //
+                        .and("specifications.hasSideShift").as("hasSideShift")  //
+                        .and("specifications.liftingCapacityKg").as("liftingCapacityKg")    //
+                        .and("specifications.chassisType").as("chassisType")    //
+                        .and("specifications.liftingHeightMm").as("liftingHeightMm")    //
+                        .and("specifications.engineType").as("engineType")  //
+                        .and("specifications.batteryInfo").as("batteryInfo")    //
+                        .and("specifications.batterySpecification").as("batterySpecification")  //
+                        .and("specifications.chargerSpecification").as("chargerSpecification")  //
+                        .and("specifications.ForkDimensions").as("ForkDimensions")  //
+                        .and("specifications.valveCount").as("valveCount")  //
+                        .and("specifications.otherDetails").as("otherDetails")  //
+                        .and("warehouse.type").as("warehouseType") //
+                        .and("pricing.purchasePrice").as("purchasePrice")   //
+                        .and("pricing.salePriceR0").as("salePriceR0")   //
+                        .and("pricing.salePriceR1").as("salePriceR1")   //
+                        .and("pricing.actualSalePrice").as("actualSalePrice")   //
+                        .and("container.status").as("containerStatus")  //
+                        .and("container.code").as("containerCode")  //
+                        .and("containerToWarehouse.name").as("containerToWarehouse")    //
+                        .and("containerToWarehouse.departureDate").as("containerDepartureDate") //
+                        .and("containerToWarehouse.arrivalDate").as("containerArrivalDate") //
+
+        );
+        Aggregation aggregation = Aggregation.newAggregation(pipelines);
+        return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryDepartureDto.class, aggregation, optionsReq);
+    }
+
+    @Override
+    public Page<InventoryConsignmentDto> findPageInventoryConsignment(ObjectId warehouseId, PageOptionsReq optionsReq) {
+        List<AggregationOperation> pipelines = List.of(
+                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
+                Aggregation.unwind("warehouse"),
+                Aggregation.match(new Criteria().andOperator(
+                        Criteria.where("warehouseId").is(warehouseId),
+                        Criteria.where("deletedAt").isNull(),
+                        Criteria.where("inventoryType").is(InventoryType.PRODUCT_ACCESSORIES.getId()),
+                        Criteria.where("warehouse.deletedAt").isNull()
+                )),
+                Aggregation.project("poNumber", "status", "productCode", "manufacturingYear", "model", "type", "category", "serialNumber", "notes", "initialCondition", "inventoryType")
+                        .and("specifications.hasSideShift").as("hasSideShift") //
+                        .and("specifications.liftingCapacityKg").as("liftingCapacityKg")    //
+                        .and("specifications.chassisType").as("chassisType")    //
+                        .and("specifications.liftingHeightMm").as("liftingHeightMm")    //
+                        .and("specifications.engineType").as("engineType")  //
+                        .and("specifications.batteryInfo").as("batteryInfo")    //
+                        .and("specifications.batterySpecification").as("batterySpecification")  //
+                        .and("specifications.chargerSpecification").as("chargerSpecification")  //
+                        .and("specifications.ForkDimensions").as("ForkDimensions")  //
+                        .and("specifications.valveCount").as("valveCount")  //
+                        .and("specifications.otherDetails").as("otherDetails")  //
+                        .and("warehouse.type").as("warehouseType") //
+                        .and("pricing.purchasePrice").as("purchasePrice")   //
+                        .and("pricing.salePriceR0").as("salePriceR0")   //
+                        .and("pricing.salePriceR1").as("salePriceR1")   //
+                        .and("pricing.actualSalePrice").as("actualSalePrice")   //
+                        .and("logistics.arrivalDate").as("arrivalDate") //
+                        .and("logistics.consignmentDate").as("consignmentDate") //
+        );
+        Aggregation aggregation = Aggregation.newAggregation(pipelines);
+        return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryConsignmentDto.class, aggregation, optionsReq);
+    }
+
+    @Override
+    public Page<InventoryProductionSparePartsDto> findPageInventorySparePartsProduction(ObjectId warehouseId, PageOptionsReq optionsReq) {
+        List<AggregationOperation> pipelines = List.of(
+                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
+                Aggregation.unwind("warehouse"),
+                Aggregation.match(new Criteria().andOperator(
+                        Criteria.where("warehouseId").is(warehouseId),
+                        Criteria.where("deletedAt").isNull(),
+                        Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId()),
+                        Criteria.where("warehouse.deletedAt").isNull()
+                )),
+                Aggregation.project("poNumber", "model", "productCode", "quantity", "initialCondition", "inventoryType")
+                        .and("logistics.orderDate").as("orderDate") //
+                        .and("pricing.purchasePrice").as("purchasePrice")   //
+                        .and("pricing.actualSalePrice").as("actualSalePrice")   //
+        );
+        Aggregation aggregation = Aggregation.newAggregation(pipelines);
+        return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryProductionSparePartsDto.class, aggregation, optionsReq);
+    }
+
+    @Override
+    public Page<InventoryDepartureSparePartsDto> findPageInventorySparePartsDeparture(ObjectId warehouseId, PageOptionsReq optionsReq) {
+        List<AggregationOperation> pipelines = List.of(
+                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
+                Aggregation.unwind("warehouse"),
+                Aggregation.match(new Criteria().andOperator(
+                        Criteria.where("warehouseId").is(warehouseId),
+                        Criteria.where("deletedAt").isNull(),
+                        Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId()),
+                        Criteria.where("warehouse.deletedAt").isNull()
+                )),
+                Aggregation.project("poNumber", "model", "productCode", "notes", "quantity", "initialCondition", "inventoryType")
+                        .and("logistics.orderDate").as("orderDate") //
+                        .and("pricing.purchasePrice").as("purchasePrice")   //
+                        .and("pricing.salePriceR0").as("salePriceR0")   //
+                        .and("pricing.salePriceR1").as("salePriceR1")   //
+        );
+        Aggregation aggregation = Aggregation.newAggregation(pipelines);
+        return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryDepartureSparePartsDto.class, aggregation, optionsReq);
+    }
+
+    @Override
+    public Page<InventoryDestinationSparePartsDto> findPageInventorySparePartsDestination(ObjectId warehouseId, PageOptionsReq optionsReq) {
+        List<AggregationOperation> pipelines = List.of(
+                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
+                Aggregation.unwind("warehouse"),
+                Aggregation.match(new Criteria().andOperator(
+                        Criteria.where("warehouseId").is(warehouseId),
+                        Criteria.where("deletedAt").isNull(),
+                        Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId()),
+                        Criteria.where("warehouse.deletedAt").isNull()
+                )),
+                Aggregation.project("poNumber", "model", "productCode", "notes", "quantity", "initialCondition", "inventoryType")
+                        .and("logistics.orderDate").as("orderDate") //
+                        .and("pricing.purchasePrice").as("purchasePrice")   //
+                        .and("pricing.salePriceR0").as("salePriceR0")   //
+                        .and("pricing.salePriceR1").as("salePriceR1")   //
+        );
+        Aggregation aggregation = Aggregation.newAggregation(pipelines);
+        return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryDestinationSparePartsDto.class, aggregation, optionsReq);
+    }
+
+    @Override
+    public Page<InventoryConsignmentSparePartsDto> findPageInventorySparePartsConsignment(ObjectId warehouseId, PageOptionsReq optionsReq) {
+        List<AggregationOperation> pipelines = List.of(
+                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
+                Aggregation.unwind("warehouse"),
+                Aggregation.match(new Criteria().andOperator(
+                        Criteria.where("warehouseId").is(warehouseId),
+                        Criteria.where("deletedAt").isNull(),
+                        Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId()),
+                        Criteria.where("warehouse.deletedAt").isNull()
+                )),
+                Aggregation.project("poNumber", "model", "productCode", "notes", "quantity", "initialCondition", "inventoryType")
+                        .and("warehouse.name").as("warehouseName")  //
+                        .and("warehouse.contractNumber").as("contractNumber")   //
+                        .and("logistics.orderDate").as("orderDate") //
+                        .and("logistics.consignmentDate").as("consignmentDate") //
+                        .and("pricing.purchasePrice").as("purchasePrice")   //
+                        .and("pricing.salePriceR0").as("salePriceR0")   //
+                        .and("pricing.salePriceR1").as("salePriceR1")   //
+        );
+        Aggregation aggregation = Aggregation.newAggregation(pipelines);
+        return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryConsignmentSparePartsDto.class, aggregation, optionsReq);
+    }
+
+    @Override
+    public Page<InventoryCentralWarehouseDto> findPageInventoryCentralWarehouse(PageOptionsReq optionsReq){
+        List<AggregationOperation> pipelines = List.of(
+                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
+                Aggregation.unwind("warehouse"),
+                Aggregation.match(new Criteria().andOperator(
+                        Criteria.where("deletedAt").isNull(),
+                        Criteria.where("warehouse.deletedAt").isNull()
+                )),
+                Aggregation.project("poNumber", "productCode", "status", "model", "category", "type", "serialNumber", "manufacturingYear", "initialCondition", "notes", "inventoryType")
+                        .and("specifications.liftingCapacityKg").as("liftingCapacityKg")    //
+                        .and("specifications.chassisType").as("chassisType")    //
+                        .and("specifications.liftingHeightMm").as("liftingHeightMm")    //
+                        .and("specifications.engineType").as("engineType")  //
+                        .and("specifications.batteryInfo").as("batteryInfo")    //
+                        .and("specifications.batterySpecification").as("batterySpecification")  //
+                        .and("specifications.chargerSpecification").as("chargerSpecification")  //
+                        .and("specifications.ForkDimensions").as("ForkDimensions")  //
+                        .and("specifications.valveCount").as("valveCount")  //
+                        .and("specifications.otherDetails").as("otherDetails")  //
+                        .and("warehouse.type").as("warehouseType") //
+                        .and("pricing.purchasePrice").as("purchasePrice")   //
+                        .and("pricing.salePriceR0").as("salePriceR0")   //
+                        .and("pricing.salePriceR1").as("salePriceR1")   //
+                        .and("pricing.actualSalePrice").as("actualSalePrice")   //
+                        .and("logistics.arrivalDate").as("arrivalDate") //
+        );
+        Aggregation aggregation = Aggregation.newAggregation(pipelines);
+        return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryCentralWarehouseDto.class, aggregation, optionsReq);
+    }
+
+    @Override
+    public List<InventoryPoWarehouseDto> findInventoryInStockPoNumbers(String warehouseType, String filter, Sort sort){
+        List<AggregationOperation> aggOps = new ArrayList<>(List.of(
+                Aggregation.match(new Criteria().andOperator(
+                        Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
+                        Criteria.where("deletedAt").isNull()
+                )),
+                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
+                Aggregation.unwind("warehouse"),
+                Aggregation.group("poNumber", "warehouse._id")
+                        .first("warehouse").as("warehouse"),
+                Aggregation.match(new Criteria().andOperator(
+                        Criteria.where("warehouse.deletedAt").isNull(),
+                        Criteria.where("warehouse.type").is(warehouseType)
+                )),
+                Aggregation.project()
+                        .andExclude("_id")
+                        .and("poNumber").as("poNumber")
+                        .and(context -> new Document("_id", "$warehouse._id")
+                                .append("name", "$warehouse.name")).as("warehouse")
+        ));
+        if(filter != null && !filter.isBlank()){
+            Criteria filterCriteria = new RSQLParser().parse(filter).accept(new MongoRsqlUtils.MongoRsqlVisitor(Map.of()));
+            aggOps.add(Aggregation.match(filterCriteria));
+        }
+        if(!sort.isEmpty()){
+            aggOps.add(Aggregation.sort(sort));
+        }
+        AggregationResults<InventoryPoWarehouseDto> aggResults = mongoTemplate.aggregate(Aggregation.newAggregation(aggOps), InventoryItem.class, InventoryPoWarehouseDto.class);
+        return aggResults.getMappedResults();
+    }
+
+    @Override
+    public List<InventoryItem> findInventoryInStockByPoNumber(String warehouseType, String poNumber, String filter, Sort sort) {
+        List<AggregationOperation> aggOps = new ArrayList<>(List.of(
+                Aggregation.match(new Criteria().andOperator(
+                        Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
+                        Criteria.where("deletedAt").isNull(),
+                        Criteria.where("poNumber").is(poNumber)
+                )),
+                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
+                Aggregation.unwind("warehouse"),
+                Aggregation.match(new Criteria().andOperator(
+                        Criteria.where("warehouse.deletedAt").isNull(),
+                        Criteria.where("warehouse.type").is(warehouseType)
+                ))
+        ));
+        if(filter != null && !filter.isBlank()){
+            Criteria filterCriteria = new RSQLParser().parse(filter).accept(new MongoRsqlUtils.MongoRsqlVisitor(Map.of()));
+            aggOps.add(Aggregation.match(filterCriteria));
+        }
+        if(!sort.isEmpty()){
+            aggOps.add(Aggregation.sort(sort));
+        }
+        AggregationResults<InventoryItem> aggResults = mongoTemplate.aggregate(Aggregation.newAggregation(aggOps), InventoryItem.class, InventoryItem.class);
+        return aggResults.getMappedResults();
+    }
+
+    @Transactional
+    @Override
+    public void insertAll(Collection<InventoryItem> inventoryItems){
+        if(inventoryItems.isEmpty()) return;
+        mongoTemplate.insertAll(inventoryItems);
+    }
+
+    @Transactional
+    @Override
+    public void bulkUpdateTransferDeparture(Collection<InventoryItem> inventoryItems){
+        if(inventoryItems.isEmpty()) return;
+        MongoCollection<Document> coll = mongoTemplate.getCollection(mongoTemplate.getCollectionName(InventoryItem.class));
+        List<WriteModel<Document>> writeModels = new ArrayList<>();
+        for(var item : inventoryItems){
+            Bson filter = Filters.eq("_id", item.getId());
+            Bson update = Updates.combine(
+                    Updates.set("quantity", item.getQuantity()),
+                    Updates.set("warehouseId", item.getWarehouseId().toString()),
+                    Updates.set("status", item.getStatus().getId()),
+                    Updates.set("logistics.arrivalDate", item.getLogistics().getArrivalDate())
+            );
+            writeModels.add(new UpdateOneModel<>(filter, update));
+        }
+        coll.bulkWrite(writeModels);
     }
 }

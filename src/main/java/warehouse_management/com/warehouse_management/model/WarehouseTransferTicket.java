@@ -3,7 +3,6 @@ package warehouse_management.com.warehouse_management.model;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.*;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -15,7 +14,6 @@ import java.util.List;
 
 @Data
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "warehouse_transfer_ticket")
 public class WarehouseTransferTicket {
@@ -53,7 +51,6 @@ public class WarehouseTransferTicket {
 
     @Data
     @Builder
-    @NoArgsConstructor
     @AllArgsConstructor
     public static class TransferItem {
         private String productId;  // ID sản phẩm

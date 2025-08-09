@@ -2,7 +2,6 @@ package warehouse_management.com.warehouse_management.common.pagination.req;
 
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -10,7 +9,6 @@ import org.springframework.data.domain.Sort;
 import java.util.List;
 
 @Data
-@NoArgsConstructor
 @ParameterObject
 public class PageOptionsReq {
 

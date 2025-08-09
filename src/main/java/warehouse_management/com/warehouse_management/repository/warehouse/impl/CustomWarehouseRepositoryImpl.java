@@ -1,5 +1,9 @@
 package warehouse_management.com.warehouse_management.repository.warehouse.impl;
 
+import org.springframework.data.domain.Page;
+import warehouse_management.com.warehouse_management.common.pagination.req.PageOptionsReq;
+import warehouse_management.com.warehouse_management.dto.warehouse.response.WarehouseResponseDto;
+import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.repository.warehouse.CustomWarehouseRepository;
 
 import com.mongodb.client.result.UpdateResult;
@@ -10,6 +14,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
+import warehouse_management.com.warehouse_management.utils.MongoRsqlUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -49,5 +54,15 @@ public class CustomWarehouseRepositoryImpl implements CustomWarehouseRepository 
         UpdateResult result = mongoTemplate.updateFirst(query, update, "warehouse");
 
         return result.getModifiedCount() == 1;
+    }
+
+    @Override
+    public Page<WarehouseResponseDto> findPageWarehouse(PageOptionsReq optionsReq){
+        Query query = new Query();
+        query.addCriteria(Criteria.where("deletedAt").isNull());
+        query.fields().exclude("createdBy");
+        query.fields().exclude("updatedBy");
+        query.fields().exclude("updatedAt");
+        return MongoRsqlUtils.queryPage(Warehouse.class, WarehouseResponseDto.class, query, optionsReq);
     }
 }

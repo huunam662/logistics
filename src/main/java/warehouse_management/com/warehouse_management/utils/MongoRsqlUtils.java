@@ -30,7 +30,8 @@ import java.util.Optional;
 public class MongoRsqlUtils {
 
     public static <T> Page<T> queryPage(
-            @NonNull Class<T> entityType,
+            @NonNull Class<?> inputType,
+            @NonNull Class<T> outputType,
             @NonNull Query query,
             @NonNull Map<String, String> propertyMapper,
             @NonNull PageOptionsReq optionsReq
@@ -41,34 +42,37 @@ public class MongoRsqlUtils {
             Criteria filterCriteria = new RSQLParser().parse(filter).accept(new MongoRsqlVisitor(propertyMapper));
             query.addCriteria(filterCriteria);
         }
-        long totalT = mongoTemplate.count(query, entityType);
+        long totalT = mongoTemplate.count(query, inputType);
         Pageable pageable = optionsReq.getPageable();
         query.with(pageable);
-        List<T> tResultList = mongoTemplate.find(query, entityType);
+        List<T> tResultList = mongoTemplate.find(query, outputType, mongoTemplate.getCollectionName(inputType));
         return new PageImpl<>(tResultList, pageable, totalT);
     }
 
     public static <T> Page<T> queryPage(
-            @NonNull Class<T> entityClass,
+            @NonNull Class<?> inputType,
+            @NonNull Class<T> outputType,
             @NonNull PageOptionsReq optionsReq
     ){
-        return queryPage(entityClass, new Query(), Map.of(), optionsReq);
+        return queryPage(inputType, outputType, new Query(), Map.of(), optionsReq);
     }
 
     public static <T> Page<T> queryPage(
-            @NonNull Class<T> entityClass,
+            @NonNull Class<?> inputType,
+            @NonNull Class<T> outputType,
             @NonNull Query query,
             @NonNull PageOptionsReq optionsReq
     ){
-        return queryPage(entityClass, query, Map.of(), optionsReq);
+        return queryPage(inputType, outputType, query, Map.of(), optionsReq);
     }
 
     public static <T> Page<T> queryPage(
-            @NonNull Class<T> entityClass,
+            @NonNull Class<?> inputType,
+            @NonNull Class<T> outputType,
             @NonNull Map<String, String> propertyMapper,
             @NonNull PageOptionsReq optionsReq
     ){
-        return queryPage(entityClass, new Query(), propertyMapper, optionsReq);
+        return queryPage(inputType, outputType, new Query(), propertyMapper, optionsReq);
     }
 
     public static <T> Page<T> queryAggregatePage(

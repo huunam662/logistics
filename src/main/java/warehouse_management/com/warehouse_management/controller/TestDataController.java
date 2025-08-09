@@ -213,6 +213,7 @@ public class TestDataController {
                     "Bình điện " + faker.bothify("??-###"),   // batteryInfo
                     "Thông số bình " + faker.bothify("??-##"),// batterySpecification
                     "Thông số sạc " + faker.bothify("??-##"), // chargerSpecification
+                    "",
                     faker.number().numberBetween(2, 6),       // valveCount
                     faker.bool().bool(),                      // hasSideShift
                     faker.lorem().sentence()                  // otherDetails

@@ -3,17 +3,15 @@ package warehouse_management.com.warehouse_management.dto.inventory_item.request
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import warehouse_management.com.warehouse_management.annotation.Validation;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
 
-public class CreateInventoryItemReq {
+public class CreateInventoryItemDto {
 
     // ====== Thông tin cơ bản ======
 
@@ -41,7 +39,6 @@ public class CreateInventoryItemReq {
     private String initialCondition; // Nguyên trạng 11
 
     @Data
-    @NoArgsConstructor
     @AllArgsConstructor
     public static class Specifications {
         private Boolean hasSideShift; // Có side shift không 9
@@ -64,7 +61,6 @@ public class CreateInventoryItemReq {
     private Pricing pricing;
 
     @Data
-    @NoArgsConstructor
     @AllArgsConstructor
     public static class Pricing {
         private BigDecimal purchasePrice; // Giá mua  22
@@ -84,7 +80,6 @@ public class CreateInventoryItemReq {
     private Logistics logistics;
 
     @Data
-    @NoArgsConstructor
     @AllArgsConstructor
     public static class Logistics {
         @Validation(label = "Ngày đặt hàng", required = true)
