@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import warehouse_management.com.warehouse_management.common.pagination.req.PageOptionsReq;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
+import warehouse_management.com.warehouse_management.dto.warehouse.response.GetDepartureWarehouseForContainerDto;
 import warehouse_management.com.warehouse_management.enumerate.WarehouseType;
 import warehouse_management.com.warehouse_management.exceptions.LogicErrException;
 import warehouse_management.com.warehouse_management.dto.warehouse.request.CreateWarehouseDto;
@@ -170,6 +171,10 @@ public class WarehouseService {
         }
 
         return warehouseRepository.bulkSoftDelete(warehouseIds, new ObjectId("6529f2e5b3a04a4a2e8b4f1c"));
+    }
+
+    public List<GetDepartureWarehouseForContainerDto> getDepartureWarehousesForContainer(String warehouseType) {
+        return warehouseRepository.getDepartureWarehousesForContainer(warehouseType);
     }
 
 }

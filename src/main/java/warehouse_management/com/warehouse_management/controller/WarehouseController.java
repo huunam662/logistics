@@ -14,6 +14,7 @@ import warehouse_management.com.warehouse_management.dto.inventory_item.response
 import warehouse_management.com.warehouse_management.dto.warehouse.request.BulkDeleteRequestDto;
 import warehouse_management.com.warehouse_management.dto.warehouse.request.CreateWarehouseDto;
 import warehouse_management.com.warehouse_management.dto.warehouse.request.UpdateWarehouseDto;
+import warehouse_management.com.warehouse_management.dto.warehouse.response.GetDepartureWarehouseForContainerDto;
 import warehouse_management.com.warehouse_management.dto.warehouse.response.WarehouseResponseDto;
 import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.service.WarehouseService;
@@ -203,5 +204,12 @@ public class WarehouseController {
         return ApiResponse.success(response);
     }
 
+    @GetMapping("/warehouse-type/{warehouseType}")
+    public ApiResponse<List<GetDepartureWarehouseForContainerDto>> getWarehouseByTypeForContainer(
+            @PathVariable String warehouseType
+    ) {
+        List<GetDepartureWarehouseForContainerDto> dtos = warehouseService.getDepartureWarehousesForContainer(warehouseType);
+        return ApiResponse.success(dtos);
+    }
 
 }

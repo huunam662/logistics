@@ -1,4 +1,4 @@
-package warehouse_management.com.warehouse_management.repository;
+package warehouse_management.com.warehouse_management.repository.container;
 
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -9,7 +9,8 @@ import warehouse_management.com.warehouse_management.model.Container;
 import java.util.List;
 
 @Repository
-public interface ContainerRepository extends MongoRepository<Container, ObjectId> {
+public interface ContainerRepository extends MongoRepository<Container, ObjectId>,
+CustomContainerRepository{
 
     Container findByContainerCode(String containerCode);
 
@@ -17,5 +18,4 @@ public interface ContainerRepository extends MongoRepository<Container, ObjectId
 
     @Query("{ 'deletedAt': null }")
     List<Container> findAll();
-
 }

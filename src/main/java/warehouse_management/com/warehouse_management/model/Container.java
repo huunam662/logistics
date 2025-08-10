@@ -16,7 +16,6 @@ import java.util.List;
 @AllArgsConstructor
 @Document(collection = "container")
 public class Container {
-
     @Id
     private ObjectId id;  // _id – Khóa chính
 
@@ -31,8 +30,6 @@ public class Container {
 
     private ObjectId fromWareHouseId;     // Tham chiếu đến _id kho đi
     private ObjectId toWarehouseId;       // Tham chiếu đến _id kho đến
-
-    private List<InventoryItem> items;
 
     @CreatedBy
     private ObjectId createdBy;
