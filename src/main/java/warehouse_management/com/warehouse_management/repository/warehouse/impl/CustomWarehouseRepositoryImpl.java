@@ -1,7 +1,12 @@
 package warehouse_management.com.warehouse_management.repository.warehouse.impl;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationResults;
+import org.springframework.data.mongodb.core.aggregation.MatchOperation;
+import org.springframework.data.mongodb.core.aggregation.ProjectionOperation;
 import warehouse_management.com.warehouse_management.common.pagination.req.PageOptionsReq;
+import warehouse_management.com.warehouse_management.dto.warehouse.response.GetDepartureWarehouseForContainerDto;
 import warehouse_management.com.warehouse_management.dto.warehouse.response.WarehouseResponseDto;
 import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.repository.warehouse.CustomWarehouseRepository;
@@ -64,5 +69,34 @@ public class CustomWarehouseRepositoryImpl implements CustomWarehouseRepository 
         query.fields().exclude("updatedBy");
         query.fields().exclude("updatedAt");
         return MongoRsqlUtils.queryPage(Warehouse.class, WarehouseResponseDto.class, query, optionsReq);
+    }
+
+    @Override
+    public List<GetDepartureWarehouseForContainerDto> getDepartureWarehousesForContainer(String warehouseType) {
+        MatchOperation matchStage = Aggregation.match(
+                new Criteria().andOperator(
+                        Criteria.where("deletedAt").isNull(),
+                        Criteria.where("type").is(warehouseType)
+                )
+        );
+
+        ProjectionOperation projectStage = Aggregation.project("code", "name")
+                .and("_id").as("warehouseId")
+                .and("code").as("warehouseCode")
+                .and("name").as("warehouseName");
+
+        // Xây dựng pipeline hoàn chỉnh
+        Aggregation aggregation = Aggregation.newAggregation(
+                matchStage,
+                projectStage
+        );
+
+        AggregationResults<GetDepartureWarehouseForContainerDto> results = mongoTemplate.aggregate(
+                aggregation,
+                Warehouse.class, // Lớp entity đầu vào
+                GetDepartureWarehouseForContainerDto.class // Lớp DTO đầu ra
+        );
+
+        return results.getMappedResults();
     }
 }

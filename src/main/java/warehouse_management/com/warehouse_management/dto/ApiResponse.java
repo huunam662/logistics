@@ -17,7 +17,6 @@ import java.time.LocalDateTime;
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ApiResponse<T> {
-
     public static final String SUCCESS_CODE = "S000";
     public static final String FAILD_CODE = "F000";
     public static final String SUCCESS_MESSAGE = "Thành công";
@@ -32,16 +31,10 @@ public class ApiResponse<T> {
     @JsonProperty("result")
     private T result;
 
-    @JsonProperty("timestamp")
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
-    private LocalDateTime timestamp = LocalDateTime.now();
-
-
     private ApiResponse(String code, String message, T result) {
         this.code = code;
         this.message = message;
         this.result = result;
-        this.timestamp = LocalDateTime.now();
     }
 
     //  Thành công
@@ -73,7 +66,4 @@ public class ApiResponse<T> {
     public static <T> ApiResponse<T> fail(String code, String message, T result) {
         return new ApiResponse<>(code, message, result);
     }
-
-
-    // Getters/setters nếu không dùng Lombok
 }
