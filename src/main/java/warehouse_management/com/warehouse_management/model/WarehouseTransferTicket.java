@@ -25,8 +25,7 @@ public class WarehouseTransferTicket {
 
     private String originWarehouseId;         // ObjectId dạng String – Kho đi
     private String destinationWarehouseId;    // ObjectId dạng String – Kho đến
-
-    private List<TransferItem> items;         // Danh sách sản phẩm
+    private List<ObjectId> inventoryItemIds;
 
     private String requesterId;               // Người tạo yêu cầu
     private String approverId;                // Người duyệt hoặc từ chối
@@ -47,15 +46,6 @@ public class WarehouseTransferTicket {
     @LastModifiedDate
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;
-
-
-    @Data
-    @Builder
-    @AllArgsConstructor
-    public static class TransferItem {
-        private String productId;  // ID sản phẩm
-        private int quantity;      // Số lượng
-    }
 
     public TransferTicketStatus getStatusEnum() {
         return status == null ? null : TransferTicketStatus.fromId(status);

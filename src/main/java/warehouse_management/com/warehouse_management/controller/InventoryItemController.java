@@ -12,6 +12,7 @@ import warehouse_management.com.warehouse_management.common.pagination.req.PageO
 import warehouse_management.com.warehouse_management.common.pagination.res.PageInfoRes;
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.CreateInventoryItemDto;
+import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryItemCreateDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryTransferWarehouseDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryPoWarehouseDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryItemProductionVehicleTypeDto;
@@ -19,6 +20,7 @@ import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.service.InventoryItemService;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/inventory-items")
@@ -27,16 +29,16 @@ public class InventoryItemController {
     private final InventoryItemService inventoryItemService;
 
     //Api Nhập kho
-    @PostMapping
-    @Operation(
-            summary = "API Nhập Kho"
-    )
-    public ResponseEntity<?> createInventoryItem(@Valid @RequestBody CreateInventoryItemDto req) {
-        InventoryItem savedItem = inventoryItemService.createInventoryItem(req);
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(ApiResponse.success(savedItem));
-    }
+//    @PostMapping
+//    @Operation(
+//            summary = "API Nhập Kho"
+//    )
+//    public ResponseEntity<?> createInventoryItem(@Valid @RequestBody CreateInventoryItemDto req) {
+//        InventoryItem savedItem = inventoryItemService.createInventoryItem(req);
+//        return ResponseEntity
+//                .status(HttpStatus.CREATED)
+//                .body(ApiResponse.success(savedItem));
+//    }
 
     @GetMapping("/production/po-numbers")
     @Operation(
@@ -94,4 +96,14 @@ public class InventoryItemController {
         return ResponseEntity.ok(itemPage);
     }
 
+    @PostMapping("/bulk-insert")
+    public ResponseEntity<ApiResponse<?>> bulkCreateItems(
+            @Valid @RequestBody List<InventoryItemCreateDto> createDtos) {
+
+        List<InventoryItem> createdItems = inventoryItemService.bulkCreateInventoryItems(createDtos);
+
+        Map<String, Object> result = Map.of("createdCount", createdItems.size());
+
+        return new ResponseEntity<>(ApiResponse.success(result), HttpStatus.CREATED);
+    }
 }

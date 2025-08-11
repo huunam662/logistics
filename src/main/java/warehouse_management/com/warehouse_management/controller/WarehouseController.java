@@ -16,7 +16,6 @@ import warehouse_management.com.warehouse_management.dto.warehouse.request.Creat
 import warehouse_management.com.warehouse_management.dto.warehouse.request.UpdateWarehouseDto;
 import warehouse_management.com.warehouse_management.dto.warehouse.response.GetDepartureWarehouseForContainerDto;
 import warehouse_management.com.warehouse_management.dto.warehouse.response.WarehouseResponseDto;
-import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.service.WarehouseService;
 import java.util.List;
 import java.util.Map;

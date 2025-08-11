@@ -4,10 +4,9 @@ import org.springframework.lang.Nullable;
 
 public enum TransferTicketStatus implements EnumClass<String> {
 
-    PENDING_APPROVAL("PENDING_APPROVAL"),
+    PENDING("PENDING"),
     APPROVED("APPROVED"),
-    REJECTED("REJECTED"),
-    COMPLETED("COMPLETED");
+    REJECTED("REJECTED");
 
     private final String id;
 
