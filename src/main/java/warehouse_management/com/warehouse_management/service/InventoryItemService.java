@@ -3,6 +3,7 @@ package warehouse_management.com.warehouse_management.service;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -10,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import warehouse_management.com.warehouse_management.common.pagination.req.PageOptionsReq;
 import warehouse_management.com.warehouse_management.common.pagination.res.PageInfoRes;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.CreateInventoryItemDto;
+import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryItemCreateDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryTransferWarehouseDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryPoWarehouseDto;
 import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
@@ -21,7 +23,7 @@ import warehouse_management.com.warehouse_management.mapper.InventoryItemMapper;
 import warehouse_management.com.warehouse_management.model.Container;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.model.Warehouse;
-import warehouse_management.com.warehouse_management.repository.ContainerRepository;
+import warehouse_management.com.warehouse_management.repository.container.ContainerRepository;
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -34,17 +36,17 @@ import warehouse_management.com.warehouse_management.dto.inventory_item.request.
 @Service
 @RequiredArgsConstructor
 public class InventoryItemService {
-    private final InventoryItemMapper mapper;
+//    private final InventoryItemMapper mapper;
     private final InventoryItemRepository inventoryItemRepository;
     private final ContainerRepository containerRepository;
     private final WarehouseService warehouseService;
     private final ModelMapper modelMapper;
 
-    public InventoryItem createInventoryItem(CreateInventoryItemDto req) {
-        InventoryItem item = mapper.toInventoryItemModel(req);
-        // Lưu DB
-        return inventoryItemRepository.save(item);
-    }
+//    public InventoryItem createInventoryItem(CreateInventoryItemDto req) {
+//        InventoryItem item = mapper.toInventoryItemModel(req);
+//        // Lưu DB
+//        return inventoryItemRepository.save(item);
+//    }
 
     public PageInfoRes<InventoryItemProductionVehicleTypeDto> getItemsFromVehicleWarehouse(String warehouseId, PageOptionsReq optionsReq) {
         Page<InventoryItemProductionVehicleTypeDto> itemsPageObject = inventoryItemRepository.getItemsFromVehicleWarehouse(
@@ -131,6 +133,39 @@ public class InventoryItemService {
             if(e instanceof LogicErrException l) throw l;
             throw LogicErrException.of("Nhập hàng sang kho đi thất bại, hãy thử lại.");
         }
+    }
+
+    @Transactional
+    public List<InventoryItem> bulkCreateInventoryItems(List<InventoryItemCreateDto> createDtos) {
+        if (createDtos == null || createDtos.isEmpty()) {
+            return List.of();
+        }
+
+        ObjectId currentUserId = new ObjectId("6897243be68a83bcaf7c0d16");
+
+        List<InventoryItem> itemsToInsert = createDtos.stream()
+                .map(dto -> {
+                    InventoryItem item = new InventoryItem();
+                    item.setPoNumber(dto.getPoNumber());
+                    item.setProductCode(dto.getProductCode());
+                    item.setSerialNumber(dto.getSerialNumber());
+                    item.setModel(dto.getModel());
+                    item.setType(dto.getType());
+                    item.setCategory(dto.getCategory());
+                    item.setInventoryType(dto.getInventoryType());
+                    item.setQuantity(dto.getQuantity());
+                    item.setWarehouseId(new ObjectId(dto.getWarehouseId()));
+
+                    item.setStatus(InventoryItemStatus.IN_STOCK.getId());
+
+                    item.setInitialCondition(dto.getInitialCondition());
+                    item.setNotes(dto.getNotes());
+
+                    return item;
+                })
+                .collect(Collectors.toList());
+
+        return inventoryItemRepository.insert(itemsToInsert);
     }
 
 }
