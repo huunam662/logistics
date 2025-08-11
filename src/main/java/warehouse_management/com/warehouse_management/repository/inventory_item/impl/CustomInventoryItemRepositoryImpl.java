@@ -235,7 +235,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId()),
                         Criteria.where("warehouse.deletedAt").isNull()
                 )),
-                Aggregation.project("poNumber", "model", "productCode", "quantity", "initialCondition", "inventoryType")
+                Aggregation.project("poNumber", "model", "commodityCode", "quantity", "initialCondition", "inventoryType")
                         .and("logistics.orderDate").as("orderDate") //
                         .and("pricing.purchasePrice").as("purchasePrice")   //
                         .and("pricing.actualSalePrice").as("actualSalePrice")   //
@@ -255,7 +255,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId()),
                         Criteria.where("warehouse.deletedAt").isNull()
                 )),
-                Aggregation.project("poNumber", "model", "productCode", "notes", "quantity", "initialCondition", "inventoryType")
+                Aggregation.project("poNumber", "model", "commodityCode", "notes", "quantity", "initialCondition", "inventoryType")
                         .and("logistics.orderDate").as("orderDate") //
                         .and("pricing.purchasePrice").as("purchasePrice")   //
                         .and("pricing.salePriceR0").as("salePriceR0")   //
@@ -276,7 +276,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId()),
                         Criteria.where("warehouse.deletedAt").isNull()
                 )),
-                Aggregation.project("poNumber", "model", "productCode", "notes", "quantity", "initialCondition", "inventoryType")
+                Aggregation.project("poNumber", "model", "commodityCode", "notes", "quantity", "initialCondition", "inventoryType")
                         .and("logistics.orderDate").as("orderDate") //
                         .and("pricing.purchasePrice").as("purchasePrice")   //
                         .and("pricing.salePriceR0").as("salePriceR0")   //
@@ -297,7 +297,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId()),
                         Criteria.where("warehouse.deletedAt").isNull()
                 )),
-                Aggregation.project("poNumber", "model", "productCode", "notes", "quantity", "initialCondition", "inventoryType")
+                Aggregation.project("poNumber", "model", "commodityCode", "notes", "quantity", "initialCondition", "inventoryType")
                         .and("warehouse.name").as("warehouseName")  //
                         .and("warehouse.contractNumber").as("contractNumber")   //
                         .and("logistics.orderDate").as("orderDate") //

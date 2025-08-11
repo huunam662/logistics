@@ -19,4 +19,7 @@ public interface InventoryItemMapper {
     InventoryItem.Pricing toInventoryItemModel(CreateInventoryItemDto.Pricing inventoryItemReq);
 
     InventoryItem.Logistics toInventoryItemModel(CreateInventoryItemDto.Logistics inventoryItemReq);
+
+    InventoryItem cloneEntity(InventoryItem inventoryItem);
+
 }

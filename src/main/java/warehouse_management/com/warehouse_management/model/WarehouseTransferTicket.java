@@ -21,14 +21,14 @@ public class WarehouseTransferTicket {
     @Id
     private ObjectId id; // _id – Khóa chính
 
-    private String status; // PENDING_APPROVAL, APPROVED, REJECTED, COMPLETED
+    private String status; // PENDING, APPROVED, REJECTED
 
     private String originWarehouseId;         // ObjectId dạng String – Kho đi
     private String destinationWarehouseId;    // ObjectId dạng String – Kho đến
     private List<ObjectId> inventoryItemIds;
 
-    private String requesterId;               // Người tạo yêu cầu
-    private String approverId;                // Người duyệt hoặc từ chối
+    private ObjectId requesterId;               // Người tạo yêu cầu
+    private ObjectId approverId;                // Người duyệt hoặc từ chối
 
     private String notes;                     // Ghi chú
     private String rejectReason;              // Lý do từ chối (nếu có)

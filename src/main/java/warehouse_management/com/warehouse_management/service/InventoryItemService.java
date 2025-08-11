@@ -2,16 +2,14 @@ package warehouse_management.com.warehouse_management.service;
 
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
-import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import warehouse_management.com.warehouse_management.common.pagination.req.PageOptionsReq;
 import warehouse_management.com.warehouse_management.common.pagination.res.PageInfoRes;
-import warehouse_management.com.warehouse_management.dto.inventory_item.request.CreateInventoryItemDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryItemCreateDto;
+import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryStockTransferDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryTransferWarehouseDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryPoWarehouseDto;
 import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
@@ -32,15 +30,13 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryTransferWarehouseDto.InventoryItemTransfer;
 
-
 @Service
 @RequiredArgsConstructor
 public class InventoryItemService {
-//    private final InventoryItemMapper mapper;
+    private final InventoryItemMapper mapper;
     private final InventoryItemRepository inventoryItemRepository;
     private final ContainerRepository containerRepository;
     private final WarehouseService warehouseService;
-    private final ModelMapper modelMapper;
 
 //    public InventoryItem createInventoryItem(CreateInventoryItemDto req) {
 //        InventoryItem item = mapper.toInventoryItemModel(req);
@@ -88,6 +84,10 @@ public class InventoryItemService {
             List<InventoryItem> itemsToTransfer = inventoryItemRepository.findByIdIn(itemIdToTransfer);
             // Mã Container, Trạng thái Cont, Ngày đi, Ngày đến giữ nguyên rỗng
             Container container = new Container();
+            container.setContainerCode(null);
+            container.setContainerStatus(null);
+            container.setDepartureDate(null);
+            container.setArrivalDate(null);
             container.setId(new ObjectId());
             container.setToWarehouseId(warehouseDeparture.getId());
             List<InventoryItem> itemsSparePartToNew = new ArrayList<>();
@@ -99,7 +99,7 @@ public class InventoryItemService {
                     else if(item.getQuantity() < quantityToTransfer)
                         throw LogicErrException.of("Số lượng phụ tùng " + item.getProductCode() + " cần nhập vượt quá số lượng trong kho.");
                     else if(item.getQuantity() > quantityToTransfer){
-                        InventoryItem sparePartToDeparture = modelMapper.map(item, InventoryItem.class);
+                        InventoryItem sparePartToDeparture = mapper.cloneEntity(item);
                         sparePartToDeparture.setId(null);
                         sparePartToDeparture.setContainerId(container.getId());
                         sparePartToDeparture.setQuantity(quantityToTransfer);
@@ -168,4 +168,9 @@ public class InventoryItemService {
         return inventoryItemRepository.insert(itemsToInsert);
     }
 
+    public Map<String, ObjectId> stockTransfer(InventoryStockTransferDto req) {
+        Warehouse originWarehouse = warehouseService.getWarehouseToId(new ObjectId(req.getOriginWarehouseId()));
+        Warehouse destinationWarehouse = warehouseService.getWarehouseToId(new ObjectId(req.getDestinationWarehouseId()));
+       return null;
+    }
 }

@@ -13,6 +13,7 @@ import warehouse_management.com.warehouse_management.common.pagination.res.PageI
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.CreateInventoryItemDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryItemCreateDto;
+import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryStockTransferDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryTransferWarehouseDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryPoWarehouseDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryItemProductionVehicleTypeDto;
@@ -105,5 +106,12 @@ public class InventoryItemController {
         Map<String, Object> result = Map.of("createdCount", createdItems.size());
 
         return new ResponseEntity<>(ApiResponse.success(result), HttpStatus.CREATED);
+    }
+
+    @PostMapping("/warehouse/stock-transfer")
+    public ResponseEntity<ApiResponse<?>> stockTransfer(
+            @RequestBody InventoryStockTransferDto req
+    ){
+        return null;
     }
 }
