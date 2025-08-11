@@ -11,7 +11,7 @@ public class InventoryDepartureSparePartsDto {
     private ObjectId id; // _id – Khóa chính tự động tạo bởi MongoDB
     private String poNumber;       // Số của Đơn đặt hàng (Purchase Order) – Bắt buộc
     private String model;          // Model sản phẩm – Bắt buộc
-    private String productCode;    // Mã định danh của sản phẩm hoặc hàng hóa – Bắt buộc
+    private String commodityCode;  // Mã hàng hóa (đôi với phụ tùng)
     private LocalDateTime orderDate;        // Ngày đặt hàng
     private String notes;                  // Ghi chú chung – Không bắt buộc
     private String initialCondition;       // Mô tả nguyên trạng khi nhập kho – Không bắt buộc

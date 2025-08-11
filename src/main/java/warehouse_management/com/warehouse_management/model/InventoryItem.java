@@ -20,7 +20,8 @@ public class InventoryItem {
     private ObjectId id; // _id – Khóa chính tự động tạo bởi MongoDB
 
     private String poNumber;       // Số của Đơn đặt hàng (Purchase Order) – Bắt buộc
-    private String productCode;    // Mã định danh của sản phẩm hoặc hàng hóa – Bắt buộc
+    private String productCode;    // Mã định danh của sản phẩm (đối với sản phẩm xe & phụ kiện, phụ tùng thuộc sản phẩm này) – Bắt buộc
+    private String commodityCode;  // Mã hàng hóa (đôi với phụ tùng)
     private String serialNumber;   // Số seri – Có cho xe/phụ kiện
     private String model;          // Model sản phẩm – Bắt buộc
     private String type;           // Loại sản phẩm (VD: Xe nâng điện) – Bắt buộc

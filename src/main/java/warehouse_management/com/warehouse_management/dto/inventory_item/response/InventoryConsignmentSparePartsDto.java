@@ -17,7 +17,7 @@ public class InventoryConsignmentSparePartsDto {
     private LocalDateTime orderDate;        // Ngày đặt hàng
     private LocalDateTime consignmentDate;  // Ngày ký gửi (nếu có)
     private String model;          // Model sản phẩm – Bắt buộc
-    private String productCode;    // Mã định danh của sản phẩm hoặc hàng hóa – Bắt buộc
+    private String commodityCode;  // Mã hàng hóa (đôi với phụ tùng)
     private String notes;                  // Ghi chú chung – Không bắt buộc
     private String initialCondition;       // Mô tả nguyên trạng khi nhập kho – Không bắt buộc
     private String inventoryType;   // Loại hàng tồn (VD: phụ kiện, ...) - Bắt buộc
