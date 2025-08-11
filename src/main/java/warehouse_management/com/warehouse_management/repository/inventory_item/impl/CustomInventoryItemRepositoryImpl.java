@@ -346,18 +346,17 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         List<AggregationOperation> aggOps = new ArrayList<>(List.of(
                 Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
                 Aggregation.unwind("warehouse"),
-                Aggregation.group("poNumber", "warehouse._id")
-                        .first("warehouse").as("warehouse"),
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
                         Criteria.where("deletedAt").isNull(),
                         Criteria.where("warehouse.deletedAt").isNull(),
                         Criteria.where("warehouse.type").is(warehouseType)
                 )),
+                Aggregation.group("poNumber", "warehouse._id")
+                        .first("warehouse").as("warehouse"),
                 Aggregation.project("poNumber")
-                        .andExclude("_id")
-                        .and("warehouse._id").as("warehouseId")
-                        .and("warehouse.name").as("warehouseName")
+                        .andExpression("$warehouse._id").as("warehouseId")
+                        .andExpression("$warehouse.name").as("warehouseName")
         ));
         if(filter != null && !filter.isBlank()){
             Criteria filterCriteria = new RSQLParser().parse(filter).accept(new MongoRsqlUtils.MongoRsqlVisitor(Map.of()));
@@ -371,7 +370,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     }
 
     @Override
-    public List<InventoryItemProductionVehicleTypeDto> findInventoryInStockByPoNumber(String warehouseType, String poNumber, String filter, Sort sort) {
+    public List<InventoryItemPoNumberDto> findInventoryInStockByPoNumber(String warehouseType, String poNumber, String filter, Sort sort) {
         List<AggregationOperation> aggOps = new ArrayList<>(List.of(
                 Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
                 Aggregation.unwind("warehouse"),
@@ -382,7 +381,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("deletedAt").isNull(),
                         Criteria.where("poNumber").is(poNumber)
                 )),
-                Aggregation.project("id", "productCode", "serialNumber", "model", "status", "manufacturingYear")
+                Aggregation.project("id", "poNumber", "productCode", "commodityCode", "serialNumber", "model", "status", "manufacturingYear", "quantity", "inventoryType")
                         .and("logistics.liftingCapacityKg").as("liftingCapacityKg")
                         .and("logistics.chassisType").as("chassisType")
                         .and("logistics.liftingHeightMm").as("liftingHeightMm")
@@ -395,7 +394,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         if(!sort.isEmpty()){
             aggOps.add(Aggregation.sort(sort));
         }
-        AggregationResults<InventoryItemProductionVehicleTypeDto> aggResults = mongoTemplate.aggregate(Aggregation.newAggregation(aggOps), InventoryItem.class, InventoryItemProductionVehicleTypeDto.class);
+        AggregationResults<InventoryItemPoNumberDto> aggResults = mongoTemplate.aggregate(Aggregation.newAggregation(aggOps), InventoryItem.class, InventoryItemPoNumberDto.class);
         return aggResults.getMappedResults();
     }
 
