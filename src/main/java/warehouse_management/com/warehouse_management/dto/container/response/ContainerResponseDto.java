@@ -2,7 +2,6 @@ package warehouse_management.com.warehouse_management.dto.container.response;
 
 import lombok.Data;
 import org.bson.types.ObjectId;
-import org.springframework.data.annotation.Id;
 
 import java.time.LocalDateTime;
 
@@ -19,6 +18,13 @@ public class ContainerResponseDto {
     private String status;
     private String note;
 
-    private ObjectId fromWareHouseId;
-    private ObjectId toWarehouseId;
+    private WarehouseInfo fromWarehouse;
+    private WarehouseInfo toWarehouse;
+
+    @Data
+    public static class WarehouseInfo {
+        private String id;
+        private String name;
+        private String code;
+    }
 }
