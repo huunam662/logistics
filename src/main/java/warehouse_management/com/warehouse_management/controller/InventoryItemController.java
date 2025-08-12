@@ -52,11 +52,10 @@ public class InventoryItemController {
     public ApiResponse<?> getInventoryInStockPoNumbers(
             @Parameter(description = "[PRODUCTION, DEPARTURE, DESTINATION, CONSIGNMENT]")
             @RequestParam String warehouseType,
-            @RequestParam(required = false) String filter,
-            @RequestParam(required = false) List<String> sortBy,
-            @RequestParam(required = false) Sort.Direction direction
+            @Parameter(description = "[PRODUCT_ACCESSORIES, SPARE_PART]")
+            @RequestParam String inventoryType
     ){
-        List<InventoryPoWarehouseDto> poNumbers = inventoryItemService.getInventoryInStockPoNumbers(warehouseType, filter, sortBy, direction);
+        List<InventoryPoWarehouseDto> poNumbers = inventoryItemService.getInventoryInStockPoNumbers(warehouseType, inventoryType);
         return ApiResponse.success(poNumbers);
     }
 

@@ -56,11 +56,8 @@ public class InventoryItemService {
         return response;
     }
 
-    public List<InventoryPoWarehouseDto> getInventoryInStockPoNumbers(String warehouseType, String filter, List<String> sortBy, Sort.Direction direction){
-        Sort sort = Sort.unsorted();
-        if(sortBy != null && !sortBy.isEmpty() && direction != null)
-            sort = Sort.by(direction, sortBy.toArray(String[]::new));
-        return inventoryItemRepository.findInventoryInStockPoNumbers(warehouseType, filter, sort);
+    public List<InventoryPoWarehouseDto> getInventoryInStockPoNumbers(String warehouseType, String inventoryType) {
+        return inventoryItemRepository.findInventoryInStockPoNumbers(warehouseType, inventoryType);
     }
 
     public List<InventoryItemPoNumberDto> getInventoryInStockByPoNumber(String warehouseType, String poNumber, String filter, List<String> sortBy, Sort.Direction direction){
