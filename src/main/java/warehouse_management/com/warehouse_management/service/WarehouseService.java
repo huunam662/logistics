@@ -91,7 +91,6 @@ public class WarehouseService {
         Warehouse warehouse = getWarehouseToId(warehouseId);
         if (!warehouse.getType().equals(WarehouseType.CONSIGNMENT))
             throw LogicErrException.of("Kết quả cần tìm không phải là kho ký gửi.");
-
         return inventoryItemRepository.findPageInventoryConsignment(warehouseId, optionsReq);
     }
 
