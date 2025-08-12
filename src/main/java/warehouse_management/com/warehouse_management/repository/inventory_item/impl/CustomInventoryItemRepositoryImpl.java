@@ -268,13 +268,10 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     @Override
     public Page<InventoryDestinationSparePartsDto> findPageInventorySparePartsDestination(ObjectId warehouseId, PageOptionsReq optionsReq) {
         List<AggregationOperation> pipelines = List.of(
-                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
-                Aggregation.unwind("warehouse"),
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("warehouseId").is(warehouseId),
                         Criteria.where("deletedAt").isNull(),
-                        Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId()),
-                        Criteria.where("warehouse.deletedAt").isNull()
+                        Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId())
                 )),
                 Aggregation.project("poNumber", "model", "commodityCode", "notes", "quantity", "initialCondition", "inventoryType")
                         .and("logistics.orderDate").as("orderDate") //
