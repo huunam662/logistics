@@ -341,29 +341,17 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     }
 
     @Override
-    public List<InventoryPoWarehouseDto> findInventoryInStockPoNumbers(String warehouseType, String filter, Sort sort){
+    public List<InventoryPoWarehouseDto> findInventoryInStockPoNumbers(String warehouseType, String inventoryType){
         List<AggregationOperation> aggOps = new ArrayList<>(List.of(
-                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
-                Aggregation.unwind("warehouse"),
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
                         Criteria.where("deletedAt").isNull(),
-                        Criteria.where("warehouse.deletedAt").isNull(),
-                        Criteria.where("warehouse.type").is(warehouseType)
+                        Criteria.where("inventoryType").is(inventoryType)
                 )),
-                Aggregation.group("poNumber", "warehouse._id")
-                        .first("warehouse").as("warehouse"),
-                Aggregation.project("poNumber")
-                        .andExpression("$warehouse._id").as("warehouseId")
-                        .andExpression("$warehouse.name").as("warehouseName")
+                Aggregation.group("poNumber"),
+                Aggregation.project().and("_id").as("poNumber")
+                        .andExclude("_id")
         ));
-        if(filter != null && !filter.isBlank()){
-            Criteria filterCriteria = new RSQLParser().parse(filter).accept(new MongoRsqlUtils.MongoRsqlVisitor(Map.of()));
-            aggOps.add(Aggregation.match(filterCriteria));
-        }
-        if(!sort.isEmpty()){
-            aggOps.add(Aggregation.sort(sort));
-        }
         AggregationResults<InventoryPoWarehouseDto> aggResults = mongoTemplate.aggregate(Aggregation.newAggregation(aggOps), InventoryItem.class, InventoryPoWarehouseDto.class);
         return aggResults.getMappedResults();
     }
