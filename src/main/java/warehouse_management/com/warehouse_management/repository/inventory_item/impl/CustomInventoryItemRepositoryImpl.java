@@ -194,13 +194,10 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     @Override
     public Page<InventoryConsignmentDto> findPageInventoryConsignment(ObjectId warehouseId, PageOptionsDto optionsReq) {
         List<AggregationOperation> pipelines = List.of(
-                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
-                Aggregation.unwind("warehouse"),
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("warehouseId").is(warehouseId),
                         Criteria.where("deletedAt").isNull(),
-                        Criteria.where("inventoryType").is(InventoryType.PRODUCT_ACCESSORIES.getId()),
-                        Criteria.where("warehouse.deletedAt").isNull()
+                        Criteria.where("inventoryType").in(InventoryType.ACCESSORY.getId(), InventoryType.VEHICLE.getId())
                 )),
                 Aggregation.project("poNumber", "status", "productCode", "manufacturingYear", "model", "type", "category", "serialNumber", "notes", "initialCondition", "inventoryType")
                         .and("specifications.hasSideShift").as("hasSideShift") //
@@ -359,11 +356,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     @Override
     public List<InventoryItemPoNumberDto> findInventoryInStockByPoNumber(String warehouseType, String poNumber, String filter, Sort sort) {
         List<AggregationOperation> aggOps = new ArrayList<>(List.of(
-                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
-                Aggregation.unwind("warehouse"),
                 Aggregation.match(new Criteria().andOperator(
-                        Criteria.where("warehouse.deletedAt").isNull(),
-                        Criteria.where("warehouse.type").is(warehouseType),
                         Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
                         Criteria.where("deletedAt").isNull(),
                         Criteria.where("poNumber").is(poNumber)

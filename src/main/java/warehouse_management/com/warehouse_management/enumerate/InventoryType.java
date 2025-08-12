@@ -6,8 +6,11 @@ import org.springframework.lang.Nullable;
 @Getter
 public enum InventoryType {
 
-    SPARE_PART("SPARE_PART"),
-    PRODUCT_ACCESSORIES("PRODUCT_ACCESSORIES");
+    SPARE_PART("SPARE_PART"),                   // Phụ tùng
+    PRODUCT_ACCESSORIES("PRODUCT_ACCESSORIES"), // XE PHỤ KIỆN
+    VEHICLE("VEHICLE"),                         // XE
+    ACCESSORY("ACCESSORY");                     // PHỤ KIỆN
+
 
     private final String id;
 
