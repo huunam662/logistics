@@ -2,18 +2,19 @@ package warehouse_management.com.warehouse_management.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.bson.types.ObjectId;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import warehouse_management.com.warehouse_management.common.pagination.req.PageOptionsReq;
-import warehouse_management.com.warehouse_management.common.pagination.res.PageInfoRes;
-import warehouse_management.com.warehouse_management.dto.ApiResponse;
-import warehouse_management.com.warehouse_management.dto.inventory_item.request.CreateInventoryItemDto;
-import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryItemCreateDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryStockTransferDto;
+import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
+import warehouse_management.com.warehouse_management.dto.pagination.response.PageInfoDto;
+import warehouse_management.com.warehouse_management.dto.ApiResponse;
+import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryItemCreateDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryTransferWarehouseDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryItemPoNumberDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryPoWarehouseDto;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
+@Tag(name = "Inventory Item")
 @RequestMapping("/v1/inventory-items")
 @RequiredArgsConstructor
 public class InventoryItemController {
@@ -90,11 +92,11 @@ public class InventoryItemController {
     }
 
     @GetMapping("/warehouse/{warehouseId}")
-    public ResponseEntity<PageInfoRes<InventoryItemProductionVehicleTypeDto>> searchItemsInWarehouse(
+    public ResponseEntity<PageInfoDto<InventoryItemProductionVehicleTypeDto>> searchItemsInWarehouse(
             @PathVariable String warehouseId,
-            @ModelAttribute PageOptionsReq optionsReq) {
+            @ModelAttribute PageOptionsDto optionsReq) {
 
-        PageInfoRes<InventoryItemProductionVehicleTypeDto> itemPage = inventoryItemService.getItemsFromVehicleWarehouse(warehouseId, optionsReq);
+        PageInfoDto<InventoryItemProductionVehicleTypeDto> itemPage = inventoryItemService.getItemsFromVehicleWarehouse(warehouseId, optionsReq);
         return ResponseEntity.ok(itemPage);
     }
 
@@ -113,6 +115,12 @@ public class InventoryItemController {
     public ResponseEntity<ApiResponse<?>> stockTransfer(
             @RequestBody InventoryStockTransferDto req
     ){
-        return null;
+        Map<String, Object> results = inventoryItemService.stockTransfer(req);
+        Warehouse originWarehouse = (Warehouse) results.get("originWarehouse");
+        Warehouse destinationWarehouse = (Warehouse) results.get("destinationWarehouse");
+        Map<String, ObjectId> dataResponse = Map.of("ticketId", (ObjectId) results.get("ticketId"));
+        ApiResponse<?> apiResponse = ApiResponse.success(dataResponse);
+        apiResponse.setMessage("Tạo phiên chuyển hàng từ kho "+originWarehouse.getName()+" sang "+destinationWarehouse.getName()+", đang trong quá trình chờ duyệt.");
+        return new ResponseEntity<>(apiResponse, HttpStatus.CREATED);
     }
 }

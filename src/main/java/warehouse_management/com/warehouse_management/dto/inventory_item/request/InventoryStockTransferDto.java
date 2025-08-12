@@ -7,8 +7,9 @@ import java.util.List;
 
 @Data
 public class InventoryStockTransferDto {
-    private String originWarehouseId;
-    private String destinationWarehouseId;
+
+    private final String originWarehouseId;
+    private final String destinationWarehouseId;
     private List<InventoryItemTransfer> inventoryItems = new ArrayList<>();
 
     @Data

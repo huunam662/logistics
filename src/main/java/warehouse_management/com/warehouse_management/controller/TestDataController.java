@@ -14,7 +14,6 @@ import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.repository.container.ContainerRepository;
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
 import warehouse_management.com.warehouse_management.repository.warehouse.WarehouseRepository;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -23,7 +22,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/dev")
@@ -167,11 +165,11 @@ public class TestDataController {
                     item.setInventoryType(j % 3 == 0 ? InventoryType.PRODUCT_ACCESSORIES.getId() : InventoryType.SPARE_PART.getId());
                     item.setModel("Model " + faker.letterify("M-???"));
 
-                    if(j % 2 == 0){
+                    if(j % 3 == 0){
                         item.setProductCode(productCode);
                         item.setSerialNumber("SERIAL_" + faker.number().digits(6));
                         item.setType("Xe nâng điện");
-                        item.setCategory(j % 3 == 0 ? "Ngồi lái" : "Đứng lái");
+                        item.setCategory(j % 2 == 0 ? "Ngồi lái" : "Đứng lái");
                         item.setManufacturingYear(2020 + faker.random().nextInt(5));
                     }
                     item.setStatus(InventoryItemStatus.IN_STOCK);

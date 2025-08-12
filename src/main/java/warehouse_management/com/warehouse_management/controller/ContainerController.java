@@ -2,35 +2,25 @@ package warehouse_management.com.warehouse_management.controller;
 
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import warehouse_management.com.warehouse_management.common.pagination.req.PageOptionsReq;
-import warehouse_management.com.warehouse_management.common.pagination.res.PageInfoRes;
+import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
+import warehouse_management.com.warehouse_management.dto.pagination.response.PageInfoDto;
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
 import warehouse_management.com.warehouse_management.dto.container.request.BulkDeleteContainerDto;
 import warehouse_management.com.warehouse_management.dto.container.request.CreateContainerDto;
 import warehouse_management.com.warehouse_management.dto.container.response.ContainerResponseDto;
-import warehouse_management.com.warehouse_management.dto.inventory_item.request.CreateInventoryItemDto;
-import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryTransferWarehouseDto;
-import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryPoWarehouseDto;
-import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryItemProductionVehicleTypeDto;
-import warehouse_management.com.warehouse_management.dto.warehouse.request.BulkDeleteRequestDto;
 import warehouse_management.com.warehouse_management.model.Container;
-import warehouse_management.com.warehouse_management.model.InventoryItem;
-import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.service.ContainerService;
-import warehouse_management.com.warehouse_management.service.InventoryItemService;
-import java.util.List;
-import java.util.Map;
 
 @RestController
+@Tag(name = "Container")
 @RequestMapping("/v1/containers")
 @RequiredArgsConstructor
 public class ContainerController {
@@ -42,10 +32,10 @@ public class ContainerController {
             description = "GET Lấy danh sách containers"
     )
     public ApiResponse<?> getInventoryInStockPoNumbers(
-            @ModelAttribute PageOptionsReq req
+            @ModelAttribute PageOptionsDto req
     ){
         Page<ContainerResponseDto> responseDtos = containerService.getContainers(req);
-        return ApiResponse.success(new PageInfoRes<>(responseDtos));
+        return ApiResponse.success(new PageInfoDto<>(responseDtos));
     }
 
     @PostMapping

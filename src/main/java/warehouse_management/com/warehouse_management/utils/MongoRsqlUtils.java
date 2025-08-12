@@ -19,7 +19,7 @@ import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.aggregation.CountOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import warehouse_management.com.warehouse_management.common.pagination.req.PageOptionsReq;
+import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -34,7 +34,7 @@ public class MongoRsqlUtils {
             @NonNull Class<T> outputType,
             @NonNull Query query,
             @NonNull Map<String, String> propertyMapper,
-            @NonNull PageOptionsReq optionsReq
+            @NonNull PageOptionsDto optionsReq
     ){
         MongoTemplate mongoTemplate = SpringContext.getBean(MongoTemplate.class);
         String filter = optionsReq.getFilter();
@@ -52,7 +52,7 @@ public class MongoRsqlUtils {
     public static <T> Page<T> queryPage(
             @NonNull Class<?> inputType,
             @NonNull Class<T> outputType,
-            @NonNull PageOptionsReq optionsReq
+            @NonNull PageOptionsDto optionsReq
     ){
         return queryPage(inputType, outputType, new Query(), Map.of(), optionsReq);
     }
@@ -61,7 +61,7 @@ public class MongoRsqlUtils {
             @NonNull Class<?> inputType,
             @NonNull Class<T> outputType,
             @NonNull Query query,
-            @NonNull PageOptionsReq optionsReq
+            @NonNull PageOptionsDto optionsReq
     ){
         return queryPage(inputType, outputType, query, Map.of(), optionsReq);
     }
@@ -70,7 +70,7 @@ public class MongoRsqlUtils {
             @NonNull Class<?> inputType,
             @NonNull Class<T> outputType,
             @NonNull Map<String, String> propertyMapper,
-            @NonNull PageOptionsReq optionsReq
+            @NonNull PageOptionsDto optionsReq
     ){
         return queryPage(inputType, outputType, new Query(), propertyMapper, optionsReq);
     }
@@ -80,7 +80,7 @@ public class MongoRsqlUtils {
             @NonNull Class<T> outputType,
             @NonNull Aggregation agg,
             @NonNull Map<String, String> rsqlPropertyMapper,
-            @NonNull PageOptionsReq optionsReq
+            @NonNull PageOptionsDto optionsReq
     ){
         MongoTemplate mongoTemplate = SpringContext.getBean(MongoTemplate.class);
         String filter = optionsReq.getFilter();
@@ -112,7 +112,7 @@ public class MongoRsqlUtils {
             @NonNull Class<?> inputType,
             @NonNull Class<T> outputType,
             @NonNull Aggregation agg,
-            @NonNull PageOptionsReq optionsReq
+            @NonNull PageOptionsDto optionsReq
     ){
         return queryAggregatePage(inputType, outputType, agg, Map.of(), optionsReq);
     }
