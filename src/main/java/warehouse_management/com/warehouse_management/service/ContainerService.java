@@ -6,7 +6,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import warehouse_management.com.warehouse_management.common.pagination.req.PageOptionsReq;
+import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.container.request.CreateContainerDto;
 import warehouse_management.com.warehouse_management.dto.container.response.ContainerResponseDto;
 import warehouse_management.com.warehouse_management.model.Container;
@@ -24,7 +24,7 @@ public class ContainerService {
         this.containerRepository = containerRepository;
     }
 
-    public Page<ContainerResponseDto> getContainers(PageOptionsReq req) {
+    public Page<ContainerResponseDto> getContainers(PageOptionsDto req) {
         Query query = new Query();
         query.addCriteria(Criteria.where("deletedAt").is(null));
 

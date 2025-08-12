@@ -1,4 +1,4 @@
-package warehouse_management.com.warehouse_management.common.pagination.req;
+package warehouse_management.com.warehouse_management.dto.pagination.request;
 
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.Data;
@@ -10,7 +10,7 @@ import java.util.List;
 
 @Data
 @ParameterObject
-public class PageOptionsReq {
+public class PageOptionsDto {
 
     @Parameter(example = "1")
     private Integer page = 1;

@@ -17,11 +17,13 @@ import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import warehouse_management.com.warehouse_management.common.pagination.req.PageOptionsReq;
+import warehouse_management.com.warehouse_management.dto.WarehouseTransferTicketDto;
+import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
 import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
 import warehouse_management.com.warehouse_management.enumerate.InventoryType;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
+import warehouse_management.com.warehouse_management.model.WarehouseTransferTicket;
 import warehouse_management.com.warehouse_management.repository.inventory_item.CustomInventoryItemRepository;
 import warehouse_management.com.warehouse_management.utils.MongoRsqlUtils;
 
@@ -41,7 +43,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     }
 
     @Override
-    public Page<InventoryItemProductionVehicleTypeDto> getItemsFromVehicleWarehouse(ObjectId warehouseId, PageOptionsReq optionsReq) {
+    public Page<InventoryItemProductionVehicleTypeDto> getItemsFromVehicleWarehouse(ObjectId warehouseId, PageOptionsDto optionsReq) {
         MatchOperation matchStage = Aggregation.match(
                 new Criteria().andOperator(
                         Criteria.where("deletedAt").is(null),
@@ -74,7 +76,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
 
 
     @Override
-    public Page<InventoryDestinationDto> findPageInventoryDestination(ObjectId warehouseId, PageOptionsReq optionsReq) {
+    public Page<InventoryDestinationDto> findPageInventoryDestination(ObjectId warehouseId, PageOptionsDto optionsReq) {
         List<AggregationOperation> pipelines = List.of(
                 Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
                 Aggregation.unwind("warehouse"),
@@ -108,7 +110,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     }
 
     @Override
-    public Page<InventoryProductionDto> findPageInventoryProduction(ObjectId warehouseId, PageOptionsReq optionsReq) {
+    public Page<InventoryProductionDto> findPageInventoryProduction(ObjectId warehouseId, PageOptionsDto optionsReq) {
         List<AggregationOperation> pipelines = List.of(
                 Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
                 Aggregation.unwind("warehouse"),
@@ -144,7 +146,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     }
 
     @Override
-    public Page<InventoryDepartureDto> findPageInventoryDeparture(ObjectId warehouseId, PageOptionsReq optionsReq) {
+    public Page<InventoryDepartureDto> findPageInventoryDeparture(ObjectId warehouseId, PageOptionsDto optionsReq) {
         List<AggregationOperation> pipelines = List.of(
                 Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
                 Aggregation.unwind("warehouse"),
@@ -190,7 +192,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     }
 
     @Override
-    public Page<InventoryConsignmentDto> findPageInventoryConsignment(ObjectId warehouseId, PageOptionsReq optionsReq) {
+    public Page<InventoryConsignmentDto> findPageInventoryConsignment(ObjectId warehouseId, PageOptionsDto optionsReq) {
         List<AggregationOperation> pipelines = List.of(
                 Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
                 Aggregation.unwind("warehouse"),
@@ -225,7 +227,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     }
 
     @Override
-    public Page<InventoryProductionSparePartsDto> findPageInventorySparePartsProduction(ObjectId warehouseId, PageOptionsReq optionsReq) {
+    public Page<InventoryProductionSparePartsDto> findPageInventorySparePartsProduction(ObjectId warehouseId, PageOptionsDto optionsReq) {
         List<AggregationOperation> pipelines = List.of(
                 Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
                 Aggregation.unwind("warehouse"),
@@ -245,7 +247,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     }
 
     @Override
-    public Page<InventoryDepartureSparePartsDto> findPageInventorySparePartsDeparture(ObjectId warehouseId, PageOptionsReq optionsReq) {
+    public Page<InventoryDepartureSparePartsDto> findPageInventorySparePartsDeparture(ObjectId warehouseId, PageOptionsDto optionsReq) {
         List<AggregationOperation> pipelines = List.of(
                 Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
                 Aggregation.unwind("warehouse"),
@@ -266,7 +268,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     }
 
     @Override
-    public Page<InventoryDestinationSparePartsDto> findPageInventorySparePartsDestination(ObjectId warehouseId, PageOptionsReq optionsReq) {
+    public Page<InventoryDestinationSparePartsDto> findPageInventorySparePartsDestination(ObjectId warehouseId, PageOptionsDto optionsReq) {
         List<AggregationOperation> pipelines = List.of(
                 Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
                 Aggregation.unwind("warehouse"),
@@ -287,7 +289,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     }
 
     @Override
-    public Page<InventoryConsignmentSparePartsDto> findPageInventorySparePartsConsignment(ObjectId warehouseId, PageOptionsReq optionsReq) {
+    public Page<InventoryConsignmentSparePartsDto> findPageInventorySparePartsConsignment(ObjectId warehouseId, PageOptionsDto optionsReq) {
         List<AggregationOperation> pipelines = List.of(
                 Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
                 Aggregation.unwind("warehouse"),
@@ -311,7 +313,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     }
 
     @Override
-    public Page<InventoryCentralWarehouseDto> findPageInventoryCentralWarehouse(PageOptionsReq optionsReq){
+    public Page<InventoryCentralWarehouseDto> findPageInventoryCentralWarehouse(PageOptionsDto optionsReq){
         List<AggregationOperation> pipelines = List.of(
                 Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
                 Aggregation.unwind("warehouse"),
@@ -400,9 +402,9 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
 
     @Transactional
     @Override
-    public void insertAll(Collection<InventoryItem> inventoryItems){
-        if(inventoryItems.isEmpty()) return;
-        mongoTemplate.insertAll(inventoryItems);
+    public List<InventoryItem> insertAll(Collection<InventoryItem> inventoryItems){
+        if(inventoryItems.isEmpty()) return new ArrayList<>();
+        return mongoTemplate.insertAll(inventoryItems).stream().toList();
     }
 
     @Transactional
@@ -422,5 +424,27 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
             writeModels.add(new UpdateOneModel<>(filter, update));
         }
         coll.bulkWrite(writeModels);
+    }
+
+    @Override
+    public List<InventoryItemPoNumberDto> findInventoryItemsInIds(List<ObjectId> ids) {
+        if(ids == null || ids.isEmpty()) return new ArrayList<>();
+        List<AggregationOperation> aggOps = new ArrayList<>(List.of(
+                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
+                Aggregation.unwind("warehouse"),
+                Aggregation.match(new Criteria().andOperator(
+                        Criteria.where("deletedAt").isNull(),
+                        Criteria.where("warehouse.deletedAt").isNull(),
+                        Criteria.where("_id").in(ids)
+                )),
+                Aggregation.project("id", "poNumber", "productCode", "commodityCode", "serialNumber", "model", "status", "manufacturingYear", "quantity", "inventoryType")
+                        .and("logistics.liftingCapacityKg").as("liftingCapacityKg")
+                        .and("logistics.chassisType").as("chassisType")
+                        .and("logistics.liftingHeightMm").as("liftingHeightMm")
+                        .and("logistics.engineType").as("engineType"),
+                Aggregation.sort(Sort.by(Sort.Direction.ASC, "productCode"))
+        ));
+        AggregationResults<InventoryItemPoNumberDto> aggResults = mongoTemplate.aggregate(Aggregation.newAggregation(aggOps), InventoryItem.class, InventoryItemPoNumberDto.class);
+        return aggResults.getMappedResults();
     }
 }

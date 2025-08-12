@@ -6,11 +6,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import warehouse_management.com.warehouse_management.common.pagination.req.PageOptionsReq;
-import warehouse_management.com.warehouse_management.common.pagination.res.PageInfoRes;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryItemCreateDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryStockTransferDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryTransferWarehouseDto;
+import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
+import warehouse_management.com.warehouse_management.dto.pagination.response.PageInfoDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryItemPoNumberDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryPoWarehouseDto;
 import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
@@ -22,9 +22,11 @@ import warehouse_management.com.warehouse_management.mapper.InventoryItemMapper;
 import warehouse_management.com.warehouse_management.model.Container;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.model.Warehouse;
+import warehouse_management.com.warehouse_management.model.WarehouseTransferTicket;
 import warehouse_management.com.warehouse_management.repository.container.ContainerRepository;
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +40,7 @@ public class InventoryItemService {
     private final InventoryItemRepository inventoryItemRepository;
     private final ContainerRepository containerRepository;
     private final WarehouseService warehouseService;
+    private final WarehouseTransferTicketService warehouseTransferTicketService;
 
 //    public InventoryItem createInventoryItem(CreateInventoryItemDto req) {
 //        InventoryItem item = mapper.toInventoryItemModel(req);
@@ -45,11 +48,11 @@ public class InventoryItemService {
 //        return inventoryItemRepository.save(item);
 //    }
 
-    public PageInfoRes<InventoryItemProductionVehicleTypeDto> getItemsFromVehicleWarehouse(String warehouseId, PageOptionsReq optionsReq) {
+    public PageInfoDto<InventoryItemProductionVehicleTypeDto> getItemsFromVehicleWarehouse(String warehouseId, PageOptionsDto optionsReq) {
         Page<InventoryItemProductionVehicleTypeDto> itemsPageObject = inventoryItemRepository.getItemsFromVehicleWarehouse(
                 new ObjectId(warehouseId),
                 optionsReq);
-        PageInfoRes<InventoryItemProductionVehicleTypeDto> response = new PageInfoRes<>(itemsPageObject);
+        PageInfoDto<InventoryItemProductionVehicleTypeDto> response = new PageInfoDto<>(itemsPageObject);
         return response;
     }
 
@@ -69,7 +72,10 @@ public class InventoryItemService {
 
     @Transactional
     public Warehouse transferItemsProductionToDeparture(InventoryTransferWarehouseDto req) {
-        Warehouse warehouseDeparture = warehouseService.getWarehouseToId(new ObjectId(req.getToWarehouseId()));
+        Warehouse warehouseProduction = warehouseService.getWarehouseToId(new ObjectId(req.getProductionWarehouseId()));
+        if(!warehouseProduction.getType().equals(WarehouseType.PRODUCTION))
+            throw LogicErrException.of("Kho cần xuất hàng không phải là kho chờ.");
+        Warehouse warehouseDeparture = warehouseService.getWarehouseToId(new ObjectId(req.getDepartureWarehouseId()));
         if(!warehouseDeparture.getType().equals(WarehouseType.DEPARTURE))
             throw LogicErrException.of("Kho cần nhập hàng không phải là kho đi.");
         if(req.getInventoryItems().isEmpty())
@@ -84,13 +90,16 @@ public class InventoryItemService {
             // Lấy toàn bộ sản phẩm (theo mã sản phẩm) trong Kho chờ sản xuất có PO được chọn
             List<InventoryItem> itemsToTransfer = inventoryItemRepository.findByIdIn(itemIdToTransfer);
             // Mã Container, Trạng thái Cont, Ngày đi, Ngày đến giữ nguyên rỗng
+            LocalDateTime arrivalDate = LocalDate.parse(req.getArrivalDate()).atStartOfDay();
             Container container = new Container();
             container.setContainerCode(null);
             container.setContainerStatus(null);
             container.setDepartureDate(null);
             container.setArrivalDate(null);
             container.setId(new ObjectId());
+            container.setFromWareHouseId(warehouseProduction.getId());
             container.setToWarehouseId(warehouseDeparture.getId());
+            containerRepository.save(container);
             List<InventoryItem> itemsSparePartToNew = new ArrayList<>();
             for(var item : itemsToTransfer){
                 if(item.getInventoryType().equals(InventoryType.SPARE_PART.getId())){
@@ -108,7 +117,7 @@ public class InventoryItemService {
                         sparePartToDeparture.setWarehouseId(warehouseDeparture.getId());
                         sparePartToDeparture.setStatus(InventoryItemStatus.IN_TRANSIT);
                         // Ngày giao hàng = ngày đã chọn theo PO
-                        sparePartToDeparture.getLogistics().setArrivalDate(LocalDate.parse(req.getArrivalDate()).atStartOfDay());
+                        sparePartToDeparture.getLogistics().setArrivalDate(arrivalDate);
                         itemsSparePartToNew.add(sparePartToDeparture);
                         item.setQuantity(item.getQuantity() - quantityToTransfer);
                         continue;
@@ -120,9 +129,8 @@ public class InventoryItemService {
                 item.setContainerId(container.getId());
                 item.setStatus(InventoryItemStatus.IN_TRANSIT);
                 // Ngày giao hàng = ngày đã chọn theo PO
-                item.getLogistics().setArrivalDate(LocalDate.parse(req.getArrivalDate()).atStartOfDay());
+                item.getLogistics().setArrivalDate(arrivalDate);
             }
-            containerRepository.save(container);
             inventoryItemRepository.insertAll(itemsSparePartToNew);
             inventoryItemRepository.bulkUpdateTransferDeparture(itemsToTransfer);
 
@@ -132,7 +140,7 @@ public class InventoryItemService {
         }
         catch (Exception e){
             if(e instanceof LogicErrException l) throw l;
-            throw LogicErrException.of("Nhập hàng sang kho đi thất bại, hãy thử lại.");
+            throw LogicErrException.of("Nhập hàng sang kho "+warehouseDeparture.getName()+" thất bại, hãy thử lại.");
         }
     }
 
@@ -169,10 +177,62 @@ public class InventoryItemService {
         return inventoryItemRepository.insert(itemsToInsert);
     }
 
-    public Map<String, ObjectId> stockTransfer(InventoryStockTransferDto req) {
+    @Transactional
+    public Map<String, Object> stockTransfer(InventoryStockTransferDto req) {
         Warehouse originWarehouse = warehouseService.getWarehouseToId(new ObjectId(req.getOriginWarehouseId()));
         Warehouse destinationWarehouse = warehouseService.getWarehouseToId(new ObjectId(req.getDestinationWarehouseId()));
-        return null;
+        try{
+            // Hệ thống bắt đầu một giao dịch (transaction)
+            Map<String, Integer> itemIdQualityMap = req.getInventoryItems().stream().collect(
+                    Collectors.toMap(InventoryStockTransferDto.InventoryItemTransfer::getId, InventoryStockTransferDto.InventoryItemTransfer::getQuantity)
+            );
+            List<ObjectId> itemIdToTransfer = itemIdQualityMap.keySet().stream().map(ObjectId::new).toList();
+            // Lấy toàn bộ sản phẩm (theo mã sản phẩm) trong Kho chờ sản xuất có PO được chọn
+            List<InventoryItem> itemsToTransfer = inventoryItemRepository.findByIdIn(itemIdToTransfer);
+            List<InventoryItem> itemsSparePartToNew = new ArrayList<>();
+            List<InventoryItem> itemsToApproval = new ArrayList<>();
+            for(var item : itemsToTransfer){
+                if(item.getInventoryType().equals(InventoryType.SPARE_PART.getId())){
+                    int quantityToTransfer = itemIdQualityMap.get(item.getId().toString());
+                    if(item.getQuantity() == 0)
+                        throw LogicErrException.of("Hàng phụ tùng " + item.getProductCode() + " hiện hết hàng.");
+                    else if(item.getQuantity() < quantityToTransfer)
+                        throw LogicErrException.of("Số lượng phụ tùng " + item.getProductCode() + " cần nhập vượt quá số lượng trong kho.");
+                    else if(item.getQuantity() > quantityToTransfer){
+                        InventoryItem sparePartToDeparture = mapper.cloneEntity(item);
+                        sparePartToDeparture.setId(null);
+                        sparePartToDeparture.setQuantity(quantityToTransfer);
+                        // Kho hiện tại → “Kho đích”
+                        sparePartToDeparture.setWarehouseId(destinationWarehouse.getId());
+                        sparePartToDeparture.setStatus(InventoryItemStatus.PENDING);
+                        itemsSparePartToNew.add(sparePartToDeparture);
+                        item.setQuantity(item.getQuantity() - quantityToTransfer);
+                        continue;
+                    }
+                }
+
+                // Kho hiện tại → “Kho đích”
+                item.setWarehouseId(destinationWarehouse.getId());
+                item.setStatus(InventoryItemStatus.PENDING);
+                itemsToApproval.add(item);
+            }
+            itemsSparePartToNew = inventoryItemRepository.insertAll(itemsSparePartToNew);
+            inventoryItemRepository.bulkUpdateTransferDeparture(itemsToTransfer);
+            itemsToApproval.addAll(itemsSparePartToNew);
+            // TODO: Ghi nhận log chuyển kho (người thực hiện, thời gian, PO, số lượng)
+
+            // Tạo phiếu duyệt
+            WarehouseTransferTicket ticket = warehouseTransferTicketService.createAndSendMessage(originWarehouse, destinationWarehouse, itemsToApproval);
+            return Map.of(
+                    "ticketId", ticket.getId(),
+                    "originWarehouse",  originWarehouse,
+                    "destinationWarehouse", destinationWarehouse
+            );
+        }
+        catch (Exception e){
+            if(e instanceof LogicErrException l) throw l;
+            throw LogicErrException.of("Nhập hàng sang kho "+destinationWarehouse.getName()+" thất bại, hãy thử lại.");
+        }
     }
 
 }
