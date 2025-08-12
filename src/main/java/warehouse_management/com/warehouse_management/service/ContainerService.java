@@ -7,10 +7,9 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import warehouse_management.com.warehouse_management.common.pagination.req.PageOptionsReq;
+import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.container.request.CreateContainerDto;
 import warehouse_management.com.warehouse_management.dto.container.response.ContainerResponseDto;
-import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
 import warehouse_management.com.warehouse_management.model.Container;
 import warehouse_management.com.warehouse_management.repository.container.ContainerRepository;
 import warehouse_management.com.warehouse_management.utils.MongoRsqlUtils;
@@ -27,7 +26,7 @@ public class ContainerService {
         this.containerRepository = containerRepository;
     }
 
-    public Page<ContainerResponseDto> getContainers(PageOptionsReq req) {
+    public Page<ContainerResponseDto> getContainers(PageOptionsDto req) {
         MatchOperation matchStage = Aggregation.match(Criteria.where("deletedAt").is(null));
         LookupOperation lookupFromWarehouse = Aggregation.lookup("warehouse", "fromWareHouseId", "_id", "fromWarehouseInfo");
         UnwindOperation unwindFromWarehouse = Aggregation.unwind("$fromWarehouseInfo", true);

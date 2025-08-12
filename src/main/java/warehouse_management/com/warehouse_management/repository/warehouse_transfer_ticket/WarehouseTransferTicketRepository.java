@@ -8,7 +8,7 @@ import warehouse_management.com.warehouse_management.model.WarehouseTransferTick
 import java.util.List;
 
 @Repository
-public interface WarehouseTransferTicketRepository extends MongoRepository<WarehouseTransferTicket, ObjectId> {
+public interface WarehouseTransferTicketRepository extends MongoRepository<WarehouseTransferTicket, ObjectId>, CustomWarehouseTransferTicketRepository {
     List<WarehouseTransferTicket> findByStatus(String status);
 
     List<WarehouseTransferTicket> findByRequesterId(ObjectId userId);

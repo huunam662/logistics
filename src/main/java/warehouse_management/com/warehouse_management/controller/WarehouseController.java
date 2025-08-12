@@ -1,14 +1,15 @@
 package warehouse_management.com.warehouse_management.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.SneakyThrows;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
-import warehouse_management.com.warehouse_management.common.pagination.req.PageOptionsReq;
-import warehouse_management.com.warehouse_management.common.pagination.res.PageInfoRes;
+import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
+import warehouse_management.com.warehouse_management.dto.pagination.response.PageInfoDto;
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
 import warehouse_management.com.warehouse_management.dto.warehouse.request.BulkDeleteRequestDto;
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
+@Tag(name = "Warehouse")
 @RequestMapping("/v1/warehouses")
 public class WarehouseController {
 
@@ -68,11 +70,11 @@ public class WarehouseController {
             description = "GET data kho hàng. (phân trang)"
     )
     public ApiResponse<?> getPageWarehouse(
-            @ModelAttribute PageOptionsReq optionsReq
+            @ModelAttribute PageOptionsDto optionsReq
     ) {
 
         Page<WarehouseResponseDto> warehousePage = warehouseService.getPageWarehouse(optionsReq);
-        return ApiResponse.success(new PageInfoRes<>(warehousePage));
+        return ApiResponse.success(new PageInfoDto<>(warehousePage));
     }
 
     @GetMapping("/{warehouseId}/page/product/inventory-production")
@@ -82,10 +84,10 @@ public class WarehouseController {
     )
     public ApiResponse<?> getPageInventoryProduction(
             @PathVariable("warehouseId") String warehouseId,
-            @ModelAttribute PageOptionsReq optionsReq
+            @ModelAttribute PageOptionsDto optionsReq
     ) {
         Page<InventoryProductionDto> inventoryProductionPage = warehouseService.getPageInventoryProduction(new ObjectId(warehouseId), optionsReq);
-        return ApiResponse.success(new PageInfoRes<>(inventoryProductionPage));
+        return ApiResponse.success(new PageInfoDto<>(inventoryProductionPage));
     }
 
     @GetMapping("/{warehouseId}/page/product/inventory-departure")
@@ -95,10 +97,10 @@ public class WarehouseController {
     )
     public ApiResponse<?> getPageInventoryDeparture(
             @PathVariable("warehouseId") String warehouseId,
-            @ModelAttribute PageOptionsReq optionsReq
+            @ModelAttribute PageOptionsDto optionsReq
     ) {
         Page<InventoryDepartureDto> inventoryItemPage = warehouseService.getPageInventoryDeparture(new ObjectId(warehouseId), optionsReq);
-        return ApiResponse.success(new PageInfoRes<>(inventoryItemPage));
+        return ApiResponse.success(new PageInfoDto<>(inventoryItemPage));
     }
 
     @GetMapping("/{warehouseId}/page/product/inventory-destination")
@@ -108,10 +110,10 @@ public class WarehouseController {
     )
     public ApiResponse<?> getPageInventoryDestination(
             @PathVariable("warehouseId") String warehouseId,
-            @ModelAttribute PageOptionsReq optionsReq
+            @ModelAttribute PageOptionsDto optionsReq
     ) {
         Page<InventoryDestinationDto> inventoryItemPage = warehouseService.getPageInventoryDestination(new ObjectId(warehouseId), optionsReq);
-        return ApiResponse.success(new PageInfoRes<>(inventoryItemPage));
+        return ApiResponse.success(new PageInfoDto<>(inventoryItemPage));
     }
 
     @GetMapping("/{warehouseId}/page/product/inventory-consignment")
@@ -121,10 +123,10 @@ public class WarehouseController {
     )
     public ApiResponse<?> getPageInventoryConsignment(
             @PathVariable("warehouseId") String warehouseId,
-            @ModelAttribute PageOptionsReq optionsReq
+            @ModelAttribute PageOptionsDto optionsReq
     ) {
         Page<InventoryConsignmentDto> inventoryItemPage = warehouseService.getPageInventoryConsignment(new ObjectId(warehouseId), optionsReq);
-        return ApiResponse.success(new PageInfoRes<>(inventoryItemPage));
+        return ApiResponse.success(new PageInfoDto<>(inventoryItemPage));
     }
 
     @GetMapping("/{warehouseId}/page/spare-parts/inventory-consignment")
@@ -134,10 +136,10 @@ public class WarehouseController {
     )
     public ApiResponse<?> getPageInventoryConsignmentSpareParts(
             @PathVariable("warehouseId") String warehouseId,
-            @ModelAttribute PageOptionsReq optionsReq
+            @ModelAttribute PageOptionsDto optionsReq
     ) {
         Page<InventoryConsignmentSparePartsDto> inventoryItemPage = warehouseService.getPageInventorySparePartsConsignment(new ObjectId(warehouseId), optionsReq);
-        return ApiResponse.success(new PageInfoRes<>(inventoryItemPage));
+        return ApiResponse.success(new PageInfoDto<>(inventoryItemPage));
     }
 
 
@@ -148,10 +150,10 @@ public class WarehouseController {
     )
     public ApiResponse<?> getPageInventoryProductionSpareParts(
             @PathVariable("warehouseId") String warehouseId,
-            @ModelAttribute PageOptionsReq optionsReq
+            @ModelAttribute PageOptionsDto optionsReq
     ) {
         Page<InventoryProductionSparePartsDto> inventoryWarehouseView = warehouseService.getPageInventorySparePartsProduction(new ObjectId(warehouseId), optionsReq);
-        return ApiResponse.success(new PageInfoRes<>(inventoryWarehouseView));
+        return ApiResponse.success(new PageInfoDto<>(inventoryWarehouseView));
     }
 
     @GetMapping("/{warehouseId}/page/spare-parts/inventory-departure")
@@ -161,10 +163,10 @@ public class WarehouseController {
     )
     public ApiResponse<?> getPageInventoryDepartureSpareParts(
             @PathVariable("warehouseId") String warehouseId,
-            @ModelAttribute PageOptionsReq optionsReq
+            @ModelAttribute PageOptionsDto optionsReq
     ) {
         Page<InventoryDepartureSparePartsDto> inventoryItemPage = warehouseService.getPageInventorySparePartsDeparture(new ObjectId(warehouseId), optionsReq);
-        return ApiResponse.success(new PageInfoRes<>(inventoryItemPage));
+        return ApiResponse.success(new PageInfoDto<>(inventoryItemPage));
     }
 
     @GetMapping("/{warehouseId}/page/spare-parts/inventory-destination")
@@ -174,10 +176,10 @@ public class WarehouseController {
     )
     public ApiResponse<?> getPageInventoryDestinationSpareParts(
             @PathVariable("warehouseId") String warehouseId,
-            @ModelAttribute PageOptionsReq optionsReq
+            @ModelAttribute PageOptionsDto optionsReq
     ) {
         Page<InventoryDestinationSparePartsDto> inventoryItemPage = warehouseService.getPageInventorySparePartsDestination(new ObjectId(warehouseId), optionsReq);
-        return ApiResponse.success(new PageInfoRes<>(inventoryItemPage));
+        return ApiResponse.success(new PageInfoDto<>(inventoryItemPage));
     }
 
     @GetMapping("/page/inventory-central-warehouse")
@@ -186,10 +188,10 @@ public class WarehouseController {
             description = "GET data hàng tồn tại các kho đến. (phân trang)"
     )
     public ApiResponse<?> getPageInventoryCentralWarehouse(
-            @ModelAttribute PageOptionsReq optionsReq
+            @ModelAttribute PageOptionsDto optionsReq
     ) {
         Page<InventoryCentralWarehouseDto> inventoryItemPage = warehouseService.getPageInventoryCentralWarehouse(optionsReq);
-        return ApiResponse.success(new PageInfoRes<>(inventoryItemPage));
+        return ApiResponse.success(new PageInfoDto<>(inventoryItemPage));
     }
 
     @PostMapping("/delete-bulk")

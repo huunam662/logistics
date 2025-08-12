@@ -9,7 +9,8 @@ import java.util.List;
 @Data
 public class InventoryTransferWarehouseDto {
 
-    private String toWarehouseId;
+    private String productionWarehouseId;
+    private String departureWarehouseId;
     @Schema(example = "yyyy-MM-dd")
     private String arrivalDate;
     private List<InventoryItemTransfer> inventoryItems = new ArrayList<>();

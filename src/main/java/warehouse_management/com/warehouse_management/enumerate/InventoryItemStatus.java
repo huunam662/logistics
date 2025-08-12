@@ -1,6 +1,7 @@
 package warehouse_management.com.warehouse_management.enumerate;
 
 public enum InventoryItemStatus {
+    PENDING("PENDING"),
     IN_STOCK("IN_STOCK"),
     IN_TRANSIT("IN_TRANSIT"),
     IN_REPAIR("IN_REPAIR"),

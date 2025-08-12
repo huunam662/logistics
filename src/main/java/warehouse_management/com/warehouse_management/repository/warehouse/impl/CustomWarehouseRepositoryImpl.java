@@ -5,7 +5,7 @@ import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.aggregation.MatchOperation;
 import org.springframework.data.mongodb.core.aggregation.ProjectionOperation;
-import warehouse_management.com.warehouse_management.common.pagination.req.PageOptionsReq;
+import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.warehouse.response.GetDepartureWarehouseForContainerDto;
 import warehouse_management.com.warehouse_management.dto.warehouse.response.WarehouseResponseDto;
 import warehouse_management.com.warehouse_management.model.Warehouse;
@@ -62,7 +62,7 @@ public class CustomWarehouseRepositoryImpl implements CustomWarehouseRepository 
     }
 
     @Override
-    public Page<WarehouseResponseDto> findPageWarehouse(PageOptionsReq optionsReq){
+    public Page<WarehouseResponseDto> findPageWarehouse(PageOptionsDto optionsReq){
         Query query = new Query();
         query.addCriteria(Criteria.where("deletedAt").isNull());
         query.fields().exclude("createdBy");
