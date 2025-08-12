@@ -15,6 +15,7 @@ import warehouse_management.com.warehouse_management.dto.inventory_item.request.
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryItemCreateDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryStockTransferDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryTransferWarehouseDto;
+import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryItemPoNumberDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryPoWarehouseDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryItemProductionVehicleTypeDto;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
@@ -24,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/inventory-items")
+@RequestMapping("/v1/inventory-items")
 @RequiredArgsConstructor
 public class InventoryItemController {
     private final InventoryItemService inventoryItemService;
@@ -41,7 +42,7 @@ public class InventoryItemController {
 //                .body(ApiResponse.success(savedItem));
 //    }
 
-    @GetMapping("/production/po-numbers")
+    @GetMapping("/po-numbers")
     @Operation(
             summary = "GET lấy danh sách PO NUMBER theo loại kho.",
             description = "GET lấy danh sách PO NUMBER theo loại kho."
@@ -57,7 +58,7 @@ public class InventoryItemController {
         return ApiResponse.success(poNumbers);
     }
 
-    @GetMapping("/production/po-items")
+    @GetMapping("/po-items")
     @Operation(
             summary = "GET lấy danh sách hàng hóa thuộc PO theo loại kho.",
             description = "GET lấy danh sách hàng hóa thuộc PO theo loại kho."
@@ -70,7 +71,7 @@ public class InventoryItemController {
             @RequestParam(required = false) List<String> sortBy,
             @RequestParam(required = false) Sort.Direction direction
     ){
-        List<InventoryItemProductionVehicleTypeDto> poNumbers = inventoryItemService.getInventoryInStockByPoNumber(warehouseType, poNumber, filter, sortBy, direction);
+        List<InventoryItemPoNumberDto> poNumbers = inventoryItemService.getInventoryInStockByPoNumber(warehouseType, poNumber, filter, sortBy, direction);
         return ApiResponse.success(poNumbers);
     }
 

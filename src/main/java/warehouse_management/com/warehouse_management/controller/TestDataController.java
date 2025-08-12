@@ -147,23 +147,24 @@ public class TestDataController {
                 c.setToWarehouseId(to.getId());
 
                 containers.add(c);
-
+                String poNumber = "";
                 String productCode = "";
                 for (int j = 0; j < 30; j++) {
                     InventoryItem item = new InventoryItem();
                     item.setId(new ObjectId());
-                    String poNumber = String.format("PO-%s-%03d", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")), (j + 1) * (i + 1));
-                    item.setPoNumber(poNumber);
                     if(j % 3 == 0){
+                        poNumber = String.format("PO-%s-%03d", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")), (j + 1) * (i + 1));
                         productCode = String.format("PRC-%d-%03d", currentYear, j + 1);
+                        item.setPoNumber(poNumber);
                         item.setProductCode(productCode);
                     }
                     else{
+                        item.setQuantity(faker.number().numberBetween(j + 1, (j + 1) * 10));
+                        item.setPoNumber(poNumber);
                         item.setProductCode(productCode);
                         item.setCommodityCode(String.format("CDC-%d-%03d", currentYear, j + 1));
                     }
                     item.setInventoryType(j % 3 == 0 ? InventoryType.PRODUCT_ACCESSORIES.getId() : InventoryType.SPARE_PART.getId());
-                    item.setQuantity(faker.number().numberBetween(j + 1, (j + 1) * 10));
                     item.setModel("Model " + faker.letterify("M-???"));
 
                     if(j % 2 == 0){

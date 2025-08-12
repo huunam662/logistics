@@ -11,6 +11,7 @@ import warehouse_management.com.warehouse_management.common.pagination.res.PageI
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryItemCreateDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryStockTransferDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryTransferWarehouseDto;
+import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryItemPoNumberDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryPoWarehouseDto;
 import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
 import warehouse_management.com.warehouse_management.enumerate.InventoryType;
@@ -59,7 +60,7 @@ public class InventoryItemService {
         return inventoryItemRepository.findInventoryInStockPoNumbers(warehouseType, filter, sort);
     }
 
-    public List<InventoryItemProductionVehicleTypeDto> getInventoryInStockByPoNumber(String warehouseType, String poNumber, String filter, List<String> sortBy, Sort.Direction direction){
+    public List<InventoryItemPoNumberDto> getInventoryInStockByPoNumber(String warehouseType, String poNumber, String filter, List<String> sortBy, Sort.Direction direction){
         Sort sort = Sort.unsorted();
         if(sortBy != null && !sortBy.isEmpty() && direction != null)
             sort = Sort.by(direction, sortBy.toArray(String[]::new));
@@ -171,6 +172,7 @@ public class InventoryItemService {
     public Map<String, ObjectId> stockTransfer(InventoryStockTransferDto req) {
         Warehouse originWarehouse = warehouseService.getWarehouseToId(new ObjectId(req.getOriginWarehouseId()));
         Warehouse destinationWarehouse = warehouseService.getWarehouseToId(new ObjectId(req.getDestinationWarehouseId()));
-       return null;
+        return null;
     }
+
 }
