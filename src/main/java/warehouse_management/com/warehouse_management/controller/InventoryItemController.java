@@ -51,9 +51,9 @@ public class InventoryItemController {
     )
     public ApiResponse<?> getInventoryInStockPoNumbers(
             @Parameter(description = "[PRODUCTION, DEPARTURE, DESTINATION, CONSIGNMENT]")
-            @RequestParam String warehouseType,
-            @Parameter(description = "[PRODUCT_ACCESSORIES, SPARE_PART]")
-            @RequestParam String inventoryType
+            @RequestParam("warehouseType") String warehouseType,
+            @Parameter(description = "[VEHICLE, ACCESSORY, SPARE_PART]")
+            @RequestParam("inventoryType") String inventoryType
     ){
         List<InventoryPoWarehouseDto> poNumbers = inventoryItemService.getInventoryInStockPoNumbers(warehouseType, inventoryType);
         return ApiResponse.success(poNumbers);
@@ -66,13 +66,11 @@ public class InventoryItemController {
     )
     public ApiResponse<?> getInventoryInStockPoNumbers(
             @Parameter(description = "[PRODUCTION, DEPARTURE, DESTINATION, CONSIGNMENT]")
-            @RequestParam String warehouseType,
-            @RequestParam String poNumber,
-            @RequestParam(required = false) String filter,
-            @RequestParam(required = false) List<String> sortBy,
-            @RequestParam(required = false) Sort.Direction direction
+            @RequestParam("warehouseType") String warehouseType,
+            @RequestParam("poNumber") String poNumber,
+            @RequestParam(value = "filter", required = false) String filter
     ){
-        List<InventoryItemPoNumberDto> poNumbers = inventoryItemService.getInventoryInStockByPoNumber(warehouseType, poNumber, filter, sortBy, direction);
+        List<InventoryItemPoNumberDto> poNumbers = inventoryItemService.getInventoryInStockByPoNumber(warehouseType, poNumber, filter);
         return ApiResponse.success(poNumbers);
     }
 
@@ -111,6 +109,10 @@ public class InventoryItemController {
     }
 
     @PostMapping("/warehouse/stock-transfer")
+    @Operation(
+            summary = "Điều chuyển nội bộ.",
+            description = "Điều chuyển nội bộ."
+    )
     public ResponseEntity<ApiResponse<?>> stockTransfer(
             @RequestBody InventoryStockTransferDto req
     ){

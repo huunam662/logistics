@@ -78,13 +78,10 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     @Override
     public Page<InventoryDestinationDto> findPageInventoryDestination(ObjectId warehouseId, PageOptionsDto optionsReq) {
         List<AggregationOperation> pipelines = List.of(
-                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
-                Aggregation.unwind("warehouse"),
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("warehouseId").is(warehouseId),
                         Criteria.where("deletedAt").isNull(),
-                        Criteria.where("inventoryType").is(InventoryType.PRODUCT_ACCESSORIES.getId()),
-                        Criteria.where("warehouse.deletedAt").isNull()
+                        Criteria.where("inventoryType").in(InventoryType.VEHICLE.getId(), InventoryType.ACCESSORY.getId())
                 )),
                 Aggregation.project("poNumber", "status", "productCode", "manufacturingYear", "model", "type", "category", "serialNumber", "notes", "initialCondition", "inventoryType")
                         .and("specifications.hasSideShift").as("hasSideShift") //
@@ -98,7 +95,6 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .and("specifications.ForkDimensions").as("ForkDimensions")  //
                         .and("specifications.valveCount").as("valveCount")  //
                         .and("specifications.otherDetails").as("otherDetails")  //
-                        .and("warehouse.type").as("warehouseType") //
                         .and("pricing.purchasePrice").as("purchasePrice")   //
                         .and("pricing.salePriceR0").as("salePriceR0")   //
                         .and("pricing.salePriceR1").as("salePriceR1")   //
@@ -112,13 +108,10 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     @Override
     public Page<InventoryProductionDto> findPageInventoryProduction(ObjectId warehouseId, PageOptionsDto optionsReq) {
         List<AggregationOperation> pipelines = List.of(
-                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
-                Aggregation.unwind("warehouse"),
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("warehouseId").is(warehouseId),
                         Criteria.where("deletedAt").isNull(),
-                        Criteria.where("inventoryType").is(InventoryType.PRODUCT_ACCESSORIES.getId()),
-                        Criteria.where("warehouse.deletedAt").isNull()
+                        Criteria.where("inventoryType").in(InventoryType.VEHICLE.getId(), InventoryType.ACCESSORY.getId())
                 )),
                 Aggregation.project("poNumber", "productCode", "model", "type", "category", "serialNumber", "notes", "initialCondition", "inventoryType")
                         .and("logistics.orderDate").as("orderDate")
@@ -133,7 +126,6 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .and("specifications.ForkDimensions").as("ForkDimensions")
                         .and("specifications.valveCount").as("valveCount")
                         .and("specifications.otherDetails").as("otherDetails")
-                        .and("warehouse.type").as("warehouseType")
                         .and("pricing.purchasePrice").as("purchasePrice")
                         .and("pricing.salePriceR0").as("salePriceR0")
                         .and("pricing.salePriceR1").as("salePriceR1")
@@ -148,8 +140,6 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     @Override
     public Page<InventoryDepartureDto> findPageInventoryDeparture(ObjectId warehouseId, PageOptionsDto optionsReq) {
         List<AggregationOperation> pipelines = List.of(
-                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
-                Aggregation.unwind("warehouse"),
                 Aggregation.lookup("container", "containerId", "_id", "container"),
                 Aggregation.unwind("container"),
                 Aggregation.lookup("warehouse", "container.toWarehouseId", "_id", "containerToWarehouse"),
@@ -157,9 +147,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("warehouseId").is(warehouseId),
                         Criteria.where("deletedAt").isNull(),
-                        Criteria.where("inventoryType").is(InventoryType.PRODUCT_ACCESSORIES.getId()),
-                        Criteria.where("warehouse.deletedAt").isNull(),
-                        Criteria.where("container.deletedAt").isNull()
+                        Criteria.where("inventoryType").in(InventoryType.ACCESSORY.getId(), InventoryType.VEHICLE.getId())
                 )),
                 Aggregation.project("poNumber", "status", "productCode", "manufacturingYear", "model", "type", "category", "serialNumber", "notes", "initialCondition", "inventoryType")
                         .and("logistics.orderDate").as("orderDate") //
@@ -175,7 +163,6 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .and("specifications.ForkDimensions").as("ForkDimensions")  //
                         .and("specifications.valveCount").as("valveCount")  //
                         .and("specifications.otherDetails").as("otherDetails")  //
-                        .and("warehouse.type").as("warehouseType") //
                         .and("pricing.purchasePrice").as("purchasePrice")   //
                         .and("pricing.salePriceR0").as("salePriceR0")   //
                         .and("pricing.salePriceR1").as("salePriceR1")   //
@@ -211,7 +198,6 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .and("specifications.ForkDimensions").as("ForkDimensions")  //
                         .and("specifications.valveCount").as("valveCount")  //
                         .and("specifications.otherDetails").as("otherDetails")  //
-                        .and("warehouse.type").as("warehouseType") //
                         .and("pricing.purchasePrice").as("purchasePrice")   //
                         .and("pricing.salePriceR0").as("salePriceR0")   //
                         .and("pricing.salePriceR1").as("salePriceR1")   //
@@ -226,13 +212,10 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     @Override
     public Page<InventoryProductionSparePartsDto> findPageInventorySparePartsProduction(ObjectId warehouseId, PageOptionsDto optionsReq) {
         List<AggregationOperation> pipelines = List.of(
-                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
-                Aggregation.unwind("warehouse"),
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("warehouseId").is(warehouseId),
                         Criteria.where("deletedAt").isNull(),
-                        Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId()),
-                        Criteria.where("warehouse.deletedAt").isNull()
+                        Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId())
                 )),
                 Aggregation.project("poNumber", "model", "commodityCode", "quantity", "initialCondition", "inventoryType")
                         .and("logistics.orderDate").as("orderDate") //
@@ -246,13 +229,10 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     @Override
     public Page<InventoryDepartureSparePartsDto> findPageInventorySparePartsDeparture(ObjectId warehouseId, PageOptionsDto optionsReq) {
         List<AggregationOperation> pipelines = List.of(
-                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
-                Aggregation.unwind("warehouse"),
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("warehouseId").is(warehouseId),
                         Criteria.where("deletedAt").isNull(),
-                        Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId()),
-                        Criteria.where("warehouse.deletedAt").isNull()
+                        Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId())
                 )),
                 Aggregation.project("poNumber", "model", "commodityCode", "notes", "quantity", "initialCondition", "inventoryType")
                         .and("logistics.orderDate").as("orderDate") //
@@ -290,8 +270,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("warehouseId").is(warehouseId),
                         Criteria.where("deletedAt").isNull(),
-                        Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId()),
-                        Criteria.where("warehouse.deletedAt").isNull()
+                        Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId())
                 )),
                 Aggregation.project("poNumber", "model", "commodityCode", "notes", "quantity", "initialCondition", "inventoryType")
                         .and("warehouse.name").as("warehouseName")  //
@@ -326,7 +305,6 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .and("specifications.ForkDimensions").as("ForkDimensions")  //
                         .and("specifications.valveCount").as("valveCount")  //
                         .and("specifications.otherDetails").as("otherDetails")  //
-                        .and("warehouse.type").as("warehouseType") //
                         .and("pricing.purchasePrice").as("purchasePrice")   //
                         .and("pricing.salePriceR0").as("salePriceR0")   //
                         .and("pricing.salePriceR1").as("salePriceR1")   //
@@ -354,7 +332,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     }
 
     @Override
-    public List<InventoryItemPoNumberDto> findInventoryInStockByPoNumber(String warehouseType, String poNumber, String filter, Sort sort) {
+    public List<InventoryItemPoNumberDto> findInventoryInStockByPoNumber(String warehouseType, String poNumber, String filter) {
         List<AggregationOperation> aggOps = new ArrayList<>(List.of(
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
@@ -370,9 +348,6 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         if(filter != null && !filter.isBlank()){
             Criteria filterCriteria = new RSQLParser().parse(filter).accept(new MongoRsqlUtils.MongoRsqlVisitor(Map.of()));
             aggOps.add(Aggregation.match(filterCriteria));
-        }
-        if(!sort.isEmpty()){
-            aggOps.add(Aggregation.sort(sort));
         }
         AggregationResults<InventoryItemPoNumberDto> aggResults = mongoTemplate.aggregate(Aggregation.newAggregation(aggOps), InventoryItem.class, InventoryItemPoNumberDto.class);
         return aggResults.getMappedResults();
@@ -408,11 +383,8 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     public List<InventoryItemPoNumberDto> findInventoryItemsInIds(List<ObjectId> ids) {
         if(ids == null || ids.isEmpty()) return new ArrayList<>();
         List<AggregationOperation> aggOps = new ArrayList<>(List.of(
-                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
-                Aggregation.unwind("warehouse"),
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("deletedAt").isNull(),
-                        Criteria.where("warehouse.deletedAt").isNull(),
                         Criteria.where("_id").in(ids)
                 )),
                 Aggregation.project("id", "poNumber", "productCode", "commodityCode", "serialNumber", "model", "status", "manufacturingYear", "quantity", "inventoryType")

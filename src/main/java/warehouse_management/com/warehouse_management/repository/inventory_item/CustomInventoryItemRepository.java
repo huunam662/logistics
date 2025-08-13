@@ -35,7 +35,7 @@ public interface CustomInventoryItemRepository {
 
     List<InventoryPoWarehouseDto> findInventoryInStockPoNumbers(String warehouseType, String inventoryType);
 
-    List<InventoryItemPoNumberDto> findInventoryInStockByPoNumber(String warehouseType, String poNumber, String filter, Sort sort);
+    List<InventoryItemPoNumberDto> findInventoryInStockByPoNumber(String warehouseType, String poNumber, String filter);
 
     List<InventoryItem> insertAll(Collection<InventoryItem> inventoryItems);
 
