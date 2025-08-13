@@ -55,7 +55,7 @@ public class WarehouseService {
         if (!warehouse.getType().equals(WarehouseType.PRODUCTION))
             throw LogicErrException.of("Kết quả cần tìm không phải là kho chờ sản xuất.");
 
-        return inventoryItemRepository.findPageInventoryProduction(warehouseId, optionsReq);
+        return inventoryItemRepository.findPageInventoryProduction(warehouse.getId(), optionsReq);
     }
 
     public Page<InventoryDepartureDto> getPageInventoryDeparture(ObjectId warehouseId, PageOptionsDto optionsReq) {
@@ -63,7 +63,7 @@ public class WarehouseService {
         if (!warehouse.getType().equals(WarehouseType.DEPARTURE))
             throw LogicErrException.of("Kết quả cần tìm không phải là kho di.");
 
-        return inventoryItemRepository.findPageInventoryDeparture(warehouseId, optionsReq);
+        return inventoryItemRepository.findPageInventoryDeparture(warehouse.getId(), optionsReq);
     }
 
     public WarehouseResponseDto createWarehouse(CreateWarehouseDto createDto) {
@@ -77,7 +77,7 @@ public class WarehouseService {
         if (!warehouse.getType().equals(WarehouseType.DESTINATION))
             throw LogicErrException.of("Kết quả cần tìm không phải là kho đích.");
 
-        return inventoryItemRepository.findPageInventoryDestination(warehouseId, optionsReq);
+        return inventoryItemRepository.findPageInventoryDestination(warehouse.getId(), optionsReq);
     }
 
     public List<WarehouseResponseDto> getAllWarehouses() {
@@ -91,7 +91,7 @@ public class WarehouseService {
         Warehouse warehouse = getWarehouseToId(warehouseId);
         if (!warehouse.getType().equals(WarehouseType.CONSIGNMENT))
             throw LogicErrException.of("Kết quả cần tìm không phải là kho ký gửi.");
-        return inventoryItemRepository.findPageInventoryConsignment(warehouseId, optionsReq);
+        return inventoryItemRepository.findPageInventoryConsignment(warehouse.getId(), optionsReq);
     }
 
     public WarehouseResponseDto getWarehouseById(String id) {
