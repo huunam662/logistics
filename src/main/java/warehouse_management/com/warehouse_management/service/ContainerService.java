@@ -174,6 +174,9 @@ public class ContainerService {
                 // Ngày giao hàng = ngày đã chọn theo PO
                 item.getLogistics().setArrivalDate(container.getArrivalDate());
             }
+
+            container.setContainerStatus(ContainerStatus.PENDING);
+            containerRepository.save(container);
             inventoryItemRepository.insertAll(itemsSparePartToNew);
             inventoryItemRepository.bulkUpdateTransferDeparture(itemsToTransfer);
 
