@@ -37,7 +37,6 @@ import warehouse_management.com.warehouse_management.dto.inventory_item.request.
 public class InventoryItemService {
     private final InventoryItemMapper mapper;
     private final InventoryItemRepository inventoryItemRepository;
-    private final ContainerRepository containerRepository;
     private final WarehouseService warehouseService;
     private final WarehouseTransferTicketService warehouseTransferTicketService;
 

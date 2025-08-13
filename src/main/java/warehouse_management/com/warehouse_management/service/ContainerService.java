@@ -201,9 +201,11 @@ public class ContainerService {
             throw LogicErrException.of("Cont hàng đã được hoàn tất trước đó.");
         ContainerStatus containerStatus = ContainerStatus.fromId(status);
         if(containerStatus == null) throw LogicErrException.of("Trạng thái không hợp lệ.");
+        // update container
         container.setContainerStatus(containerStatus);
         containerRepository.save(container);
         if(containerStatus.equals(ContainerStatus.COMPLETED)){
+            // Update items nếu là trạng thái hoàn tất giao hàng
             inventoryItemRepository.updateStatusByContainerId(container.getId(), InventoryItemStatus.IN_STOCK.getId());
         }
         return container;
