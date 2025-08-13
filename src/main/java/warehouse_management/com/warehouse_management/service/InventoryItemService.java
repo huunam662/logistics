@@ -72,9 +72,6 @@ public class InventoryItemService {
 
     @Transactional
     public Warehouse transferItemsProductionToDeparture(InventoryTransferWarehouseDto req) {
-        Warehouse warehouseProduction = warehouseService.getWarehouseToId(new ObjectId(req.getProductionWarehouseId()));
-        if(!warehouseProduction.getType().equals(WarehouseType.PRODUCTION))
-            throw LogicErrException.of("Kho cần xuất hàng không phải là kho chờ.");
         Warehouse warehouseDeparture = warehouseService.getWarehouseToId(new ObjectId(req.getDepartureWarehouseId()));
         if(!warehouseDeparture.getType().equals(WarehouseType.DEPARTURE))
             throw LogicErrException.of("Kho cần nhập hàng không phải là kho đi.");
@@ -91,15 +88,6 @@ public class InventoryItemService {
             List<InventoryItem> itemsToTransfer = inventoryItemRepository.findByIdIn(itemIdToTransfer);
             // Mã Container, Trạng thái Cont, Ngày đi, Ngày đến giữ nguyên rỗng
             LocalDateTime arrivalDate = LocalDate.parse(req.getArrivalDate()).atStartOfDay();
-            Container container = new Container();
-            container.setContainerCode(null);
-            container.setContainerStatus(null);
-            container.setDepartureDate(null);
-            container.setArrivalDate(null);
-            container.setId(new ObjectId());
-            container.setFromWareHouseId(warehouseProduction.getId());
-            container.setToWarehouseId(warehouseDeparture.getId());
-            containerRepository.save(container);
             List<InventoryItem> itemsSparePartToNew = new ArrayList<>();
             for(var item : itemsToTransfer){
                 if(item.getInventoryType().equals(InventoryType.SPARE_PART.getId())){
@@ -111,7 +99,6 @@ public class InventoryItemService {
                     else if(item.getQuantity() > quantityToTransfer){
                         InventoryItem sparePartToDeparture = mapper.cloneEntity(item);
                         sparePartToDeparture.setId(null);
-                        sparePartToDeparture.setContainerId(container.getId());
                         sparePartToDeparture.setQuantity(quantityToTransfer);
                         // Kho hiện tại → “Kho đi (TQ)”
                         sparePartToDeparture.setWarehouseId(warehouseDeparture.getId());
@@ -126,7 +113,6 @@ public class InventoryItemService {
 
                 // Kho hiện tại → “Kho đi (TQ)”
                 item.setWarehouseId(warehouseDeparture.getId());
-                item.setContainerId(container.getId());
                 item.setStatus(InventoryItemStatus.IN_TRANSIT);
                 // Ngày giao hàng = ngày đã chọn theo PO
                 item.getLogistics().setArrivalDate(arrivalDate);
@@ -204,7 +190,7 @@ public class InventoryItemService {
                         sparePartToDeparture.setQuantity(quantityToTransfer);
                         // Kho hiện tại → “Kho đích”
                         sparePartToDeparture.setWarehouseId(destinationWarehouse.getId());
-                        sparePartToDeparture.setStatus(InventoryItemStatus.PENDING);
+                        sparePartToDeparture.setStatus(InventoryItemStatus.IN_TRANSIT);
                         itemsSparePartToNew.add(sparePartToDeparture);
                         item.setQuantity(item.getQuantity() - quantityToTransfer);
                         continue;
@@ -213,7 +199,7 @@ public class InventoryItemService {
 
                 // Kho hiện tại → “Kho đích”
                 item.setWarehouseId(destinationWarehouse.getId());
-                item.setStatus(InventoryItemStatus.PENDING);
+                item.setStatus(InventoryItemStatus.IN_TRANSIT);
                 itemsToApproval.add(item);
             }
             itemsSparePartToNew = inventoryItemRepository.insertAll(itemsSparePartToNew);
@@ -236,14 +222,20 @@ public class InventoryItemService {
     }
 
     @Transactional
-    public void deleteToId(String id){
-        InventoryItem item = getItemToId(new ObjectId(id));
-        inventoryItemRepository.delete(item);
+    public long deleteToId(String id){
+        // TODO: GET current User
+
+        // Xóa sản phẩm
+        InventoryItem inventoryItem = getItemToId(new ObjectId(id));
+        return inventoryItemRepository.softDelete(inventoryItem.getId(), null);
     }
 
     @Transactional
-    public void deleteBulk(List<String> inventoryItemIds){
+    public long deleteBulk(List<String> inventoryItemIds){
+        // TODO: GET current User
+
+        // Xóa nhóm sản phẩm
         List<ObjectId> ids = inventoryItemIds.stream().map(ObjectId::new).collect(Collectors.toList());
-        inventoryItemRepository.bulkDelete(ids);
+        return inventoryItemRepository.bulkSoftDelete(ids, null);
     }
 }

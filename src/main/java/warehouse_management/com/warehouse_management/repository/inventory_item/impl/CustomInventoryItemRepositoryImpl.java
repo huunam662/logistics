@@ -5,6 +5,7 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.model.WriteModel;
+import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
@@ -25,6 +26,8 @@ import warehouse_management.com.warehouse_management.enumerate.InventoryType;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.repository.inventory_item.CustomInventoryItemRepository;
 import warehouse_management.com.warehouse_management.utils.MongoRsqlUtils;
+
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -407,9 +410,21 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
 
     @Transactional
     @Override
-    public void bulkDelete(Collection<ObjectId> ids) {
-        if(ids == null || ids.isEmpty()) return;
+    public long softDelete(ObjectId id, ObjectId deletedBy) {
+        Query query = new Query(Criteria.where("_id").is(id));
+        Update update = new Update().set("deletedAt", LocalDateTime.now())
+                        .set("deletedBy", deletedBy);
+        UpdateResult result = mongoTemplate.updateFirst(query, update, InventoryItem.class);
+        return result.getModifiedCount();
+    }
+
+    @Transactional
+    @Override
+    public long bulkSoftDelete(Collection<ObjectId> ids, ObjectId deletedBy) {
         Query query = new Query(Criteria.where("_id").in(ids));
-        mongoTemplate.remove(query, InventoryItem.class);
+        Update update = new Update().set("deletedAt", LocalDateTime.now())
+                .set("deletedBy", deletedBy);
+        UpdateResult result = mongoTemplate.updateMulti(query, update, InventoryItem.class);
+        return result.getModifiedCount();
     }
 }

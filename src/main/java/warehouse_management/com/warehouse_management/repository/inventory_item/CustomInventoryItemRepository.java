@@ -45,5 +45,7 @@ public interface CustomInventoryItemRepository {
 
     void updateStatusByContainerId(ObjectId containerId, String status);
 
-    void bulkDelete(Collection<ObjectId> ids);
+    long softDelete(ObjectId id, ObjectId deletedBy);
+
+    long bulkSoftDelete(Collection<ObjectId> ids, ObjectId deletedBy);
 }
