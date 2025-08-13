@@ -144,8 +144,12 @@ public class InventoryItemController {
             summary = "DELETE Xóa một hàng hóa cụ thể.",
             description = "DELETE Xóa một hàng hóa cụ thể."
     )
-    public void deleteSingleInventoryItem(@PathVariable("id") String id){
-        inventoryItemService.deleteToId(id);
+    public ResponseEntity<ApiResponse<?>> deleteSingleInventoryItem(@PathVariable("id") String id){
+        long deletedCount = inventoryItemService.deleteToId(id);
+        Map<String, Long> response = Map.of(
+                "deletedCount", deletedCount
+        );
+        return ResponseEntity.ok().body(ApiResponse.success(response));
     }
 
     @DeleteMapping("/delete-bulk")
@@ -153,7 +157,11 @@ public class InventoryItemController {
             summary = "DELETE Xóa nhóm hàng hóa cụ thể.",
             description = "DELETE Xóa nhóm hàng hóa cụ thể."
     )
-    public void deleteSingleInventoryItem(@Valid @RequestBody DeleteBulkInventoryItemDto dto){
-        inventoryItemService.deleteBulk(dto.inventoryItemIds());
+    public ResponseEntity<ApiResponse<?>> deleteSingleInventoryItem(@Valid @RequestBody DeleteBulkInventoryItemDto dto){
+        long deletedCount = inventoryItemService.deleteBulk(dto.inventoryItemIds());
+        Map<String, Long> response = Map.of(
+                "deletedCount", deletedCount
+        );
+        return ResponseEntity.ok().body(ApiResponse.success(response));
     }
 }

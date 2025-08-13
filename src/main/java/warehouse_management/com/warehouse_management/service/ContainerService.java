@@ -158,7 +158,7 @@ public class ContainerService {
                         sparePartToDeparture.setQuantity(quantityToTransfer);
                         // Kho hiện tại → “Kho đi (TQ)”
                         sparePartToDeparture.setWarehouseId(container.getToWarehouseId());
-                        sparePartToDeparture.setStatus(InventoryItemStatus.IN_CONTAINER);
+                        sparePartToDeparture.setStatus(InventoryItemStatus.IN_TRANSIT);
                         // Ngày giao hàng = ngày đã chọn theo PO
                         sparePartToDeparture.getLogistics().setArrivalDate(container.getArrivalDate());
                         itemsSparePartToNew.add(sparePartToDeparture);
@@ -170,7 +170,7 @@ public class ContainerService {
                 // Kho hiện tại → “Kho đi (TQ)”
                 item.setWarehouseId(container.getToWarehouseId());
                 item.setContainerId(container.getId());
-                item.setStatus(InventoryItemStatus.IN_CONTAINER);
+                item.setStatus(InventoryItemStatus.IN_TRANSIT);
                 // Ngày giao hàng = ngày đã chọn theo PO
                 item.getLogistics().setArrivalDate(container.getArrivalDate());
             }
@@ -201,12 +201,11 @@ public class ContainerService {
             throw LogicErrException.of("Cont hàng đã được hoàn tất trước đó.");
         ContainerStatus containerStatus = ContainerStatus.fromId(status);
         if(containerStatus == null) throw LogicErrException.of("Trạng thái không hợp lệ.");
+        // update container
         container.setContainerStatus(containerStatus);
         containerRepository.save(container);
-        if(containerStatus.equals(ContainerStatus.IN_TRANSIT)){
-            inventoryItemRepository.updateStatusByContainerId(container.getId(), InventoryItemStatus.IN_TRANSIT.getId());
-        }
-        else if(containerStatus.equals(ContainerStatus.COMPLETED)){
+        if(containerStatus.equals(ContainerStatus.COMPLETED)){
+            // Update items nếu là trạng thái hoàn tất giao hàng
             inventoryItemRepository.updateStatusByContainerId(container.getId(), InventoryItemStatus.IN_STOCK.getId());
         }
         return container;
