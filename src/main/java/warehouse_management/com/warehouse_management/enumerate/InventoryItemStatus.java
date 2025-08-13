@@ -4,6 +4,7 @@ public enum InventoryItemStatus {
     PENDING("PENDING"),
     IN_STOCK("IN_STOCK"),
     IN_TRANSIT("IN_TRANSIT"),
+    IN_CONTAINER("IN_CONTAINER"),
     IN_REPAIR("IN_REPAIR"),
     HOLD("HOLD"),
     SOLD("SOLD"),

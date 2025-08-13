@@ -53,18 +53,20 @@ public class WarehouseTransferTicketService {
     @Transactional
     public void approvalTransferTicket(String ticketId, String status){
         WarehouseTransferTicket ticket = getTicketToId(new ObjectId(ticketId));
-        if(ticket.getStatus().equals(TransferTicketStatus.APPROVED.getId()))
-            throw LogicErrException.of("Phiếu đã được duyệt trước đó.");
         if(ticket.getStatus().equals(TransferTicketStatus.REJECTED.getId()))
             throw LogicErrException.of("Phiếu đã được hủy trước đó");
         else {
             ticket.setStatus(status);
             warehouseTransferTicketRepository.save(ticket);
             if(status.equals(TransferTicketStatus.APPROVED.getId())){
+                if(ticket.getStatus().equals(TransferTicketStatus.APPROVED.getId()))
+                    throw LogicErrException.of("Phiếu đã được duyệt trước đó.");
                 // TODO: Sinh phiếu nhập xuất, lưu dữ liệu phiếu nhập xuất vào db trước khi sinh
+                // TODO: Ghi log lý do duyệt phiếu
             }
             else if(status.equals(TransferTicketStatus.REJECTED.getId())){
-                // TODO: Ghi log lý do duyệt phiếu
+                // TODO: Ghi log lý do hủy phiếu
+                // TODO: Cập nhật lại hàng hóa
             }
             else throw LogicErrException.of("Trạng thái duyệt không hợp lệ");
         }

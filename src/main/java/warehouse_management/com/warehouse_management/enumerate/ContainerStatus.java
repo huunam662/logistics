@@ -4,9 +4,11 @@ import org.springframework.lang.Nullable;
 
 public enum ContainerStatus implements EnumClass<String> {
 
-    EMPTY("EMPTY"),
-    LOADING("LOADING"),
+    PENDING("PENDING"),
+    APPROVED("APPROVED"),
+    HAD_DATE("HAD_DATE"),
     IN_TRANSIT("IN_TRANSIT"),
+    UN_INSPECTED("UN_INSPECTED"),
     COMPLETED("COMPLETED");
 
     private final String id;
