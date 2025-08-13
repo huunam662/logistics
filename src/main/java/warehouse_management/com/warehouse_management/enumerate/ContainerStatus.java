@@ -4,10 +4,12 @@ import org.springframework.lang.Nullable;
 
 public enum ContainerStatus implements EnumClass<String> {
 
-    EMPTY("EMPTY"),
-    LOADING("LOADING"),
-    IN_TRANSIT("IN_TRANSIT"),
-    COMPLETED("COMPLETED");
+    PENDING("PENDING"),          // Chờ xác nhận
+    APPROVED("APPROVED"),        // Đã xác nhận
+    HAD_DATE("HAD_DATE"),        // Đã có ngày
+    IN_TRANSIT("IN_TRANSIT"),    // Đang đi đường
+    UN_INSPECTED("UN_INSPECTED"),// Chưa đăng kiểm
+    COMPLETED("COMPLETED");      // Hoàn tất
 
     private final String id;
 

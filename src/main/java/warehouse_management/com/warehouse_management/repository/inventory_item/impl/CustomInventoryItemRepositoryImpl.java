@@ -5,7 +5,7 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.model.WriteModel;
-import cz.jirutka.rsql.parser.RSQLParser;
+import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
@@ -15,18 +15,19 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import warehouse_management.com.warehouse_management.dto.WarehouseTransferTicketDto;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
 import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
 import warehouse_management.com.warehouse_management.enumerate.InventoryType;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
-import warehouse_management.com.warehouse_management.model.WarehouseTransferTicket;
 import warehouse_management.com.warehouse_management.repository.inventory_item.CustomInventoryItemRepository;
 import warehouse_management.com.warehouse_management.utils.MongoRsqlUtils;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -83,7 +84,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("deletedAt").isNull(),
                         Criteria.where("inventoryType").in(InventoryType.VEHICLE.getId(), InventoryType.ACCESSORY.getId())
                 )),
-                Aggregation.project("poNumber", "status", "productCode", "manufacturingYear", "model", "type", "category", "serialNumber", "notes", "initialCondition", "inventoryType")
+                Aggregation.project("poNumber", "status", "productCode", "manufacturingYear", "model", "type", "category", "serialNumber", "notes", "initialCondition", "inventoryType", "warehouseType")
                         .and("specifications.hasSideShift").as("hasSideShift") //
                         .and("specifications.liftingCapacityKg").as("liftingCapacityKg")    //
                         .and("specifications.chassisType").as("chassisType")    //
@@ -113,7 +114,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("deletedAt").isNull(),
                         Criteria.where("inventoryType").in(InventoryType.VEHICLE.getId(), InventoryType.ACCESSORY.getId())
                 )),
-                Aggregation.project("poNumber", "productCode", "model", "type", "category", "serialNumber", "notes", "initialCondition", "inventoryType")
+                Aggregation.project("poNumber", "productCode", "model", "type", "category", "serialNumber", "notes", "initialCondition", "inventoryType", "warehouseType")
                         .and("logistics.orderDate").as("orderDate")
                         .and("specifications.hasSideShift").as("hasSideShift")
                         .and("specifications.liftingCapacityKg").as("liftingCapacityKg")
@@ -149,7 +150,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("deletedAt").isNull(),
                         Criteria.where("inventoryType").in(InventoryType.ACCESSORY.getId(), InventoryType.VEHICLE.getId())
                 )),
-                Aggregation.project("poNumber", "status", "productCode", "manufacturingYear", "model", "type", "category", "serialNumber", "notes", "initialCondition", "inventoryType")
+                Aggregation.project("poNumber", "status", "productCode", "manufacturingYear", "model", "type", "category", "serialNumber", "notes", "initialCondition", "inventoryType", "warehouseType")
                         .and("logistics.orderDate").as("orderDate") //
                         .and("logistics.arrivalDate").as("arrivalDate") //
                         .and("specifications.hasSideShift").as("hasSideShift")  //
@@ -186,7 +187,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("deletedAt").isNull(),
                         Criteria.where("inventoryType").in(InventoryType.ACCESSORY.getId(), InventoryType.VEHICLE.getId())
                 )),
-                Aggregation.project("poNumber", "status", "productCode", "manufacturingYear", "model", "type", "category", "serialNumber", "notes", "initialCondition", "inventoryType")
+                Aggregation.project("poNumber", "status", "productCode", "manufacturingYear", "model", "type", "category", "serialNumber", "notes", "initialCondition", "inventoryType", "warehouseType")
                         .and("specifications.hasSideShift").as("hasSideShift") //
                         .and("specifications.liftingCapacityKg").as("liftingCapacityKg")    //
                         .and("specifications.chassisType").as("chassisType")    //
@@ -217,7 +218,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("deletedAt").isNull(),
                         Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId())
                 )),
-                Aggregation.project("poNumber", "model", "commodityCode", "quantity", "initialCondition", "inventoryType")
+                Aggregation.project("poNumber", "model", "commodityCode", "quantity", "initialCondition", "inventoryType", "warehouseType")
                         .and("logistics.orderDate").as("orderDate") //
                         .and("pricing.purchasePrice").as("purchasePrice")   //
                         .and("pricing.actualSalePrice").as("actualSalePrice")   //
@@ -234,7 +235,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("deletedAt").isNull(),
                         Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId())
                 )),
-                Aggregation.project("poNumber", "model", "commodityCode", "notes", "quantity", "initialCondition", "inventoryType")
+                Aggregation.project("poNumber", "model", "commodityCode", "notes", "quantity", "initialCondition", "inventoryType", "warehouseType")
                         .and("logistics.orderDate").as("orderDate") //
                         .and("pricing.purchasePrice").as("purchasePrice")   //
                         .and("pricing.salePriceR0").as("salePriceR0")   //
@@ -252,7 +253,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("deletedAt").isNull(),
                         Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId())
                 )),
-                Aggregation.project("poNumber", "model", "commodityCode", "notes", "quantity", "initialCondition", "inventoryType")
+                Aggregation.project("poNumber", "model", "commodityCode", "notes", "quantity", "initialCondition", "inventoryType", "warehouseType")
                         .and("logistics.orderDate").as("orderDate") //
                         .and("pricing.purchasePrice").as("purchasePrice")   //
                         .and("pricing.salePriceR0").as("salePriceR0")   //
@@ -272,7 +273,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("deletedAt").isNull(),
                         Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId())
                 )),
-                Aggregation.project("poNumber", "model", "commodityCode", "notes", "quantity", "initialCondition", "inventoryType")
+                Aggregation.project("poNumber", "model", "commodityCode", "notes", "quantity", "initialCondition", "inventoryType", "warehouseType")
                         .and("warehouse.name").as("warehouseName")  //
                         .and("warehouse.contractNumber").as("contractNumber")   //
                         .and("logistics.orderDate").as("orderDate") //
@@ -294,7 +295,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("deletedAt").isNull(),
                         Criteria.where("warehouse.deletedAt").isNull()
                 )),
-                Aggregation.project("poNumber", "productCode", "status", "model", "category", "type", "serialNumber", "manufacturingYear", "initialCondition", "notes", "inventoryType")
+                Aggregation.project("poNumber", "productCode", "status", "model", "category", "type", "serialNumber", "manufacturingYear", "initialCondition", "notes", "inventoryType", "warehouseType")
                         .and("specifications.liftingCapacityKg").as("liftingCapacityKg")    //
                         .and("specifications.chassisType").as("chassisType")    //
                         .and("specifications.liftingHeightMm").as("liftingHeightMm")    //
@@ -337,7 +338,8 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
                         Criteria.where("deletedAt").isNull(),
-                        Criteria.where("poNumber").is(poNumber)
+                        Criteria.where("poNumber").is(poNumber),
+                        Criteria.where("containerId").isNull()
                 )),
                 Aggregation.project("id", "poNumber", "productCode", "commodityCode", "serialNumber", "model", "status", "manufacturingYear", "quantity", "inventoryType")
                         .and("logistics.liftingCapacityKg").as("liftingCapacityKg")
@@ -346,7 +348,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .and("logistics.engineType").as("engineType")
         ));
         if(filter != null && !filter.isBlank()){
-            Criteria filterCriteria = new RSQLParser().parse(filter).accept(new MongoRsqlUtils.MongoRsqlVisitor(Map.of()));
+            Criteria filterCriteria = MongoRsqlUtils.RsqlParser.parse(filter, Map.of());
             aggOps.add(Aggregation.match(filterCriteria));
         }
         AggregationResults<InventoryItemPoNumberDto> aggResults = mongoTemplate.aggregate(Aggregation.newAggregation(aggOps), InventoryItem.class, InventoryItemPoNumberDto.class);
@@ -396,5 +398,33 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         ));
         AggregationResults<InventoryItemPoNumberDto> aggResults = mongoTemplate.aggregate(Aggregation.newAggregation(aggOps), InventoryItem.class, InventoryItemPoNumberDto.class);
         return aggResults.getMappedResults();
+    }
+
+    @Transactional
+    @Override
+    public void updateStatusByContainerId(ObjectId containerId, String status) {
+        Query query = new Query(Criteria.where("containerId").is(containerId));
+        Update update = new Update().set("status", status);
+        mongoTemplate.updateMulti(query, update, InventoryItem.class);
+    }
+
+    @Transactional
+    @Override
+    public long softDelete(ObjectId id, ObjectId deletedBy) {
+        Query query = new Query(Criteria.where("_id").is(id));
+        Update update = new Update().set("deletedAt", LocalDateTime.now())
+                        .set("deletedBy", deletedBy);
+        UpdateResult result = mongoTemplate.updateFirst(query, update, InventoryItem.class);
+        return result.getModifiedCount();
+    }
+
+    @Transactional
+    @Override
+    public long bulkSoftDelete(Collection<ObjectId> ids, ObjectId deletedBy) {
+        Query query = new Query(Criteria.where("_id").in(ids));
+        Update update = new Update().set("deletedAt", LocalDateTime.now())
+                .set("deletedBy", deletedBy);
+        UpdateResult result = mongoTemplate.updateMulti(query, update, InventoryItem.class);
+        return result.getModifiedCount();
     }
 }

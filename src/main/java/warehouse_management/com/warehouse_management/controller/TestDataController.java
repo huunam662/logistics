@@ -2,6 +2,7 @@ package warehouse_management.com.warehouse_management.controller;
 
 import com.github.javafaker.Faker;
 import com.mongodb.lang.Nullable;
+import io.swagger.v3.oas.annotations.Hidden;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -23,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+@Hidden
 @RestController
 @RequestMapping("/dev")
 public class TestDataController {
@@ -125,7 +127,7 @@ public class TestDataController {
                 String code = String.format("CONT-%d-%s-%03d", Year.now().getValue(), faker.letterify("???"), i + 1);
                 c.setContainerCode(code);
 
-                c.setContainerStatus(ContainerStatus.LOADING);
+                c.setContainerStatus(ContainerStatus.APPROVED);
                 c.setDepartureDate(LocalDateTime.now().minusDays(faker.number().numberBetween(1, 10)));
                 c.setArrivalDate(LocalDateTime.now().plusDays(faker.number().numberBetween(1, 10)));
 

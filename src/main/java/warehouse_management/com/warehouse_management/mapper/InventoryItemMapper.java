@@ -3,6 +3,7 @@ package warehouse_management.com.warehouse_management.mapper;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.factory.Mappers;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.*;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
@@ -14,12 +15,14 @@ public interface InventoryItemMapper {
 
     InventoryItem toInventoryItemModel(CreateInventoryItemDto inventoryItemReq);
 
-    InventoryItem.Specifications toInventoryItemModel(CreateInventoryItemDto.Specifications inventoryItemReq);
-
-    InventoryItem.Pricing toInventoryItemModel(CreateInventoryItemDto.Pricing inventoryItemReq);
-
-    InventoryItem.Logistics toInventoryItemModel(CreateInventoryItemDto.Logistics inventoryItemReq);
-
     InventoryItem cloneEntity(InventoryItem inventoryItem);
 
+    @Mapping(target = "liftingCapacityKg", source = "specifications.liftingCapacityKg")
+    @Mapping(target = "chassisType", source = "specifications.chassisType")
+    @Mapping(target = "liftingHeightMm", source = "specifications.liftingHeightMm")
+    @Mapping(target = "engineType", source = "specifications.engineType")
+    InventoryItemPoNumberDto toInventoryItemPoNumberDto(InventoryItem inventoryItem);
+
+    @Mapping(target = "id", ignore = true)
+    void mapToUpdateInventoryItem(@MappingTarget InventoryItem inventoryItem, UpdateInventoryItemDto dto);
 }

@@ -1,10 +1,7 @@
 package warehouse_management.com.warehouse_management.utils;
 
 import cz.jirutka.rsql.parser.RSQLParser;
-import cz.jirutka.rsql.parser.ast.AndNode;
-import cz.jirutka.rsql.parser.ast.ComparisonNode;
-import cz.jirutka.rsql.parser.ast.OrNode;
-import cz.jirutka.rsql.parser.ast.RSQLVisitor;
+import cz.jirutka.rsql.parser.ast.*;
 import lombok.NonNull;
 import org.bson.Document;
 import org.springframework.data.domain.Page;
@@ -22,10 +19,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public class MongoRsqlUtils {
 
@@ -33,13 +27,13 @@ public class MongoRsqlUtils {
             @NonNull Class<?> inputType,
             @NonNull Class<T> outputType,
             @NonNull Query query,
-            @NonNull Map<String, String> propertyMapper,
+            @NonNull Map<String, String> rsqlPropertyMapper,
             @NonNull PageOptionsDto optionsReq
     ){
         MongoTemplate mongoTemplate = SpringContext.getBean(MongoTemplate.class);
         String filter = optionsReq.getFilter();
         if(filter != null && !filter.isBlank()){
-            Criteria filterCriteria = new RSQLParser().parse(filter).accept(new MongoRsqlVisitor(propertyMapper));
+            Criteria filterCriteria = RsqlParser.parse(filter, rsqlPropertyMapper);
             query.addCriteria(filterCriteria);
         }
         long totalT = mongoTemplate.count(query, inputType);
@@ -86,7 +80,7 @@ public class MongoRsqlUtils {
         String filter = optionsReq.getFilter();
         List<AggregationOperation> aggOp = new ArrayList<>(agg.getPipeline().getOperations());
         if(filter != null && !filter.isBlank()){
-            Criteria filterCriteria = new RSQLParser().parse(filter).accept(new MongoRsqlVisitor(rsqlPropertyMapper));
+            Criteria filterCriteria = RsqlParser.parse(filter, rsqlPropertyMapper);
             aggOp.add(Aggregation.match(filterCriteria));
         }
         CountOperation countOp = Aggregation.count().as("count");
@@ -143,6 +137,21 @@ public class MongoRsqlUtils {
 
     }
 
+    public static class RsqlParser {
+        private static Set<ComparisonOperator> customOperators() {
+            Set<ComparisonOperator> operators = new HashSet<>(RSQLOperators.defaultOperators());
+            operators.add(new ComparisonOperator("=isnull=", false));
+            operators.add(new ComparisonOperator("=notnull=", false));
+            return operators;
+        }
+        public static Criteria parse(
+                @NonNull String filter,
+                @NonNull Map<String, String> rsqlPropertyMapper
+        ){
+            return new RSQLParser(customOperators()).parse(filter).accept(new MongoRsqlVisitor(rsqlPropertyMapper));
+        }
+    }
+
     public static class MongoRsqlVisitor implements RSQLVisitor<Criteria, Void> {
 
         private final Map<String, String> rsqlPropertyMapper;
@@ -177,6 +186,8 @@ public class MongoRsqlUtils {
             if(rsqlPropertyMapper.containsKey(field))
                 field = rsqlPropertyMapper.get(field);
             return switch (op) {
+                case "=isnull=" -> Criteria.where(field).isNull();
+                case "=notnull=" -> Criteria.where(field).not().isNull();
                 case "==", "!=" -> {
                     String val = args.getFirst();
                     Criteria result = Criteria.where(field);

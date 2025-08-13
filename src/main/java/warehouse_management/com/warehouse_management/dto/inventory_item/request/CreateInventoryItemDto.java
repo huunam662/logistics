@@ -3,6 +3,7 @@ package warehouse_management.com.warehouse_management.dto.inventory_item.request
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import warehouse_management.com.warehouse_management.annotation.Validation;
 
 import java.math.BigDecimal;
@@ -10,7 +11,7 @@ import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
-
+@NoArgsConstructor
 public class CreateInventoryItemDto {
 
     // ====== Thông tin cơ bản ======
