@@ -173,7 +173,7 @@ public class InventoryItemController {
         return ResponseEntity.ok().body(ApiResponse.success(response));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping
     @Operation(
             summary = "PUT Cập nhật một hàng hóa cụ thể.",
             description = "PUT Cập nhật một hàng hóa cụ thể."

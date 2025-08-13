@@ -167,7 +167,7 @@ public class InventoryItemService {
                     }
                 }
 
-                // Kho hiện tại → “Kho đi (TQ)”
+                // Kho hiện tại → “Kho ký gửi”
                 item.setWarehouseId(warehouseConsignment.getId());
                 item.setStatus(InventoryItemStatus.IN_TRANSIT);
                 // Ngày giao hàng = ngày đã chọn theo PO
