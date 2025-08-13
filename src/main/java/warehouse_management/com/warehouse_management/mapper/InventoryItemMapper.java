@@ -22,4 +22,9 @@ public interface InventoryItemMapper {
 
     InventoryItem cloneEntity(InventoryItem inventoryItem);
 
+    @Mapping(target = "liftingCapacityKg", source = "specifications.liftingCapacityKg")
+    @Mapping(target = "chassisType", source = "specifications.chassisType")
+    @Mapping(target = "liftingHeightMm", source = "specifications.liftingHeightMm")
+    @Mapping(target = "engineType", source = "specifications.engineType")
+    InventoryItemPoNumberDto toInventoryItemPoNumberDto(InventoryItem inventoryItem);
 }

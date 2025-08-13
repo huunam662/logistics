@@ -43,4 +43,7 @@ public interface CustomInventoryItemRepository {
 
     List<InventoryItemPoNumberDto> findInventoryItemsInIds(List<ObjectId> ids);
 
+    void updateStatusByContainerId(ObjectId containerId, String status);
+
+    void bulkDelete(Collection<ObjectId> ids);
 }

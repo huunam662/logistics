@@ -207,7 +207,7 @@ public class WarehouseController {
 
     @GetMapping("/warehouse-type/{warehouseType}")
     public ApiResponse<List<GetDepartureWarehouseForContainerDto>> getWarehouseByTypeForContainer(
-            @PathVariable String warehouseType
+            @PathVariable("warehouseType") String warehouseType
     ) {
         List<GetDepartureWarehouseForContainerDto> dtos = warehouseService.getDepartureWarehousesForContainer(warehouseType);
         return ApiResponse.success(dtos);

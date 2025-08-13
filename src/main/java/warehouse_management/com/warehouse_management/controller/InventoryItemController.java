@@ -10,6 +10,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import warehouse_management.com.warehouse_management.dto.inventory_item.request.DeleteBulkInventoryItemDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryStockTransferDto;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.pagination.response.PageInfoDto;
@@ -19,6 +20,7 @@ import warehouse_management.com.warehouse_management.dto.inventory_item.request.
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryItemPoNumberDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryPoWarehouseDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryItemProductionVehicleTypeDto;
+import warehouse_management.com.warehouse_management.mapper.InventoryItemMapper;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.service.InventoryItemService;
@@ -31,6 +33,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class InventoryItemController {
     private final InventoryItemService inventoryItemService;
+    private final InventoryItemMapper mapper;
 
     //Api Nhập kho
 //    @PostMapping
@@ -90,7 +93,7 @@ public class InventoryItemController {
 
     @GetMapping("/warehouse/{warehouseId}")
     public ResponseEntity<PageInfoDto<InventoryItemProductionVehicleTypeDto>> searchItemsInWarehouse(
-            @PathVariable String warehouseId,
+            @PathVariable("warehouseId") String warehouseId,
             @ModelAttribute PageOptionsDto optionsReq) {
 
         PageInfoDto<InventoryItemProductionVehicleTypeDto> itemPage = inventoryItemService.getItemsFromVehicleWarehouse(warehouseId, optionsReq);
@@ -110,8 +113,8 @@ public class InventoryItemController {
 
     @PostMapping("/warehouse/stock-transfer")
     @Operation(
-            summary = "Điều chuyển nội bộ.",
-            description = "Điều chuyển nội bộ."
+            summary = "POST Điều chuyển nội bộ.",
+            description = "POST Điều chuyển nội bộ."
     )
     public ResponseEntity<ApiResponse<?>> stockTransfer(
             @RequestBody InventoryStockTransferDto req
@@ -123,5 +126,34 @@ public class InventoryItemController {
         ApiResponse<?> apiResponse = ApiResponse.success(dataResponse);
         apiResponse.setMessage("Tạo phiên chuyển hàng từ kho "+originWarehouse.getName()+" sang "+destinationWarehouse.getName()+", đang trong quá trình chờ duyệt.");
         return new ResponseEntity<>(apiResponse, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/{id}")
+    @Operation(
+            summary = "GET Lấy hàng hóa thông qua id.",
+            description = "GET Lấy hàng hóa thông qua id."
+    )
+    public ResponseEntity<ApiResponse<?>> getSingleInventoryItemById(@PathVariable("id") String id){
+        InventoryItem item = inventoryItemService.getItemToId(new ObjectId(id));
+        InventoryItemPoNumberDto dto = mapper.toInventoryItemPoNumberDto(item);
+        return ResponseEntity.ok().body(ApiResponse.success(dto));
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(
+            summary = "DELETE Xóa một hàng hóa cụ thể.",
+            description = "DELETE Xóa một hàng hóa cụ thể."
+    )
+    public void deleteSingleInventoryItem(@PathVariable("id") String id){
+        inventoryItemService.deleteToId(id);
+    }
+
+    @DeleteMapping("/delete-bulk")
+    @Operation(
+            summary = "DELETE Xóa nhóm hàng hóa cụ thể.",
+            description = "DELETE Xóa nhóm hàng hóa cụ thể."
+    )
+    public void deleteSingleInventoryItem(@Valid @RequestBody DeleteBulkInventoryItemDto dto){
+        inventoryItemService.deleteBulk(dto.inventoryItemIds());
     }
 }

@@ -2,7 +2,6 @@ package warehouse_management.com.warehouse_management.service;
 
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,6 +46,13 @@ public class InventoryItemService {
 //        // Lưu DB
 //        return inventoryItemRepository.save(item);
 //    }
+
+    public InventoryItem getItemToId(ObjectId id){
+        InventoryItem inventoryItem = inventoryItemRepository.findById(id).orElse(null);
+        if(inventoryItem == null || inventoryItem.getDeletedAt() != null)
+            throw LogicErrException.of("Mặt hàng không tồn tại.");
+        return inventoryItem;
+    }
 
     public PageInfoDto<InventoryItemProductionVehicleTypeDto> getItemsFromVehicleWarehouse(String warehouseId, PageOptionsDto optionsReq) {
         Page<InventoryItemProductionVehicleTypeDto> itemsPageObject = inventoryItemRepository.getItemsFromVehicleWarehouse(
@@ -229,4 +235,15 @@ public class InventoryItemService {
         }
     }
 
+    @Transactional
+    public void deleteToId(String id){
+        InventoryItem item = getItemToId(new ObjectId(id));
+        inventoryItemRepository.delete(item);
+    }
+
+    @Transactional
+    public void deleteBulk(List<String> inventoryItemIds){
+        List<ObjectId> ids = inventoryItemIds.stream().map(ObjectId::new).collect(Collectors.toList());
+        inventoryItemRepository.bulkDelete(ids);
+    }
 }

@@ -1,5 +1,6 @@
 package warehouse_management.com.warehouse_management.controller.warehouse;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.validation.constraints.Min;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -17,6 +18,7 @@ import warehouse_management.com.warehouse_management.exceptions.errormsg.LogicEr
 import warehouse_management.com.warehouse_management.repository.warehouse.WarehouseRepository;
 import warehouse_management.com.warehouse_management.utils.Msg;
 
+@Hidden
 @Controller
 @RequestMapping("/v1/testwarehouses")
 @Validated
