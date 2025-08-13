@@ -57,6 +57,7 @@ public class InventoryItem {
     // --- Inner Classes ---
 
     @Data
+    @NoArgsConstructor
     @AllArgsConstructor
     public static class Specifications {
         private Integer liftingCapacityKg;      // Sức nâng (kg)
@@ -73,6 +74,7 @@ public class InventoryItem {
     }
 
     @Data
+    @NoArgsConstructor
     @AllArgsConstructor
     public static class Pricing {
         private BigDecimal purchasePrice;       // Giá mua vào
@@ -83,6 +85,7 @@ public class InventoryItem {
     }
 
     @Data
+    @NoArgsConstructor
     @AllArgsConstructor
     public static class Logistics {
         private LocalDateTime orderDate;        // Ngày đặt hàng
