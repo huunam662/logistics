@@ -32,7 +32,7 @@ public class InventoryCentralWarehouseDto {
     private String engineType;              // Loại động cơ
     private String batteryInfo;             // Thông tin bình điện
     private String batterySpecification;    // Thông số bình điện
-    private String ForkDimensions;          // Thông số càng
+    private String forkDimensions;          // Thông số càng
     private String chargerSpecification;    // Thông số bộ sạc
     private Integer valveCount;             // Số lượng van
     private String otherDetails;            // Chi tiết khác
