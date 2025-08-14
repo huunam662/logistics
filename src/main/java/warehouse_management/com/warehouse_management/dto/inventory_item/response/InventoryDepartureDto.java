@@ -1,5 +1,6 @@
 package warehouse_management.com.warehouse_management.dto.inventory_item.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import org.bson.types.ObjectId;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
@@ -13,12 +14,15 @@ public class InventoryDepartureDto {
     private String poNumber;       // PO
     private String status;      // Trạng thái
     private String productCode;    // Mã sản phẩm
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime orderDate;        // Ngày đặt hàng
     private Integer manufacturingYear; // Năm sản xuất – Không bắt buộc
     private String containerStatus;     // Trạng Thái Container
     private String containerCode;       // Mã Cont
     private String containerToWarehouse;    // Kho đến
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime containerDepartureDate;  //  Ngày đi
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime containerArrivalDate;    // Ngày đến
     private String model;          // Model
     private String type;           // Loại
@@ -41,7 +45,7 @@ public class InventoryDepartureDto {
     private BigDecimal purchasePrice;       // Giá mua
     private BigDecimal salePriceR0;         // Giá R0
     private BigDecimal salePriceR1;         // Giá R1
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime arrivalDate;    // Ngày giao hàng
     private BigDecimal actualSalePrice;     // Giá bán thực tế
-    private String inventoryType;   // Loại hàng tồn (VD: phụ kiện, ...) - Bắt buộc
 }

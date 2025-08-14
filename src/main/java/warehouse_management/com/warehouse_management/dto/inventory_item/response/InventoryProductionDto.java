@@ -1,5 +1,6 @@
 package warehouse_management.com.warehouse_management.dto.inventory_item.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import org.bson.types.ObjectId;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
@@ -11,6 +12,7 @@ import java.time.LocalDateTime;
 public class InventoryProductionDto {
     private ObjectId id; // _id – Khóa chính tự động tạo bởi MongoDB
     private String poNumber;       // PO
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime orderDate;        // Ngày đặt hàng
     private String productCode;    // Mã sản phẩm
     private String model;          // Model
@@ -36,5 +38,4 @@ public class InventoryProductionDto {
     private BigDecimal salePriceR1;         // Giá R1
     private BigDecimal actualSalePrice;     // Giá bán thực tế
     private String agent;                   // Đại lý (nếu có)
-    private String inventoryType;   // Loại hàng tồn (VD: phụ kiện, ...) - Bắt buộc
 }

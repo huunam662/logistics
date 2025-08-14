@@ -1,5 +1,6 @@
 package warehouse_management.com.warehouse_management.dto.inventory_item.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.bson.types.ObjectId;
@@ -23,6 +24,7 @@ public class InventoryCentralWarehouseDto {
     private String warehouseType;   // Loại kho
     private String initialCondition;       // Mô tả nguyên trạng khi nhập kho – Không bắt buộc
     private String notes;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime arrivalDate;      // Ngày đến
     private Integer liftingCapacityKg;      // Sức nâng (kg)
     private String chassisType;             // Loại khung nâng
