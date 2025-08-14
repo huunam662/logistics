@@ -317,12 +317,12 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     }
 
     @Override
-    public List<InventoryPoWarehouseDto> findPoNumbersOfInventoryInStock(String warehouseType, String inventoryType){
+    public List<InventoryPoWarehouseDto> findPoNumbersOfInventoryInStock(String warehouseType, List<String> inventoryTypes){
         List<AggregationOperation> aggOps = new ArrayList<>(List.of(
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
                         Criteria.where("deletedAt").isNull(),
-                        Criteria.where("inventoryType").is(inventoryType)
+                        Criteria.where("inventoryType").in(inventoryTypes)
                 )),
                 Aggregation.group("poNumber"),
                 Aggregation.project().and("_id").as("poNumber")
