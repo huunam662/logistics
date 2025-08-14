@@ -46,6 +46,7 @@ public class WarehouseTransferTicket {
     @LastModifiedDate
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;
+    private String jsonPrint;
 
     public TransferTicketStatus getStatusEnum() {
         return status == null ? null : TransferTicketStatus.fromId(status);
