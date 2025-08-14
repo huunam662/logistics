@@ -33,7 +33,7 @@ public interface CustomInventoryItemRepository {
 
     Page<InventoryCentralWarehouseDto> findPageInventoryCentralWarehouse(PageOptionsDto optionsReq);
 
-    List<InventoryPoWarehouseDto> findInventoryInStockPoNumbers(String warehouseType, String inventoryType);
+    List<InventoryPoWarehouseDto> findPoNumbersOfInventoryInStock(String warehouseType, String inventoryType);
 
     List<InventoryItemPoNumberDto> findInventoryInStockByPoNumber(String warehouseType, String poNumber, String filter);
 
