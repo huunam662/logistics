@@ -1,5 +1,6 @@
 package warehouse_management.com.warehouse_management.dto.inventory_item.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import org.bson.types.ObjectId;
 import java.math.BigDecimal;
@@ -33,7 +34,7 @@ public class InventoryDestinationDto {
     private BigDecimal purchasePrice;       // Giá mua
     private BigDecimal salePriceR0;         // Giá R0
     private BigDecimal salePriceR1;         // Giá R1
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime arrivalDate;    // Ngày giao hàng
     private BigDecimal actualSalePrice;     // Giá bán thực tế
-    private String inventoryType;   // Loại hàng tồn (VD: phụ kiện, ...) - Bắt buộc
 }

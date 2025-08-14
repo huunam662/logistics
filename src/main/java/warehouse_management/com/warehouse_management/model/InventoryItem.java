@@ -41,6 +41,7 @@ public class InventoryItem {
 
     private String initialCondition;       // Mô tả nguyên trạng khi nhập kho – Không bắt buộc
     private String notes;                  // Ghi chú chung – Không bắt buộc
+    private String description;         // Mô tả
 
     @CreatedBy
     private ObjectId createdBy;
