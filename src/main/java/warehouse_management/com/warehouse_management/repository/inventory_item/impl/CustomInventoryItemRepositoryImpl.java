@@ -317,7 +317,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     }
 
     @Override
-    public List<InventoryPoWarehouseDto> findPoNumbersOfInventoryInStock(String warehouseType, List<String> inventoryTypes){
+    public List<InventoryPoWarehouseDto> findInventoryInStockPoNumbers(String warehouseType, List<String> inventoryTypes){
         List<AggregationOperation> aggOps = new ArrayList<>(List.of(
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
@@ -335,14 +335,10 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     @Override
     public List<InventoryItemPoNumberDto> findInventoryInStockByPoNumber(String warehouseType, String poNumber, String filter) {
         List<AggregationOperation> aggOps = new ArrayList<>(List.of(
-                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
-                Aggregation.unwind("warehouse"),
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
                         Criteria.where("deletedAt").isNull(),
-                        Criteria.where("poNumber").is(poNumber),
-                        Criteria.where("containerId").isNull(),
-                        Criteria.where("warehouse.type").is(warehouseType)
+                        Criteria.where("poNumber").is(poNumber)
                 )),
                 Aggregation.project("id", "poNumber", "productCode", "commodityCode", "serialNumber", "model", "status", "manufacturingYear", "quantity", "inventoryType")
                         .and("logistics.liftingCapacityKg").as("liftingCapacityKg")
