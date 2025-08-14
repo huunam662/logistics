@@ -93,7 +93,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .and("specifications.batteryInfo").as("batteryInfo")    //
                         .and("specifications.batterySpecification").as("batterySpecification")  //
                         .and("specifications.chargerSpecification").as("chargerSpecification")  //
-                        .and("specifications.ForkDimensions").as("ForkDimensions")  //
+                        .and("specifications.forkDimensions").as("forkDimensions")  //
                         .and("specifications.valveCount").as("valveCount")  //
                         .and("specifications.otherDetails").as("otherDetails")  //
                         .and("pricing.purchasePrice").as("purchasePrice")   //
@@ -124,7 +124,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .and("specifications.batteryInfo").as("batteryInfo")
                         .and("specifications.batterySpecification").as("batterySpecification")
                         .and("specifications.chargerSpecification").as("chargerSpecification")
-                        .and("specifications.ForkDimensions").as("ForkDimensions")
+                        .and("specifications.forkDimensions").as("forkDimensions")
                         .and("specifications.valveCount").as("valveCount")
                         .and("specifications.otherDetails").as("otherDetails")
                         .and("pricing.purchasePrice").as("purchasePrice")
@@ -161,7 +161,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .and("specifications.batteryInfo").as("batteryInfo")    //
                         .and("specifications.batterySpecification").as("batterySpecification")  //
                         .and("specifications.chargerSpecification").as("chargerSpecification")  //
-                        .and("specifications.ForkDimensions").as("ForkDimensions")  //
+                        .and("specifications.forkDimensions").as("forkDimensions")  //
                         .and("specifications.valveCount").as("valveCount")  //
                         .and("specifications.otherDetails").as("otherDetails")  //
                         .and("pricing.purchasePrice").as("purchasePrice")   //
@@ -196,7 +196,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .and("specifications.batteryInfo").as("batteryInfo")    //
                         .and("specifications.batterySpecification").as("batterySpecification")  //
                         .and("specifications.chargerSpecification").as("chargerSpecification")  //
-                        .and("specifications.ForkDimensions").as("ForkDimensions")  //
+                        .and("specifications.forkDimensions").as("forkDimensions")  //
                         .and("specifications.valveCount").as("valveCount")  //
                         .and("specifications.otherDetails").as("otherDetails")  //
                         .and("pricing.purchasePrice").as("purchasePrice")   //
@@ -303,7 +303,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .and("specifications.batteryInfo").as("batteryInfo")    //
                         .and("specifications.batterySpecification").as("batterySpecification")  //
                         .and("specifications.chargerSpecification").as("chargerSpecification")  //
-                        .and("specifications.ForkDimensions").as("ForkDimensions")  //
+                        .and("specifications.forkDimensions").as("forkDimensions")  //
                         .and("specifications.valveCount").as("valveCount")  //
                         .and("specifications.otherDetails").as("otherDetails")  //
                         .and("pricing.purchasePrice").as("purchasePrice")   //
