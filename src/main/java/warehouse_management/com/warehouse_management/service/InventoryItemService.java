@@ -58,8 +58,8 @@ public class InventoryItemService {
         return response;
     }
 
-    public List<InventoryPoWarehouseDto> getInventoryInStockPoNumbers(String warehouseType, String inventoryType) {
-        return inventoryItemRepository.findInventoryInStockPoNumbers(warehouseType, inventoryType);
+    public List<InventoryPoWarehouseDto> getInventoryInStockPoNumbers(String warehouseType, List<String> inventoryTypes) {
+        return inventoryItemRepository.findInventoryInStockPoNumbers(warehouseType, inventoryTypes);
     }
 
     public List<InventoryItemPoNumberDto> getInventoryInStockByPoNumber(String warehouseType, String poNumber, String filter){

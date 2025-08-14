@@ -84,7 +84,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("deletedAt").isNull(),
                         Criteria.where("inventoryType").in(InventoryType.VEHICLE.getId(), InventoryType.ACCESSORY.getId())
                 )),
-                Aggregation.project("poNumber", "status", "productCode", "manufacturingYear", "model", "type", "category", "serialNumber", "notes", "initialCondition", "inventoryType", "warehouseType")
+                Aggregation.project("poNumber", "status", "productCode", "manufacturingYear", "model", "type", "category", "serialNumber", "notes", "initialCondition", "warehouseType")
                         .and("specifications.hasSideShift").as("hasSideShift") //
                         .and("specifications.liftingCapacityKg").as("liftingCapacityKg")    //
                         .and("specifications.chassisType").as("chassisType")    //
@@ -93,7 +93,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .and("specifications.batteryInfo").as("batteryInfo")    //
                         .and("specifications.batterySpecification").as("batterySpecification")  //
                         .and("specifications.chargerSpecification").as("chargerSpecification")  //
-                        .and("specifications.ForkDimensions").as("ForkDimensions")  //
+                        .and("specifications.forkDimensions").as("forkDimensions")  //
                         .and("specifications.valveCount").as("valveCount")  //
                         .and("specifications.otherDetails").as("otherDetails")  //
                         .and("pricing.purchasePrice").as("purchasePrice")   //
@@ -114,7 +114,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("deletedAt").isNull(),
                         Criteria.where("inventoryType").in(InventoryType.VEHICLE.getId(), InventoryType.ACCESSORY.getId())
                 )),
-                Aggregation.project("poNumber", "productCode", "model", "type", "category", "serialNumber", "notes", "initialCondition", "inventoryType", "warehouseType")
+                Aggregation.project("poNumber", "productCode", "model", "type", "category", "serialNumber", "notes", "initialCondition", "warehouseType")
                         .and("logistics.orderDate").as("orderDate")
                         .and("specifications.hasSideShift").as("hasSideShift")
                         .and("specifications.liftingCapacityKg").as("liftingCapacityKg")
@@ -124,7 +124,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .and("specifications.batteryInfo").as("batteryInfo")
                         .and("specifications.batterySpecification").as("batterySpecification")
                         .and("specifications.chargerSpecification").as("chargerSpecification")
-                        .and("specifications.ForkDimensions").as("ForkDimensions")
+                        .and("specifications.forkDimensions").as("forkDimensions")
                         .and("specifications.valveCount").as("valveCount")
                         .and("specifications.otherDetails").as("otherDetails")
                         .and("pricing.purchasePrice").as("purchasePrice")
@@ -150,7 +150,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("deletedAt").isNull(),
                         Criteria.where("inventoryType").in(InventoryType.ACCESSORY.getId(), InventoryType.VEHICLE.getId())
                 )),
-                Aggregation.project("poNumber", "status", "productCode", "manufacturingYear", "model", "type", "category", "serialNumber", "notes", "initialCondition", "inventoryType", "warehouseType")
+                Aggregation.project("poNumber", "status", "productCode", "manufacturingYear", "model", "type", "category", "serialNumber", "notes", "initialCondition", "warehouseType")
                         .and("logistics.orderDate").as("orderDate") //
                         .and("logistics.arrivalDate").as("arrivalDate") //
                         .and("specifications.hasSideShift").as("hasSideShift")  //
@@ -161,7 +161,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .and("specifications.batteryInfo").as("batteryInfo")    //
                         .and("specifications.batterySpecification").as("batterySpecification")  //
                         .and("specifications.chargerSpecification").as("chargerSpecification")  //
-                        .and("specifications.ForkDimensions").as("ForkDimensions")  //
+                        .and("specifications.forkDimensions").as("forkDimensions")  //
                         .and("specifications.valveCount").as("valveCount")  //
                         .and("specifications.otherDetails").as("otherDetails")  //
                         .and("pricing.purchasePrice").as("purchasePrice")   //
@@ -187,7 +187,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("deletedAt").isNull(),
                         Criteria.where("inventoryType").in(InventoryType.ACCESSORY.getId(), InventoryType.VEHICLE.getId())
                 )),
-                Aggregation.project("poNumber", "status", "productCode", "manufacturingYear", "model", "type", "category", "serialNumber", "notes", "initialCondition", "inventoryType", "warehouseType")
+                Aggregation.project("poNumber", "status", "productCode", "manufacturingYear", "model", "type", "category", "serialNumber", "notes", "initialCondition", "warehouseType")
                         .and("specifications.hasSideShift").as("hasSideShift") //
                         .and("specifications.liftingCapacityKg").as("liftingCapacityKg")    //
                         .and("specifications.chassisType").as("chassisType")    //
@@ -196,7 +196,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .and("specifications.batteryInfo").as("batteryInfo")    //
                         .and("specifications.batterySpecification").as("batterySpecification")  //
                         .and("specifications.chargerSpecification").as("chargerSpecification")  //
-                        .and("specifications.ForkDimensions").as("ForkDimensions")  //
+                        .and("specifications.forkDimensions").as("forkDimensions")  //
                         .and("specifications.valveCount").as("valveCount")  //
                         .and("specifications.otherDetails").as("otherDetails")  //
                         .and("pricing.purchasePrice").as("purchasePrice")   //
@@ -218,7 +218,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("deletedAt").isNull(),
                         Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId())
                 )),
-                Aggregation.project("poNumber", "model", "commodityCode", "quantity", "initialCondition", "inventoryType", "warehouseType")
+                Aggregation.project("poNumber", "model", "commodityCode", "quantity", "description", "warehouseType")
                         .and("logistics.orderDate").as("orderDate") //
                         .and("pricing.purchasePrice").as("purchasePrice")   //
                         .and("pricing.actualSalePrice").as("actualSalePrice")   //
@@ -235,7 +235,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("deletedAt").isNull(),
                         Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId())
                 )),
-                Aggregation.project("poNumber", "model", "commodityCode", "notes", "quantity", "initialCondition", "inventoryType", "warehouseType")
+                Aggregation.project("poNumber", "model", "commodityCode", "notes", "quantity", "description", "warehouseType")
                         .and("logistics.orderDate").as("orderDate") //
                         .and("pricing.purchasePrice").as("purchasePrice")   //
                         .and("pricing.salePriceR0").as("salePriceR0")   //
@@ -253,7 +253,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("deletedAt").isNull(),
                         Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId())
                 )),
-                Aggregation.project("poNumber", "model", "commodityCode", "notes", "quantity", "initialCondition", "inventoryType", "warehouseType")
+                Aggregation.project("poNumber", "model", "commodityCode", "notes", "quantity", "description", "warehouseType")
                         .and("logistics.orderDate").as("orderDate") //
                         .and("pricing.purchasePrice").as("purchasePrice")   //
                         .and("pricing.salePriceR0").as("salePriceR0")   //
@@ -273,7 +273,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("deletedAt").isNull(),
                         Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId())
                 )),
-                Aggregation.project("poNumber", "model", "commodityCode", "notes", "quantity", "initialCondition", "inventoryType", "warehouseType")
+                Aggregation.project("poNumber", "model", "commodityCode", "notes", "quantity", "description", "warehouseType")
                         .and("warehouse.name").as("warehouseName")  //
                         .and("warehouse.contractNumber").as("contractNumber")   //
                         .and("logistics.orderDate").as("orderDate") //
@@ -295,7 +295,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("deletedAt").isNull(),
                         Criteria.where("warehouse.deletedAt").isNull()
                 )),
-                Aggregation.project("poNumber", "productCode", "status", "model", "category", "type", "serialNumber", "manufacturingYear", "initialCondition", "notes", "inventoryType", "warehouseType")
+                Aggregation.project("poNumber", "productCode", "status", "model", "category", "type", "serialNumber", "manufacturingYear", "initialCondition", "notes", "warehouseType")
                         .and("specifications.liftingCapacityKg").as("liftingCapacityKg")    //
                         .and("specifications.chassisType").as("chassisType")    //
                         .and("specifications.liftingHeightMm").as("liftingHeightMm")    //
@@ -303,7 +303,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .and("specifications.batteryInfo").as("batteryInfo")    //
                         .and("specifications.batterySpecification").as("batterySpecification")  //
                         .and("specifications.chargerSpecification").as("chargerSpecification")  //
-                        .and("specifications.ForkDimensions").as("ForkDimensions")  //
+                        .and("specifications.forkDimensions").as("forkDimensions")  //
                         .and("specifications.valveCount").as("valveCount")  //
                         .and("specifications.otherDetails").as("otherDetails")  //
                         .and("pricing.purchasePrice").as("purchasePrice")   //
@@ -317,12 +317,12 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     }
 
     @Override
-    public List<InventoryPoWarehouseDto> findInventoryInStockPoNumbers(String warehouseType, String inventoryType){
+    public List<InventoryPoWarehouseDto> findInventoryInStockPoNumbers(String warehouseType, List<String> inventoryTypes){
         List<AggregationOperation> aggOps = new ArrayList<>(List.of(
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
                         Criteria.where("deletedAt").isNull(),
-                        Criteria.where("inventoryType").is(inventoryType)
+                        Criteria.where("inventoryType").in(inventoryTypes)
                 )),
                 Aggregation.group("poNumber"),
                 Aggregation.project().and("_id").as("poNumber")
@@ -338,8 +338,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
                         Criteria.where("deletedAt").isNull(),
-                        Criteria.where("poNumber").is(poNumber),
-                        Criteria.where("containerId").isNull()
+                        Criteria.where("poNumber").is(poNumber)
                 )),
                 Aggregation.project("id", "poNumber", "productCode", "commodityCode", "serialNumber", "model", "status", "manufacturingYear", "quantity", "inventoryType")
                         .and("logistics.liftingCapacityKg").as("liftingCapacityKg")
@@ -389,7 +388,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("deletedAt").isNull(),
                         Criteria.where("_id").in(ids)
                 )),
-                Aggregation.project("id", "poNumber", "productCode", "commodityCode", "serialNumber", "model", "status", "manufacturingYear", "quantity", "inventoryType")
+                Aggregation.project("id", "poNumber", "productCode", "commodityCode", "serialNumber", "model", "status", "manufacturingYear", "quantity")
                         .and("logistics.liftingCapacityKg").as("liftingCapacityKg")
                         .and("logistics.chassisType").as("chassisType")
                         .and("logistics.liftingHeightMm").as("liftingHeightMm")

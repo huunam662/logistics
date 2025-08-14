@@ -52,9 +52,9 @@ public class InventoryItemController {
             @Parameter(description = "[PRODUCTION, DEPARTURE, DESTINATION, CONSIGNMENT]")
             @RequestParam("warehouseType") String warehouseType,
             @Parameter(description = "[VEHICLE, ACCESSORY, SPARE_PART]")
-            @RequestParam("inventoryType") String inventoryType
+            @RequestParam("inventoryType") List<String> inventoryTypes
     ){
-        List<InventoryPoWarehouseDto> poNumbers = inventoryItemService.getInventoryInStockPoNumbers(warehouseType, inventoryType);
+        List<InventoryPoWarehouseDto> poNumbers = inventoryItemService.getInventoryInStockPoNumbers(warehouseType, inventoryTypes);
         return ApiResponse.success(poNumbers);
     }
 

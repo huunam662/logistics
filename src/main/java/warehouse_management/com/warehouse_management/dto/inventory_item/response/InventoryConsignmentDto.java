@@ -1,5 +1,6 @@
 package warehouse_management.com.warehouse_management.dto.inventory_item.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import org.bson.types.ObjectId;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
@@ -26,17 +27,17 @@ public class InventoryConsignmentDto {
     private String batteryInfo;             // Bình điện
     private String batterySpecification;    // Thông số bình điện
     private String chargerSpecification;    // Thông số bộ sạc
-    private String ForkDimensions;          // Thông số càng
+    private String forkDimensions;          // Thông số càng
     private String warehouseType;           // Loại kho
     private Integer valveCount;             // Số lượng van
     private String otherDetails;            // Chi tiết khác
-    private String initialCondition;       // Nguyên trạng
     private String notes;                  // Ghi chú
     private BigDecimal purchasePrice;       // Giá mua
     private BigDecimal salePriceR0;         // Giá R0
     private BigDecimal salePriceR1;         // Giá R1
     private BigDecimal actualSalePrice;     // Giá bán thực tế
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime arrivalDate;    // Ngày giao hàng
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime consignmentDate;  // Ngày ký gửi
-    private String inventoryType;   // Loại hàng tồn (VD: phụ kiện, ...) - Bắt buộc
 }
