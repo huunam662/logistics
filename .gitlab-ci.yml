@@ -36,9 +36,9 @@ release:
         cd meu-logistic-core
         git fetch --all --prune
         git checkout deploy
-        cp "$cicd_path/meu-logistic-core/meu-logistic-core.yaml" ".ci/meu-logistic-core/meu-logistic-core.yaml"
-        sed -i -E '/^image:/,/^[^[:space:]]/ s|^([[:space:]]*tag:[[:space:]]*).*|\1"'"${CI_PIPELINE_ID}"'"|' .ci/meu-logistic-core/meu-logistic-core.yaml
-        git add .ci/meu-logistic-core/meu-logistic-core.yaml
+        cp "$cicd_path/meu-logistic-core/meu-logistic-core-values.yaml.yaml" ".ci/meu-logistic-core/meu-logistic-core-values.yaml.yaml"
+        sed -i -E '/^image:/,/^[^[:space:]]/ s|^([[:space:]]*tag:[[:space:]]*).*|\1"'"${CI_PIPELINE_ID}"'"|' .ci/meu-logistic-core/meu-logistic-core-values.yaml.yaml
+        git add .ci/meu-logistic-core/meu-logistic-core-values.yaml.yaml
         git commit -m "CI deploy staging ${CI_PIPELINE_ID}" || echo "No changes to commit"
         git push origin deploy
       fi
