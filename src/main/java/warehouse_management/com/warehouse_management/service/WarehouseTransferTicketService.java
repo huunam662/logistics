@@ -12,7 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import warehouse_management.com.warehouse_management.dto.WarehouseTransferTicketDto;
-import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryItemPoNumberDto;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.enumerate.TransferTicketStatus;
 import warehouse_management.com.warehouse_management.exceptions.LogicErrException;
@@ -23,7 +22,6 @@ import warehouse_management.com.warehouse_management.repository.inventory_item.I
 import warehouse_management.com.warehouse_management.repository.warehouse_transfer_ticket.WarehouseTransferTicketRepository;
 import warehouse_management.com.warehouse_management.utils.GeneralResource;
 import warehouse_management.com.warehouse_management.utils.JsonUtils;
-
 import java.io.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -38,7 +36,6 @@ public class WarehouseTransferTicketService {
 
     private final MongoTemplate mongoTemplate;
     private final WarehouseTransferTicketRepository warehouseTransferTicketRepository;
-    private final InventoryItemRepository inventoryItemRepository;
 
     @Transactional
     public WarehouseTransferTicket createAndSendMessage(Warehouse originWarehouse, Warehouse destinationWarehouse, List<InventoryItem> inventoryItems){
