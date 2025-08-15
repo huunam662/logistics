@@ -10,11 +10,6 @@ public class InventoryStockTransferDto {
 
     private final String originWarehouseId;
     private final String destinationWarehouseId;
-    private List<InventoryItemTransfer> inventoryItems = new ArrayList<>();
+    private List<InventoryItemTransferDto> inventoryItems = new ArrayList<>();
 
-    @Data
-    public static class InventoryItemTransfer{
-        String id;
-        Integer quantity;
-    }
 }

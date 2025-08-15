@@ -7,10 +7,5 @@ import java.util.List;
 @Data
 public class InventoryItemToContainerDto {
     private String containerId;
-    private List<InventoryItemTransfer> inventoryItems;
-    @Data
-    public static class InventoryItemTransfer{
-        String id;
-        Integer quantity;
-    }
+    private List<InventoryItemTransferDto> inventoryItems;
 }
