@@ -10,13 +10,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.*;
+import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.pagination.response.PageInfoDto;
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
-import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryItemPoNumberDto;
-import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryPoWarehouseDto;
-import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryItemProductionVehicleTypeDto;
-import warehouse_management.com.warehouse_management.mapper.InventoryItemMapper;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.service.InventoryItemService;
@@ -29,18 +26,73 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class InventoryItemController {
     private final InventoryItemService inventoryItemService;
-    private final InventoryItemMapper mapper;
+
+    @GetMapping("/{id}/product")
+    @Operation(
+            summary = "GET Lấy thông tin của một Xe hoặc Phụ kiện cụ thể.",
+            description = "GET Lấy thông tin của một Xe hoặc Phụ kiện cụ thể."
+    )
+    public ResponseEntity<?> getInventoryProduct(@PathVariable("id") String id){
+        InventoryProductDetailsDto dto = inventoryItemService.getInventoryProductDetails(new ObjectId(id));
+        return ResponseEntity.ok().body(ApiResponse.success(dto));
+    }
+
+    @GetMapping("/{id}/spare-part")
+    @Operation(
+            summary = "GET Lấy thông tin của một Phụ tùng cụ thể.",
+            description = "GET Lấy thông tin của một Phụ tùng cụ thể."
+    )
+    public ResponseEntity<?> getInventorySparePart(@PathVariable("id") String id){
+        InventorySparePartDetailsDto dto = inventoryItemService.getInventorySparePartDetails(new ObjectId(id));
+        return ResponseEntity.ok().body(ApiResponse.success(dto));
+    }
 
     // Api Nhập kho
-    @PostMapping
+    @PostMapping("/product")
     @Operation(
-            summary = "API Nhập Kho"
+            summary = "API Nhập Xe hoặc Phụ kiện vào Kho.",
+            description = "API Nhập Xe hoặc Phụ kiện vào Kho."
     )
-    public ResponseEntity<?> createInventoryItem(@Valid @RequestBody CreateInventoryItemDto req) {
-        InventoryItem savedItem = inventoryItemService.createInventoryItem(req);
+    public ResponseEntity<?> createInventoryItem(@Valid @RequestBody CreateInventoryProductDto req) {
+        InventoryItem savedItem = inventoryItemService.createInventoryProduct(req);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(ApiResponse.success(savedItem));
+                .body(ApiResponse.success(Map.of("inventoryItemId", savedItem.getId())));
+    }
+
+
+    @PutMapping("/product")
+    @Operation(
+            summary = "PUT Cập nhật một hàng hóa cụ thể.",
+            description = "PUT Cập nhật một hàng hóa cụ thể."
+    )
+    public ResponseEntity<ApiResponse<?>> updateInventoryItem(@Valid @RequestBody UpdateInventoryProductDto dto){
+        InventoryItem item = inventoryItemService.updateInventoryProduct(dto);
+        ApiResponse<?> apiResponse = ApiResponse.success(Map.of("inventoryId", item.getId()));
+        apiResponse.setMessage("Cập nhật mặt hàng "+item.getProductCode() + " thành công.");
+        return ResponseEntity.ok().body(apiResponse);
+    }
+
+    @PostMapping("/spare-part")
+    @Operation(
+            summary = "POST Nhập phụ tùng vào kho.",
+            description = "POST Nhập phụ tùng vào kho."
+    )
+    public ResponseEntity<?> createInventorySparePart(@Valid @RequestBody CreateInventorySparePartDto req){
+        InventoryItem savedItem = inventoryItemService.createInventorySparePart(req);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.success(Map.of("inventoryItemId", savedItem.getId())));
+    }
+
+    @PutMapping("/spare-part")
+    @Operation(
+            summary = "PUT Cập nhật phụ tùng vào kho.",
+            description = "PUT Cập nhật phụ tùng vào kho."
+    )
+    public ResponseEntity<?> updateInventorySparePart(@Valid @RequestBody UpdateInventorySparePartDto req){
+        InventoryItem savedItem = inventoryItemService.updateInventorySparePart(req);
+        return ResponseEntity.ok(ApiResponse.success(Map.of("inventoryItemId", savedItem.getId())));
     }
 
     @GetMapping("/po-numbers")
@@ -136,17 +188,6 @@ public class InventoryItemController {
         return new ResponseEntity<>(apiResponse, HttpStatus.CREATED);
     }
 
-    @GetMapping("/{id}")
-    @Operation(
-            summary = "GET Lấy hàng hóa thông qua id.",
-            description = "GET Lấy hàng hóa thông qua id."
-    )
-    public ResponseEntity<ApiResponse<?>> getSingleInventoryItemById(@PathVariable("id") String id){
-        InventoryItem item = inventoryItemService.getItemToId(new ObjectId(id));
-        InventoryItemPoNumberDto dto = mapper.toInventoryItemPoNumberDto(item);
-        return ResponseEntity.ok().body(ApiResponse.success(dto));
-    }
-
     @DeleteMapping("/{id}")
     @Operation(
             summary = "DELETE Xóa một hàng hóa cụ thể.",
@@ -173,15 +214,4 @@ public class InventoryItemController {
         return ResponseEntity.ok().body(ApiResponse.success(response));
     }
 
-    @PutMapping
-    @Operation(
-            summary = "PUT Cập nhật một hàng hóa cụ thể.",
-            description = "PUT Cập nhật một hàng hóa cụ thể."
-    )
-    public ResponseEntity<ApiResponse<?>> updateInventoryItem(@Valid @RequestBody UpdateInventoryItemDto dto){
-        InventoryItem item = inventoryItemService.updateInventoryItem(dto);
-        ApiResponse<?> apiResponse = ApiResponse.success(Map.of("inventoryId", item.getId()));
-        apiResponse.setMessage("Cập nhật mặt hàng "+item.getProductCode() + " thành công.");
-        return ResponseEntity.ok().body(apiResponse);
-    }
 }

@@ -13,11 +13,6 @@ public class InventoryTransferDestinationConsignmentDto {
     private String consignmentWarehouseId;
     @Schema(example = "yyyy-MM-dd")
     private String consignmentDate;
-    private List<InventoryItemTransfer> inventoryItems = new ArrayList<>();
+    private List<InventoryItemTransferDto> inventoryItems = new ArrayList<>();
 
-    @Data
-    public static class InventoryItemTransfer{
-        String id;
-        Integer quantity;
-    }
 }

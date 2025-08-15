@@ -28,17 +28,17 @@ public class WarehouseTransferTicketController {
 
     private final WarehouseTransferTicketService warehouseTransferTicketService;
 
-    @GetMapping("/{ticketId}/inventory-items")
-    @Operation(
-            summary = "GET Lấy các mặt hàng đang trong phiếu duyệt",
-            description = "GET Lấy các mặt hàng đang trong phiếu duyệt"
-    )
-    public ApiResponse<?> approvalTicket(
-            @PathVariable("ticketId") String ticketId
-    ){
-        List<InventoryItemPoNumberDto> items = warehouseTransferTicketService.getItemsInTicket(ticketId);
-        return ApiResponse.success(items);
-    }
+//    @GetMapping("/{ticketId}/inventory-items")
+//    @Operation(
+//            summary = "GET Lấy các mặt hàng đang trong phiếu duyệt",
+//            description = "GET Lấy các mặt hàng đang trong phiếu duyệt"
+//    )
+//    public ApiResponse<?> approvalTicket(
+//            @PathVariable("ticketId") String ticketId
+//    ){
+//        List<InventoryItemPoNumberDto> items = warehouseTransferTicketService.getItemsInTicket(ticketId);
+//        return ApiResponse.success(items);
+//    }
 
     @GetMapping("/page")
     @Operation(

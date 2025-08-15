@@ -12,12 +12,7 @@ public class InventoryTransferProductionDepartureDto {
     private String departureWarehouseId;
     @Schema(example = "yyyy-MM-dd")
     private String arrivalDate;
-    private List<InventoryItemTransfer> inventoryItems = new ArrayList<>();
+    private List<InventoryItemTransferDto> inventoryItems = new ArrayList<>();
 
-    @Data
-    public static class InventoryItemTransfer{
-        String id;
-        Integer quantity;
-    }
 
 }

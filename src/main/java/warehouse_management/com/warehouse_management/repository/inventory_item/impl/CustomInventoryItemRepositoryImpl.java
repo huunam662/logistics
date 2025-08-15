@@ -317,12 +317,15 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     }
 
     @Override
-    public List<InventoryPoWarehouseDto> findInventoryInStockPoNumbers(String warehouseType, List<String> inventoryTypes){
+    public List<InventoryPoWarehouseDto> findPoNumbersOfInventoryInStock(String warehouseType, List<String> inventoryTypes){
         List<AggregationOperation> aggOps = new ArrayList<>(List.of(
+                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
+                Aggregation.unwind("warehouse"),
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
                         Criteria.where("deletedAt").isNull(),
-                        Criteria.where("inventoryType").in(inventoryTypes)
+                        Criteria.where("inventoryType").in(inventoryTypes),
+                        Criteria.where("warehouse.type").is(warehouseType)
                 )),
                 Aggregation.group("poNumber"),
                 Aggregation.project().and("_id").as("poNumber")
@@ -335,16 +338,14 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     @Override
     public List<InventoryItemPoNumberDto> findInventoryInStockByPoNumber(String warehouseType, String poNumber, String filter) {
         List<AggregationOperation> aggOps = new ArrayList<>(List.of(
+                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
+                Aggregation.unwind("warehouse"),
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
                         Criteria.where("deletedAt").isNull(),
-                        Criteria.where("poNumber").is(poNumber)
-                )),
-                Aggregation.project("id", "poNumber", "productCode", "commodityCode", "serialNumber", "model", "status", "manufacturingYear", "quantity", "inventoryType")
-                        .and("logistics.liftingCapacityKg").as("liftingCapacityKg")
-                        .and("logistics.chassisType").as("chassisType")
-                        .and("logistics.liftingHeightMm").as("liftingHeightMm")
-                        .and("logistics.engineType").as("engineType")
+                        Criteria.where("poNumber").is(poNumber),
+                        Criteria.where("warehouse.type").is(warehouseType)
+                ))
         ));
         if(filter != null && !filter.isBlank()){
             Criteria filterCriteria = MongoRsqlUtils.RsqlParser.parse(filter, Map.of());
@@ -363,7 +364,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
 
     @Transactional
     @Override
-    public void bulkUpdateTransferDeparture(Collection<InventoryItem> inventoryItems){
+    public void bulkUpdateTransfer(Collection<InventoryItem> inventoryItems){
         if(inventoryItems.isEmpty()) return;
         MongoCollection<Document> coll = mongoTemplate.getCollection(mongoTemplate.getCollectionName(InventoryItem.class));
         List<WriteModel<Document>> writeModels = new ArrayList<>();
@@ -373,37 +374,19 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                     Updates.set("quantity", item.getQuantity()),
                     Updates.set("warehouseId", item.getWarehouseId().toString()),
                     Updates.set("status", item.getStatus().getId()),
-                    Updates.set("logistics.arrivalDate", item.getLogistics().getArrivalDate())
+                    Updates.set("logistics.arrivalDate", item.getLogistics().getArrivalDate()),
+                    Updates.set("logistics.consignmentDate", item.getLogistics().getConsignmentDate())
             );
             writeModels.add(new UpdateOneModel<>(filter, update));
         }
         coll.bulkWrite(writeModels);
     }
 
-    @Override
-    public List<InventoryItemPoNumberDto> findInventoryItemsInIds(List<ObjectId> ids) {
-        if(ids == null || ids.isEmpty()) return new ArrayList<>();
-        List<AggregationOperation> aggOps = new ArrayList<>(List.of(
-                Aggregation.match(new Criteria().andOperator(
-                        Criteria.where("deletedAt").isNull(),
-                        Criteria.where("_id").in(ids)
-                )),
-                Aggregation.project("id", "poNumber", "productCode", "commodityCode", "serialNumber", "model", "status", "manufacturingYear", "quantity")
-                        .and("logistics.liftingCapacityKg").as("liftingCapacityKg")
-                        .and("logistics.chassisType").as("chassisType")
-                        .and("logistics.liftingHeightMm").as("liftingHeightMm")
-                        .and("logistics.engineType").as("engineType"),
-                Aggregation.sort(Sort.by(Sort.Direction.ASC, "productCode"))
-        ));
-        AggregationResults<InventoryItemPoNumberDto> aggResults = mongoTemplate.aggregate(Aggregation.newAggregation(aggOps), InventoryItem.class, InventoryItemPoNumberDto.class);
-        return aggResults.getMappedResults();
-    }
-
     @Transactional
     @Override
-    public void updateStatusByContainerId(ObjectId containerId, String status) {
+    public void updateStatusAndUnRefContainer(ObjectId containerId, String status) {
         Query query = new Query(Criteria.where("containerId").is(containerId));
-        Update update = new Update().set("status", status);
+        Update update = new Update().set("status", status).set("containerId", null);
         mongoTemplate.updateMulti(query, update, InventoryItem.class);
     }
 

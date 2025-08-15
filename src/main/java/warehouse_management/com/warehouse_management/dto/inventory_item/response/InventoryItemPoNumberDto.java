@@ -11,12 +11,7 @@ public class InventoryItemPoNumberDto {
     private String commodityCode;
     private String serialNumber;
     private String model;
-    private String status;
-    private Integer manufacturingYear;
-    private Integer liftingCapacityKg;
     private Integer quantity;
-    private String chassisType;
-    private Integer liftingHeightMm;
-    private String engineType;
+    private String description;
     private String inventoryType;
 }

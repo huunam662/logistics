@@ -2,8 +2,6 @@ package warehouse_management.com.warehouse_management.repository.inventory_item;
 
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Sort;
-import warehouse_management.com.warehouse_management.dto.WarehouseTransferTicketDto;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
@@ -33,17 +31,15 @@ public interface CustomInventoryItemRepository {
 
     Page<InventoryCentralWarehouseDto> findPageInventoryCentralWarehouse(PageOptionsDto optionsReq);
 
-    List<InventoryPoWarehouseDto> findInventoryInStockPoNumbers(String warehouseType, List<String> inventoryTypes);
+    List<InventoryPoWarehouseDto> findPoNumbersOfInventoryInStock(String warehouseType, List<String> inventoryTypes);
 
     List<InventoryItemPoNumberDto> findInventoryInStockByPoNumber(String warehouseType, String poNumber, String filter);
 
     List<InventoryItem> insertAll(Collection<InventoryItem> inventoryItems);
 
-    void bulkUpdateTransferDeparture(Collection<InventoryItem> inventoryItems);
+    void bulkUpdateTransfer(Collection<InventoryItem> inventoryItems);
 
-    List<InventoryItemPoNumberDto> findInventoryItemsInIds(List<ObjectId> ids);
-
-    void updateStatusByContainerId(ObjectId containerId, String status);
+    void updateStatusAndUnRefContainer(ObjectId containerId, String status);
 
     long softDelete(ObjectId id, ObjectId deletedBy);
 
