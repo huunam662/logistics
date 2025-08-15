@@ -11,6 +11,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import warehouse_management.com.warehouse_management.annotation.AuditAction;
 import warehouse_management.com.warehouse_management.dto.WarehouseTransferTicketDto;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.enumerate.TransferTicketStatus;
@@ -122,6 +123,7 @@ public class WarehouseTransferTicketService {
         return warehouseTransferTicketRepository.findPageWarehouseTransferTicket(optionsDto);
     }
 
+    @AuditAction(action = "GENERATE_REPORT")
     public byte[] getReport(String ticketId, String type) {
         WarehouseTransferTicket ticket = getById(ticketId);
         int dataSetSize = ticket.getInventoryItemIds().size();
