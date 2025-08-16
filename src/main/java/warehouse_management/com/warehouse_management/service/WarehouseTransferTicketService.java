@@ -122,25 +122,21 @@ public class WarehouseTransferTicketService {
     public Page<WarehouseTransferTicketDto> getPageWarehouseTransferTicket(PageOptionsDto optionsDto) {
         return warehouseTransferTicketRepository.findPageWarehouseTransferTicket(optionsDto);
     }
-
+    
     @AuditAction(action = "GENERATE_REPORT")
     public byte[] getReport(String ticketId, String type) {
         WarehouseTransferTicket ticket = getById(ticketId);
         int dataSetSize = ticket.getInventoryItemIds().size();
         // 2. Chọn template dựa vào type
-        int datasetContentRowIdx = GeneralResource.PXK_PNK_DATASET_ROW_IDX;
-        String templateFileName = "PXK.xlsx"; // default
-        if ("in".equalsIgnoreCase(type)) {
-            templateFileName = "PNK.xlsx";
-        }
+        int datasetContentRowIdx = getDatasetRowIdx(type);
+        String templateFileName = type + ".xlsx";
         // 3. Parse jsonPrint ra Map -> lấy dataset
         Map<String, Object> jsonMap = JsonUtils.parseJsonPrint(ticket.getJsonPrint());
 
 
         try (InputStream fis = new ClassPathResource("report_templates/" + templateFileName).getInputStream(); Workbook workbook = new XSSFWorkbook(fis); ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
             Sheet sheet = workbook.getSheetAt(0);
-            // cái này set cứng đây luôn, có đổi trong template thì vào cập nhật nếu k thì tạo thêm table report_template
-            // shift row nếu cần để tránh bị đè lên các ô phía dưới
+            // shift row nếu cần để tránh bị đè lên các ô phía dưới tại phiếu PXKDCNB
             if (dataSetSize > 1) {
                 sheet.shiftRows(datasetContentRowIdx, sheet.getLastRowNum(), dataSetSize - 1);
             }
@@ -159,6 +155,20 @@ public class WarehouseTransferTicketService {
 
         } catch (IOException e) {
             throw LogicErrException.of("Failed to generate report: " + e.getMessage());
+        }
+    }
+
+    public int getDatasetRowIdx(String type) {
+        switch (type) {
+            case "PNK":
+                return GeneralResource.PXK_PNK_DATASET_ROW_IDX;
+            case "PXK":
+                return GeneralResource.PXK_PNK_DATASET_ROW_IDX;
+            case "PXKDCNB":
+                return GeneralResource.PXKDCNB_DATASET_ROW_IDX;
+
+            default:
+                return -1;
         }
     }
 

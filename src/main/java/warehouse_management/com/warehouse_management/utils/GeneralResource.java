@@ -12,6 +12,7 @@ import warehouse_management.com.warehouse_management.model.Warehouse;
 public class GeneralResource {
     //    CONSTANT
     public static final int PXK_PNK_DATASET_ROW_IDX = 17;
+    public static final int PXKDCNB_DATASET_ROW_IDX = 18;
 
     public static Warehouse getWarehouseById(MongoTemplate mongoTemplate, ObjectId warehouseId) {
         Warehouse rs = mongoTemplate.findById(warehouseId, Warehouse.class);

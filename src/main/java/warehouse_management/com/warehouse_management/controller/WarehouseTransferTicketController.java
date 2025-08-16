@@ -76,12 +76,12 @@ public class WarehouseTransferTicketController {
 
     @GetMapping("/{ticketId}/export-report")
     @Operation(
-            summary = "GET export phiếu nhập/xuất theo ticket id",
-            description = "GET export phiếu nhập/xuất theo ticket id"
+            summary = "GET xuất excel DCNB theo ticket id",
+            description = "GET xuất excel DCNB theo ticket id"
     )
-    public ResponseEntity<InputStreamResource> getPhieuNhapXuat(
+    public ResponseEntity<InputStreamResource> getExcelReportDCNB(
             @PathVariable("ticketId") String ticketId,
-            @RequestParam(name = "report_type", required = false, defaultValue = "in") String type
+            @RequestParam(name = "type", required = false, defaultValue = "PXKDCNB") String type
     ) {
         // type sẽ là "in" nếu không truyền, hoặc "out" nếu truyền ?type=out
         byte[] excelBytes = warehouseTransferTicketService.getReport(ticketId, type);
