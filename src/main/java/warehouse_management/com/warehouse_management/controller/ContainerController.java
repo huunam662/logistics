@@ -35,7 +35,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ContainerController {
     private final ContainerService containerService;
-    private final InventoryItemMapper inventoryItemMapper;
 
     @GetMapping
     @Operation(

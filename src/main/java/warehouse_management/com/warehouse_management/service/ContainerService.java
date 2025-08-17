@@ -68,10 +68,7 @@ public class ContainerService {
                                 .withInitialValue(0)
                                 .reduce(
                                         ArithmeticOperators.Add.valueOf("$$value")
-                                                .add(
-                                                        ArithmeticOperators.Multiply.valueOf("$$this.pricing.purchasePrice")
-                                                                .multiplyBy("$$this.quantity")
-                                                )
+                                                .add("$$this.pricing.purchasePrice")
                                 )
                 ).as("totalAmounts");
 
