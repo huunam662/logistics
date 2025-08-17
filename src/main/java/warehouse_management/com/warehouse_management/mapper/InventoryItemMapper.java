@@ -8,7 +8,9 @@ import warehouse_management.com.warehouse_management.dto.inventory_item.request.
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportProductionProductDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportProductionSparePartDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
+import warehouse_management.com.warehouse_management.model.Container;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
+import warehouse_management.com.warehouse_management.model.WarehouseTransferTicket;
 
 @Mapper(componentModel = "spring", builder = @Builder(disableBuilder = true))
 public interface InventoryItemMapper {
@@ -23,18 +25,25 @@ public interface InventoryItemMapper {
 
     InventoryItemPoNumberDto toInventoryItemPoNumberDto(InventoryItem inventoryItem);
 
-    @Mapping(target = "id", ignore = true)
     @Mapping(target = "logistics.orderDate", ignore = true)
     @Mapping(target = "logistics.estimateCompletionDate", ignore = true)
-    void mapToUpdateInventoryProduct(@MappingTarget InventoryItem inventoryItem, UpdateInventoryProductDto dto);
+    void mapToUpdateInventoryProduct(@MappingTarget InventoryItem inventoryItem, CreateInventoryProductDto dto);
 
-    @Mapping(target = "id", ignore = true)
-    void mapToUpdateInventorySparePart(@MappingTarget InventoryItem inventoryItem, UpdateInventorySparePartDto dto);
+    void mapToUpdateInventorySparePart(@MappingTarget InventoryItem inventoryItem, CreateInventorySparePartDto dto);
 
     InventoryProductDetailsDto toInventoryProductDetailsDto(InventoryItem inventoryItem);
 
     @Mapping(target = "orderDate", source = "logistics.orderDate")
     InventorySparePartDetailsDto toInventorySparePartDetailsDto(InventoryItem inventoryItem);
+
+    Container.InventoryItemContainer toInventoryItemContainer(InventoryItem inventoryItem);
+
+    WarehouseTransferTicket.InventoryItemTicket toInventoryItemTicket(InventoryItem inventoryItem);
+
+    InventoryProductDetailsDto toInventoryProductDetailsDto(Container.InventoryItemContainer dto);
+
+    InventorySparePartDetailsDto toInventorySparePartDetailsDto(Container.InventoryItemContainer dto);
+
 
     InventoryItem toInventoryItem(ExcelImportProductionProductDto dto);
     InventoryItem toInventoryItem(ExcelImportProductionSparePartDto dto);

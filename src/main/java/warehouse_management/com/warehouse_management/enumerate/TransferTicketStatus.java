@@ -2,6 +2,8 @@ package warehouse_management.com.warehouse_management.enumerate;
 
 import org.springframework.lang.Nullable;
 
+import java.util.Arrays;
+
 public enum TransferTicketStatus implements EnumClass<String> {
 
     PENDING("PENDING"),
@@ -26,5 +28,11 @@ public enum TransferTicketStatus implements EnumClass<String> {
             }
         }
         return null;
+    }
+
+    public static boolean contains(String id) {
+        TransferTicketStatus status = fromId(id);
+        if(status == null) return false;
+        return Arrays.stream(values()).toList().contains(status);
     }
 }

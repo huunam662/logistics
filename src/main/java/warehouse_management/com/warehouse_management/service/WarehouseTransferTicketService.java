@@ -12,19 +12,22 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import warehouse_management.com.warehouse_management.annotation.AuditAction;
-import warehouse_management.com.warehouse_management.dto.WarehouseTransferTicketDto;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
+import warehouse_management.com.warehouse_management.dto.warehouse_transfer_ticket.request.ApprovalTicketDto;
+import warehouse_management.com.warehouse_management.dto.warehouse_transfer_ticket.request.CreateWarehouseTransferTicketDto;
+import warehouse_management.com.warehouse_management.dto.warehouse_transfer_ticket.response.WarehouseTransferTicketPageDto;
 import warehouse_management.com.warehouse_management.enumerate.TransferTicketStatus;
 import warehouse_management.com.warehouse_management.exceptions.LogicErrException;
+import warehouse_management.com.warehouse_management.mapper.WarehouseTransferTicketMapper;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.model.WarehouseTransferTicket;
-import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
 import warehouse_management.com.warehouse_management.repository.warehouse_transfer_ticket.WarehouseTransferTicketRepository;
 import warehouse_management.com.warehouse_management.utils.GeneralResource;
 import warehouse_management.com.warehouse_management.utils.JsonUtils;
 import java.io.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
@@ -36,27 +39,31 @@ import java.util.Optional;
 public class WarehouseTransferTicketService {
 
     private final MongoTemplate mongoTemplate;
+    private final WarehouseService warehouseService;
     private final WarehouseTransferTicketRepository warehouseTransferTicketRepository;
+    private final WarehouseTransferTicketMapper warehouseTransferTicketMapper;
 
     @Transactional
-    public WarehouseTransferTicket createAndSendMessage(Warehouse originWarehouse, Warehouse destinationWarehouse, List<InventoryItem> inventoryItems){
+    public WarehouseTransferTicket createTransferTicket(CreateWarehouseTransferTicketDto dto){
 
-        WarehouseTransferTicket ticket = new WarehouseTransferTicket();
-        ticket.setStatus(TransferTicketStatus.PENDING.getId());
+        WarehouseTransferTicket ticket = warehouseTransferTicketMapper.toWarehouseTransferTicket(dto);
+        Warehouse originWarehouse = warehouseService.getWarehouseToId(ticket.getOriginWarehouseId());
+        Warehouse destinationWarehouse = warehouseService.getWarehouseToId(ticket.getDestinationWarehouseId());
         ticket.setOriginWarehouseId(originWarehouse.getId());
         ticket.setDestinationWarehouseId(destinationWarehouse.getId());
-        ticket.setInventoryItemIds(inventoryItems.stream().map(InventoryItem::getId).toList());
+        ticket.setTitle("Chuyển hàng từ kho " + originWarehouse.getName() + " đến kho " + destinationWarehouse.getName());
+        ticket.setReason("Điều chuyển kho");
         ticket.setRequesterId(null);
         ticket.setApproverId(null);
-        ticket.setRejectReason(null);
+        ticket.setStatus(TransferTicketStatus.PENDING.getId());
 
-        ticket.setJsonPrint(buildJsonPrint(ticket, inventoryItems));
         // TODO: Send message approval to admin
 
         return warehouseTransferTicketRepository.save(ticket);
     }
 
-    private String buildJsonPrint(WarehouseTransferTicket ticket, List<InventoryItem> inventoryItems) {
+
+    public String buildJsonPrint(WarehouseTransferTicket ticket, List<InventoryItem> inventoryItems) {
         HashMap<String, Object> printData = new HashMap<>();
         Warehouse fromWh = GeneralResource.getWarehouseById(mongoTemplate, ticket.getOriginWarehouseId());
         Warehouse toWh = GeneralResource.getWarehouseById(mongoTemplate, ticket.getDestinationWarehouseId());
@@ -91,24 +98,27 @@ public class WarehouseTransferTicketService {
     }
 
     @Transactional
-    public void approvalTransferTicket(String ticketId, String status){
+    public void approvalTransferTicket(String ticketId, ApprovalTicketDto dto){
         WarehouseTransferTicket ticket = getTicketToId(new ObjectId(ticketId));
-        if(ticket.getStatus().equals(TransferTicketStatus.REJECTED.getId()))
+        if(ticket.getStatus().equals(TransferTicketStatus.APPROVED.getId()))
+            throw LogicErrException.of("Phiếu đã được duyệt trước đó.");
+        else if(ticket.getStatus().equals(TransferTicketStatus.REJECTED.getId()))
             throw LogicErrException.of("Phiếu đã được hủy trước đó");
         else {
-            ticket.setStatus(status);
-            warehouseTransferTicketRepository.save(ticket);
-            if(status.equals(TransferTicketStatus.APPROVED.getId())){
-                if(ticket.getStatus().equals(TransferTicketStatus.APPROVED.getId()))
-                    throw LogicErrException.of("Phiếu đã được duyệt trước đó.");
-                // TODO: Sinh phiếu nhập xuất, lưu dữ liệu phiếu nhập xuất vào db trước khi sinh
+            if(!TransferTicketStatus.contains(dto.getStatus()))
+                throw LogicErrException.of("Trạng thái duyệt không hợp lệ");
+
+            if(dto.getStatus().equals(TransferTicketStatus.APPROVED.getId())){
                 // TODO: Ghi log lý do duyệt phiếu
             }
-            else if(status.equals(TransferTicketStatus.REJECTED.getId())){
+            if(dto.getStatus().equals(TransferTicketStatus.REJECTED.getId())){
                 // TODO: Ghi log lý do hủy phiếu
                 // TODO: Cập nhật lại hàng hóa
             }
-            else throw LogicErrException.of("Trạng thái duyệt không hợp lệ");
+            ticket.setApprovedAt(LocalDateTime.now());
+            ticket.setStatus(dto.getStatus());
+            ticket.setReason(dto.getReason());
+            warehouseTransferTicketRepository.save(ticket);
         }
     }
 
@@ -119,14 +129,14 @@ public class WarehouseTransferTicketService {
         return rs.get();
     }
 
-    public Page<WarehouseTransferTicketDto> getPageWarehouseTransferTicket(PageOptionsDto optionsDto) {
+    public Page<WarehouseTransferTicketPageDto> getPageWarehouseTransferTicket(PageOptionsDto optionsDto) {
         return warehouseTransferTicketRepository.findPageWarehouseTransferTicket(optionsDto);
     }
-    
+
     @AuditAction(action = "GENERATE_REPORT")
     public byte[] getReport(String ticketId, String type) {
         WarehouseTransferTicket ticket = getById(ticketId);
-        int dataSetSize = ticket.getInventoryItemIds().size();
+        int dataSetSize = ticket.getInventoryItems().size();
         // 2. Chọn template dựa vào type
         int datasetContentRowIdx = getDatasetRowIdx(type);
         String templateFileName = type + ".xlsx";

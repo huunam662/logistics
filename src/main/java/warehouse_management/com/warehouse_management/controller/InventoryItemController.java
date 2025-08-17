@@ -64,13 +64,16 @@ public class InventoryItemController {
     }
 
 
-    @PutMapping("/product")
+    @PutMapping("/{id}/product")
     @Operation(
             summary = "PUT Cập nhật một hàng hóa cụ thể.",
             description = "PUT Cập nhật một hàng hóa cụ thể."
     )
-    public ResponseEntity<ApiResponse<?>> updateInventoryItem(@Valid @RequestBody UpdateInventoryProductDto dto){
-        InventoryItem item = inventoryItemService.updateInventoryProduct(dto);
+    public ResponseEntity<ApiResponse<?>> updateInventoryItem(
+            @PathVariable("id") String id,
+            @Valid @RequestBody CreateInventoryProductDto dto
+    ){
+        InventoryItem item = inventoryItemService.updateInventoryProduct(id, dto);
         ApiResponse<?> apiResponse = ApiResponse.success(Map.of("inventoryId", item.getId()));
         apiResponse.setMessage("Cập nhật mặt hàng "+item.getProductCode() + " thành công.");
         return ResponseEntity.ok().body(apiResponse);
@@ -88,13 +91,16 @@ public class InventoryItemController {
                 .body(ApiResponse.success(Map.of("inventoryItemId", savedItem.getId())));
     }
 
-    @PutMapping("/spare-part")
+    @PutMapping("/{id}/spare-part")
     @Operation(
             summary = "PUT Cập nhật phụ tùng vào kho.",
             description = "PUT Cập nhật phụ tùng vào kho."
     )
-    public ResponseEntity<?> updateInventorySparePart(@Valid @RequestBody UpdateInventorySparePartDto req){
-        InventoryItem savedItem = inventoryItemService.updateInventorySparePart(req);
+    public ResponseEntity<?> updateInventorySparePart(
+            @PathVariable("id") String id,
+            @Valid @RequestBody CreateInventorySparePartDto req
+    ){
+        InventoryItem savedItem = inventoryItemService.updateInventorySparePart(id, req);
         return ResponseEntity.ok(ApiResponse.success(Map.of("inventoryItemId", savedItem.getId())));
     }
 
@@ -107,9 +113,11 @@ public class InventoryItemController {
             @Parameter(description = "[PRODUCTION, DEPARTURE, DESTINATION, CONSIGNMENT]")
             @RequestParam("warehouseType") String warehouseType,
             @Parameter(description = "[VEHICLE, ACCESSORY, SPARE_PART]")
-            @RequestParam("inventoryType") List<String> inventoryTypes
+            @RequestParam("inventoryType") List<String> inventoryTypes,
+            @RequestParam(value = "poNumber", required = false, defaultValue = "") String poNumber,
+            @RequestParam(value = "warehouseId", required = false) String warehouseId
     ){
-        List<InventoryPoWarehouseDto> poNumbers = inventoryItemService.getInventoryInStockPoNumbers(warehouseType, inventoryTypes);
+        List<InventoryPoWarehouseDto> poNumbers = inventoryItemService.getInventoryInStockPoNumbers(warehouseType, inventoryTypes, poNumber, warehouseId);
         return ApiResponse.success(poNumbers);
     }
 

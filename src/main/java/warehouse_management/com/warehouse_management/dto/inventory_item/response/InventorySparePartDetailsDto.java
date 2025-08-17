@@ -14,6 +14,7 @@ public class InventorySparePartDetailsDto {
     private String poNumber;       // Số của Đơn đặt hàng (Purchase Order) – Bắt buộc
     private Integer quantity;   // Số lượng hàng hóa
     private LocalDateTime orderDate;        // Ngày đặt hàng
+    private String model;
     private String description;
     private String inventoryType;   // Loại hàng tồn (VD: phụ kiện, ...) - Bắt buộc
     private String notes;                  // Ghi chú chung – Không bắt buộc
