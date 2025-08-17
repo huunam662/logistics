@@ -171,7 +171,7 @@ public class InventoryItemService {
         }
     }
 
-    }
+
 
     @AuditAction(action = "CREATE_DCNB_TICKET")
     @Transactional
