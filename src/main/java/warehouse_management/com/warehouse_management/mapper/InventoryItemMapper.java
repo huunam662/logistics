@@ -5,6 +5,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.*;
+import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportProductionProductDto;
+import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportProductionSparePartDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
 import warehouse_management.com.warehouse_management.model.Container;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
@@ -42,4 +44,7 @@ public interface InventoryItemMapper {
 
     InventorySparePartDetailsDto toInventorySparePartDetailsDto(Container.InventoryItemContainer dto);
 
+
+    InventoryItem toInventoryItem(ExcelImportProductionProductDto dto);
+    InventoryItem toInventoryItem(ExcelImportProductionSparePartDto dto);
 }

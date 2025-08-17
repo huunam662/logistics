@@ -1,12 +1,16 @@
 package warehouse_management.com.warehouse_management.service;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
+import warehouse_management.com.warehouse_management.annotation.AuditAction;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.*;
+import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportProductionProductDto;
+import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportProductionSparePartDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.pagination.response.PageInfoDto;
@@ -24,6 +28,7 @@ import warehouse_management.com.warehouse_management.repository.warehouse_transf
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -166,39 +171,9 @@ public class InventoryItemService {
         }
     }
 
-    @Transactional
-    public List<InventoryItem> bulkCreateInventoryItems(List<InventoryItemCreateDto> createDtos) {
-        if (createDtos == null || createDtos.isEmpty()) {
-            return List.of();
-        }
-
-        ObjectId currentUserId = new ObjectId("6897243be68a83bcaf7c0d16");
-
-        List<InventoryItem> itemsToInsert = createDtos.stream()
-                .map(dto -> {
-                    InventoryItem item = new InventoryItem();
-                    item.setPoNumber(dto.getPoNumber());
-                    item.setProductCode(dto.getProductCode());
-                    item.setSerialNumber(dto.getSerialNumber());
-                    item.setModel(dto.getModel());
-                    item.setType(dto.getType());
-                    item.setCategory(dto.getCategory());
-                    item.setInventoryType(dto.getInventoryType());
-                    item.setQuantity(dto.getQuantity());
-                    item.setWarehouseId(new ObjectId(dto.getWarehouseId()));
-
-                    item.setStatus(InventoryItemStatus.IN_STOCK.getId());
-
-                    item.setInitialCondition(dto.getInitialCondition());
-                    item.setNotes(dto.getNotes());
-
-                    return item;
-                })
-                .collect(Collectors.toList());
-
-        return inventoryItemRepository.insert(itemsToInsert);
     }
 
+    @AuditAction(action = "CREATE_DCNB_TICKET")
     @Transactional
     public Map<String, Object> stockTransfer(InventoryStockTransferDto req) {
         WarehouseTransferTicket ticket = warehouseTransferTicketService.getTicketToId(new ObjectId(req.getTicketId()));
@@ -325,4 +300,38 @@ public class InventoryItemService {
         itemsResults.addAll(itemsSparePartToNew);
         return itemsResults;
     }
+
+    public List<InventoryItem> bulkCreateProductionProductItems(List<ExcelImportProductionProductDto> dtos) {
+        if (dtos == null || dtos.isEmpty()) {
+            return List.of();
+        }
+        List<InventoryItem> itemsToInsert = dtos.stream()
+                .map(dto -> {
+                    //DTO MAPPING
+                    InventoryItem item = mapper.toInventoryItem(dto);
+                    item.setStatus(InventoryItemStatus.IN_STOCK);
+                    return item;
+                })
+                .collect(Collectors.toList());
+
+        return inventoryItemRepository.insert(itemsToInsert);
+    }
+
+    public List<InventoryItem> bulkCreateProductionSparePartItems(List<ExcelImportProductionSparePartDto> dtos) {
+        if (dtos == null || dtos.isEmpty()) {
+            return List.of();
+        }
+        List<InventoryItem> itemsToInsert = dtos.stream()
+                .map(dto -> {
+                    //DTO MAPPING
+                    InventoryItem item = mapper.toInventoryItem(dto);
+                    item.setStatus(InventoryItemStatus.IN_STOCK);
+                    return item;
+                })
+                .collect(Collectors.toList());
+
+        return inventoryItemRepository.insert(itemsToInsert);
+    }
+
+
 }
