@@ -22,14 +22,17 @@ public class AuditLog {
     private LocalDateTime timestamp;     // timestamp
     private String status;         // optional
     private String errorMessage;   // optional
+    private String detail;
 
     // Constructor đầy đủ
-    public AuditLog(ObjectId userId, String action, LocalDateTime timestamp, String status, String errorMessage) {
+    public AuditLog(ObjectId userId, String action, LocalDateTime timestamp, String status, String errorMessage, String detail) {
         this.userId = userId;
         this.action = action;
         this.timestamp = timestamp;
         this.status = status;
         this.errorMessage = errorMessage;
+        this.detail = detail;
     }
+
 
 }

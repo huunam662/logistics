@@ -40,7 +40,7 @@ public class AuditActionAspect {
             errorMessage = e.getMessage();
             throw e;
         } finally {
-            AuditLog log = new AuditLog(userId, action, LocalDateTime.now(), status, errorMessage);
+            AuditLog log = new AuditLog(userId, action, LocalDateTime.now(), status, errorMessage, "");
             auditLogRepository.save(log);
         }
 

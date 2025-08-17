@@ -9,4 +9,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface AuditAction {
     String action(); // hành động
+    String detail() default "";
 }
