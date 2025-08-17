@@ -6,6 +6,8 @@ import lombok.NoArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.*;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.data.mongodb.core.mapping.FieldType;
 import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
 
 import java.math.BigDecimal;
@@ -78,9 +80,13 @@ public class InventoryItem {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Pricing {
+        @Field(targetType = FieldType.DECIMAL128)
         private BigDecimal purchasePrice;       // Giá mua vào
+        @Field(targetType = FieldType.DECIMAL128)
         private BigDecimal salePriceR0;         // Giá bán đề xuất R0
+        @Field(targetType = FieldType.DECIMAL128)
         private BigDecimal salePriceR1;         // Giá bán đề xuất R1
+        @Field(targetType = FieldType.DECIMAL128)
         private BigDecimal actualSalePrice;     // Giá bán thực tế
         private String agent;                   // Đại lý (nếu có)
     }

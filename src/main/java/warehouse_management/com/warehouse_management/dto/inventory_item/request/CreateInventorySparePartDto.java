@@ -13,6 +13,7 @@ public class CreateInventorySparePartDto {
     private Integer quantity;
     private String description;
     private String orderDate;
+    private String model;
     private String notes;                  // Ghi chú chung – Không bắt buộc
     private String contractNumber; // Số hợp đồng
     private Pricing pricing;

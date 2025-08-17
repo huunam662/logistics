@@ -3,6 +3,7 @@ package warehouse_management.com.warehouse_management.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
@@ -11,14 +12,16 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
-import warehouse_management.com.warehouse_management.dto.WarehouseTransferTicketDto;
-import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryItemPoNumberDto;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.pagination.response.PageInfoDto;
+import warehouse_management.com.warehouse_management.dto.warehouse_transfer_ticket.request.ApprovalTicketDto;
+import warehouse_management.com.warehouse_management.dto.warehouse_transfer_ticket.request.CreateWarehouseTransferTicketDto;
+import warehouse_management.com.warehouse_management.dto.warehouse_transfer_ticket.response.WarehouseTransferTicketPageDto;
+import warehouse_management.com.warehouse_management.model.WarehouseTransferTicket;
 import warehouse_management.com.warehouse_management.service.WarehouseTransferTicketService;
 
 import java.io.ByteArrayInputStream;
-import java.util.List;
+import java.util.Map;
 
 @RestController
 @Tag(name = "Warehouse Transfer Ticket", description = "FOR ADMIN / VP")
@@ -46,7 +49,7 @@ public class WarehouseTransferTicketController {
             description = "GET Lấy dữ liệu Phiếu chuyển duyệt (Phân trang)."
     )
     public ApiResponse<?> getPageWarehouseTransferTicket(@ModelAttribute PageOptionsDto optionsDto){
-        Page<WarehouseTransferTicketDto> pageWarehouseTransferTicketDto = warehouseTransferTicketService.getPageWarehouseTransferTicket(optionsDto);
+        Page<WarehouseTransferTicketPageDto> pageWarehouseTransferTicketDto = warehouseTransferTicketService.getPageWarehouseTransferTicket(optionsDto);
         return ApiResponse.success(new PageInfoDto<>(pageWarehouseTransferTicketDto));
     }
 
@@ -57,10 +60,9 @@ public class WarehouseTransferTicketController {
     )
     public void approvalTransferTicket(
             @PathVariable("ticketId") String ticketId,
-            @Parameter(description = "[APPROVED, REJECTED]")
-            @RequestParam("status") String status
+            @Valid @RequestBody ApprovalTicketDto dto
     ){
-        warehouseTransferTicketService.approvalTransferTicket(ticketId, status);
+        warehouseTransferTicketService.approvalTransferTicket(ticketId, dto);
     }
 
     @GetMapping("/{ticketId}")
@@ -76,12 +78,12 @@ public class WarehouseTransferTicketController {
 
     @GetMapping("/{ticketId}/export-report")
     @Operation(
-            summary = "GET export phiếu nhập/xuất theo ticket id",
-            description = "GET export phiếu nhập/xuất theo ticket id"
+            summary = "GET xuất excel DCNB theo ticket id",
+            description = "GET xuất excel DCNB theo ticket id"
     )
-    public ResponseEntity<InputStreamResource> getPhieuNhapXuat(
+    public ResponseEntity<InputStreamResource> getExcelReportDCNB(
             @PathVariable("ticketId") String ticketId,
-            @RequestParam(name = "report_type", required = false, defaultValue = "in") String type
+            @RequestParam(name = "type", required = false, defaultValue = "PXKDCNB") String type
     ) {
         // type sẽ là "in" nếu không truyền, hoặc "out" nếu truyền ?type=out
         byte[] excelBytes = warehouseTransferTicketService.getReport(ticketId, type);
@@ -97,6 +99,17 @@ public class WarehouseTransferTicketController {
                 .contentType(MediaType.parseMediaType(
                         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                 .body(resource);
+    }
+
+    @PostMapping
+    @Operation(
+            summary = "POST Tạo phiếu chuyển duyệt.",
+            description = "POST Tạo phiếu chuyển duyệt."
+    )
+    public ResponseEntity<?> createTicket(@Valid @RequestBody CreateWarehouseTransferTicketDto dto){
+        WarehouseTransferTicket ticket = warehouseTransferTicketService.createTransferTicket(dto);
+        ApiResponse<?> res = ApiResponse.success(Map.of("ticketId", ticket.getId()));
+        return ResponseEntity.ok(res);
     }
 
 }

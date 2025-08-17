@@ -25,7 +25,7 @@ public class InventoryCentralWarehouseDto {
     private String initialCondition;       // Mô tả nguyên trạng khi nhập kho – Không bắt buộc
     private String notes;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime arrivalDate;      // Ngày đến
+    private LocalDateTime arrivalDate;      // Ngày giao hàng
     private Integer liftingCapacityKg;      // Sức nâng (kg)
     private String chassisType;             // Loại khung nâng
     private Integer liftingHeightMm;        // Độ cao nâng (mm)
@@ -35,11 +35,14 @@ public class InventoryCentralWarehouseDto {
     private String forkDimensions;          // Thông số càng
     private String chargerSpecification;    // Thông số bộ sạc
     private Integer valveCount;             // Số lượng van
+    private Boolean hasSideShift;           // Có side shift không
     private String otherDetails;            // Chi tiết khác
     private BigDecimal purchasePrice;       // Giá mua vào
     private BigDecimal salePriceR0;         // Giá bán đề xuất R0
     private BigDecimal salePriceR1;         // Giá bán đề xuất R1
     private BigDecimal actualSalePrice;     // Giá bán thực tế
     private String agent;                   // Đại lý (nếu có)
+    private String warehouseName;           // Tên kho
+    private String warehouseCode;           // Mã kho
 
 }
