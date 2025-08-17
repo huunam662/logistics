@@ -1,6 +1,10 @@
 package warehouse_management.com.warehouse_management.service;
 
+import com.mongodb.client.model.Accumulators;
+import com.mongodb.client.model.Aggregates;
+import com.mongodb.client.model.Filters;
 import lombok.RequiredArgsConstructor;
+import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
 import org.springframework.data.mongodb.core.aggregation.*;
@@ -8,12 +12,16 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
+import warehouse_management.com.warehouse_management.dto.container.response.ContainerItemsDetailsDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryItemToContainerDto;
+import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryProductDetailsDto;
+import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventorySparePartDetailsDto;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.container.request.CreateContainerDto;
 import warehouse_management.com.warehouse_management.dto.container.response.ContainerResponseDto;
 import warehouse_management.com.warehouse_management.enumerate.ContainerStatus;
 import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
+import warehouse_management.com.warehouse_management.enumerate.InventoryType;
 import warehouse_management.com.warehouse_management.exceptions.LogicErrException;
 import warehouse_management.com.warehouse_management.mapper.InventoryItemMapper;
 import warehouse_management.com.warehouse_management.model.Container;
@@ -21,9 +29,9 @@ import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.repository.container.ContainerRepository;
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
 import warehouse_management.com.warehouse_management.utils.MongoRsqlUtils;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,14 +41,17 @@ public class ContainerService {
     private final ContainerRepository containerRepository;
     private final InventoryItemRepository inventoryItemRepository;
     private final InventoryItemService inventoryItemService;
+    private final InventoryItemMapper inventoryItemMapper;
 
     public Page<ContainerResponseDto> getContainers(PageOptionsDto req) {
-        MatchOperation matchStage = Aggregation.match(Criteria.where("deletedAt").is(null));
+        MatchOperation matchStage = Aggregation.match(new Criteria().andOperator(
+                Criteria.where("deletedAt").is(null)
+        ));
         LookupOperation lookupFromWarehouse = Aggregation.lookup("warehouse", "fromWareHouseId", "_id", "fromWarehouseInfo");
-        UnwindOperation unwindFromWarehouse = Aggregation.unwind("$fromWarehouseInfo", true);
+        UnwindOperation unwindFromWarehouse = Aggregation.unwind("fromWarehouseInfo", true);
 
         LookupOperation lookupToWarehouse = Aggregation.lookup("warehouse", "toWarehouseId", "_id", "toWarehouseInfo");
-        UnwindOperation unwindToWarehouse = Aggregation.unwind("$toWarehouseInfo", true);
+        UnwindOperation unwindToWarehouse = Aggregation.unwind("toWarehouseInfo", true);
 
         ProjectionOperation projectStage = Aggregation.project()
                 .and("_id").as("id")
@@ -48,10 +59,21 @@ public class ContainerService {
                 .and("containerStatus").as("containerStatus")
                 .and("departureDate").as("departureDate")
                 .and("arrivalDate").as("arrivalDate")
-                .and("status").as("status")
+                .and("completionDate").as("completionDate")
                 .and("note").as("note")
                 .and("fromWarehouseInfo").as("fromWarehouse")
-                .and("toWarehouseInfo").as("toWarehouse");
+                .and("toWarehouseInfo").as("toWarehouse")
+                .and(
+                        ArrayOperators.Reduce.arrayOf("inventoryItems")
+                                .withInitialValue(0)
+                                .reduce(
+                                        ArithmeticOperators.Add.valueOf("$$value")
+                                                .add(
+                                                        ArithmeticOperators.Multiply.valueOf("$$this.pricing.purchasePrice")
+                                                                .multiplyBy("$$this.quantity")
+                                                )
+                                )
+                ).as("totalAmounts");
 
         Aggregation aggregation = Aggregation.newAggregation(
                 matchStage,
@@ -130,8 +152,9 @@ public class ContainerService {
 
         Container container = getContainerToId(new ObjectId(req.getContainerId()));
         try{
-            inventoryItemService.transferItems(req.getInventoryItems(), container.getToWarehouseId(), container.getId(), container.getArrivalDate(), null);
+            List<InventoryItem> itemsInContainer = inventoryItemService.transferItems(req.getInventoryItems(), container.getToWarehouseId(), container, container.getArrivalDate(), null, InventoryItemStatus.IN_TRANSIT);
             container.setContainerStatus(ContainerStatus.PENDING);
+            container.setInventoryItems(itemsInContainer.stream().map(inventoryItemMapper::toInventoryItemContainer).toList());
             containerRepository.save(container);
             // TODO: Ghi nhận log giao dịch
 
@@ -142,10 +165,30 @@ public class ContainerService {
             throw LogicErrException.of("Thêm hàng vào container thất bại.");
         }
     }
-
-    public List<InventoryItem> getInventoryItemsToId(String containerId){
+    
+    public List<InventoryProductDetailsDto> getInventoryItemsProductToContainerId(String containerId){
         Container container = getContainerToId(new ObjectId(containerId));
-        return inventoryItemRepository.findByContainerId(container.getId());
+        List<InventoryProductDetailsDto> dtos = new ArrayList<>();
+        if (container.getInventoryItems() == null) return dtos;
+        List<String> vehicleAccessory = List.of(InventoryType.VEHICLE.getId(), InventoryType.ACCESSORY.getId());
+        for(var item : container.getInventoryItems()){
+            if(vehicleAccessory.contains(item.getInventoryType())){
+                dtos.add(inventoryItemMapper.toInventoryProductDetailsDto(item));
+            }
+        }
+        return dtos;
+    }
+
+    public List<InventorySparePartDetailsDto> getInventoryItemsSparePartToContainerId(String containerId){
+        Container container = getContainerToId(new ObjectId(containerId));
+        List<InventorySparePartDetailsDto> dtos = new ArrayList<>();
+        if (container.getInventoryItems() == null) return dtos;
+        for(var item : container.getInventoryItems()){
+            if(item.getInventoryType().equals(InventoryType.SPARE_PART.getId())){
+                dtos.add(inventoryItemMapper.toInventorySparePartDetailsDto(item));
+            }
+        }
+        return dtos;
     }
 
     @Transactional
@@ -156,12 +199,13 @@ public class ContainerService {
         ContainerStatus containerStatus = ContainerStatus.fromId(status);
         if(containerStatus == null) throw LogicErrException.of("Trạng thái không hợp lệ.");
         // update container
-        container.setContainerStatus(containerStatus);
-        containerRepository.save(container);
         if(containerStatus.equals(ContainerStatus.COMPLETED)){
             // Update items nếu là trạng thái hoàn tất giao hàng
             inventoryItemRepository.updateStatusAndUnRefContainer(container.getId(), InventoryItemStatus.IN_STOCK.getId());
+            container.setCompletionDate(LocalDateTime.now());
         }
+        container.setContainerStatus(containerStatus);
+        containerRepository.save(container);
         return container;
     }
 }

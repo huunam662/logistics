@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryItemToContainerDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryItemPoNumberDto;
+import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryProductDetailsDto;
+import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventorySparePartDetailsDto;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.pagination.response.PageInfoDto;
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
@@ -35,7 +37,7 @@ public class ContainerController {
     private final ContainerService containerService;
     private final InventoryItemMapper inventoryItemMapper;
 
-    @GetMapping()
+    @GetMapping
     @Operation(
             summary = "GET Lấy danh sách containers",
             description = "GET Lấy danh sách containers"
@@ -79,15 +81,24 @@ public class ContainerController {
         return ResponseEntity.ok().body(ApiResponse.success(result));
     }
 
-    @GetMapping("/{containerId}/inventory-items")
+    @GetMapping("/{containerId}/inventory-items/product")
     @Operation(
-            summary = "GET Lấy các hàng hóa trong một container cụ thể.",
-            description = "GET Lấy các hàng hóa trong một container cụ thể."
+            summary = "GET Lấy các sản phẩm trong container.",
+            description = "GET Lấy các sản phẩm trong container."
     )
-    public ResponseEntity<ApiResponse<?>> getInventoryItemsToId(@PathVariable("containerId") String containerId) {
-        List<InventoryItem> items = containerService.getInventoryItemsToId(containerId);
-        List<InventoryItemPoNumberDto> itemsDto = items.stream().map(inventoryItemMapper::toInventoryItemPoNumberDto).toList();
-        return ResponseEntity.ok().body(ApiResponse.success(itemsDto));
+    public ResponseEntity<?> getInventoryItemsProduct(@PathVariable("containerId") String containerId) {
+        List<InventoryProductDetailsDto> dtos = containerService.getInventoryItemsProductToContainerId(containerId);
+        return ResponseEntity.ok().body(ApiResponse.success(dtos));
+    }
+
+    @GetMapping("/{containerId}/inventory-items/spare-part")
+    @Operation(
+            summary = "GET Lấy các hàng hóa trong container.",
+            description = "GET Lấy các hàng hóa trong container."
+    )
+    public ResponseEntity<?> getInventoryItemsSparePart(@PathVariable("containerId") String containerId) {
+        List<InventorySparePartDetailsDto> dtos = containerService.getInventoryItemsSparePartToContainerId(containerId);
+        return ResponseEntity.ok().body(ApiResponse.success(dtos));
     }
 
     @PatchMapping("/{containerId}/status")
