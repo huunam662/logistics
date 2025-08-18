@@ -9,8 +9,8 @@ import warehouse_management.com.warehouse_management.model.WarehouseTransferTick
 @Mapper(componentModel = "spring", builder = @Builder(disableBuilder = true))
 public interface WarehouseTransferTicketMapper {
 
-    @Mapping(target = "originWarehouseId", ignore = true)
-    @Mapping(target = "destinationWarehouseId", ignore = true)
+//    @Mapping(target = "originWarehouseId", ignore = true)
+//    @Mapping(target = "destinationWarehouseId", ignore = true)
     WarehouseTransferTicket toWarehouseTransferTicket(CreateWarehouseTransferTicketDto createWarehouseTransferTicketDto);
 
 }

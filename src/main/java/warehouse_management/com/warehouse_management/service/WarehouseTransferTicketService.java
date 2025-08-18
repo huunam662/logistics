@@ -68,14 +68,34 @@ public class WarehouseTransferTicketService {
 
     public String buildJsonPrint(WarehouseTransferTicket ticket, List<InventoryItem> inventoryItems) {
         HashMap<String, Object> printData = new HashMap<>();
-        Warehouse fromWh = GeneralResource.getWarehouseById(mongoTemplate, ticket.getOriginWarehouseId());
-        Warehouse toWh = GeneralResource.getWarehouseById(mongoTemplate, ticket.getDestinationWarehouseId());
-        printData.put("fromWarehouseName", fromWh.getName());
-        printData.put("toWarehouseName", toWh.getName());
-        printData.put("toUserName", "Tên người nhận hàng");
-        printData.put("fromUserName", "Tên người gửi hàng");
-        printData.put("address1", "Địa chỉ 1");
-        printData.put("address2", "Địa chỉ 2");
+//  Ship Unit Info
+        WarehouseTransferTicket.ShipUnitInfo shipInfo = ticket.getShipUnitInfo();
+        if (shipInfo != null) {
+            printData.put("shipFullName", shipInfo.getFullName());
+            printData.put("shipLicensePlate", shipInfo.getLicensePlate());
+            printData.put("shipPhone", shipInfo.getPhone());
+            printData.put("shipIdentityCode", shipInfo.getIdentityCode());
+            printData.put("shipMethod", shipInfo.getShipMethod());
+        }
+
+//  Stock In Department
+        WarehouseTransferTicket.Department inDept = ticket.getStockInDepartment();
+        if (inDept != null) {
+            printData.put("inDeptName", inDept.getName());
+            printData.put("inDeptAddress", inDept.getAddress());
+            printData.put("inDeptPhone", inDept.getPhone());
+            printData.put("inDeptPosition", inDept.getPosition());
+        }
+
+//  Stock Out Department
+        WarehouseTransferTicket.Department outDept = ticket.getStockOutDepartment();
+        if (outDept != null) {
+            printData.put("outDeptName", outDept.getName());
+            printData.put("outDeptAddress", outDept.getAddress());
+            printData.put("outDeptPhone", outDept.getPhone());
+            printData.put("outDeptPosition", outDept.getPosition());
+        }
+
         printData.put("dataset", inventoryItems);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("'Ngày' dd, 'Tháng' MM, 'Năm' yyyy");
         LocalDate tranDate = LocalDate.now();
