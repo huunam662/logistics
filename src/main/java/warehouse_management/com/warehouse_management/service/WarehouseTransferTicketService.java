@@ -21,7 +21,6 @@ import warehouse_management.com.warehouse_management.enumerate.InventoryType;
 import warehouse_management.com.warehouse_management.enumerate.TransferTicketStatus;
 import warehouse_management.com.warehouse_management.exceptions.LogicErrException;
 import warehouse_management.com.warehouse_management.mapper.WarehouseTransferTicketMapper;
-import warehouse_management.com.warehouse_management.model.Container;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.model.WarehouseTransferTicket;
@@ -40,7 +39,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class WarehouseTransferTicketService {
 
-    private final MongoTemplate mongoTemplate;
     private final WarehouseService warehouseService;
     private final WarehouseTransferTicketRepository warehouseTransferTicketRepository;
     private final WarehouseTransferTicketMapper warehouseTransferTicketMapper;
