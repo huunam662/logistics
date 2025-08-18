@@ -409,13 +409,22 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         List<WriteModel<Document>> writeModels = new ArrayList<>();
         for(var item : inventoryItems){
             Bson filter = Filters.eq("_id", item.getId());
-            Bson update = Updates.combine(
-                    Updates.set("quantity", item.getQuantity()),
-                    Updates.set("warehouseId", item.getWarehouseId().toString()),
-                    Updates.set("status", item.getStatus().getId()),
-                    Updates.set("logistics.arrivalDate", item.getLogistics().getArrivalDate()),
-                    Updates.set("logistics.consignmentDate", item.getLogistics().getConsignmentDate())
-            );
+
+            List<Bson> updates = new ArrayList<>();
+            updates.add(Updates.set("quantity", item.getQuantity()));
+            updates.add(Updates.set("warehouseId", item.getWarehouseId())); // giữ ObjectId, không toString
+            updates.add(Updates.set("status", item.getStatus().getId()));
+
+            if (item.getLogistics() != null) {
+                if (item.getLogistics().getArrivalDate() != null) {
+                    updates.add(Updates.set("logistics.arrivalDate", item.getLogistics().getArrivalDate()));
+                }
+                if (item.getLogistics().getConsignmentDate() != null) {
+                    updates.add(Updates.set("logistics.consignmentDate", item.getLogistics().getConsignmentDate()));
+                }
+            }
+
+            Bson update = Updates.combine(updates);
             writeModels.add(new UpdateOneModel<>(filter, update));
         }
         coll.bulkWrite(writeModels);
