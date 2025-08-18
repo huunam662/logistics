@@ -26,7 +26,6 @@ public class InventoryItem {
     private String commodityCode;  // Mã hàng hóa (đôi với phụ tùng)
     private String serialNumber;   // Số seri – Có cho xe/phụ kiện
     private String model;          // Model sản phẩm – Bắt buộc
-    private String type;           // Loại sản phẩm (VD: Xe nâng điện) – Bắt buộc
     private String category;       // Chủng loại sản phẩm (VD: Ngồi lái) – Bắt buộc
     private String inventoryType;   // Loại hàng tồn (VD: phụ kiện, ...) - Bắt buộc
     private Integer manufacturingYear; // Năm sản xuất – Không bắt buộc

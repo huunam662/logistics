@@ -18,13 +18,11 @@ public class CreateInventoryProductDto {
     private String inventoryType;
     private String productCode; // ID duy nhất cho từng xe/phụ kiện 4
     private String model; // Model kỹ thuật 5
-    private String type; // Xe / Phụ kiện 6
     private String category; // Ví dụ: Reach Truck, Pallet Truck...7
     private String serialNumber; // Số series nhà máy 8
     private String initialCondition; // Nguyên trạng 11
     private String notes; // Ghi chú  26
     private String warehouseId;
-
     private Specifications specifications;
     private Pricing pricing;
     private Logistics logistics;
@@ -49,7 +47,6 @@ public class CreateInventoryProductDto {
         private BigDecimal purchasePrice; // Giá mua  22
         private BigDecimal salePriceR0; // Giá bán R0 23
         private BigDecimal salePriceR1; // Giá bán R1 24
-        private BigDecimal actualSalePrice; // Giá bán thực tế 25
         private String agent; // Tên đại lý hoặc khách hàng đặt hàng 3
     }
 
