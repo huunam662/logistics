@@ -119,7 +119,7 @@ public class WarehouseTransferTicketService {
     }
 
     @Transactional
-    public void approvalTransferTicket(String ticketId, ApprovalTicketDto dto){
+    public WarehouseTransferTicket approvalTransferTicket(String ticketId, ApprovalTicketDto dto){
         WarehouseTransferTicket ticket = getTicketToId(new ObjectId(ticketId));
         if(ticket.getStatus().equals(TransferTicketStatus.APPROVED.getId()))
             throw LogicErrException.of("Phiếu đã được duyệt trước đó.");
@@ -186,7 +186,7 @@ public class WarehouseTransferTicketService {
             }
             ticket.setStatus(dto.getStatus());
             ticket.setReason(dto.getReason());
-            warehouseTransferTicketRepository.save(ticket);
+            return warehouseTransferTicketRepository.save(ticket);
         }
     }
 
