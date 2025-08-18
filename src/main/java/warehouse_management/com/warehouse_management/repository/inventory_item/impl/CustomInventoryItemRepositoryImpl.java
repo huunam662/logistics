@@ -300,9 +300,10 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 Aggregation.unwind("warehouse"),
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("deletedAt").isNull(),
-                        Criteria.where("warehouse.deletedAt").isNull()
+                        Criteria.where("warehouse.deletedAt").isNull(),
+                        Criteria.where("inventoryType").in(InventoryType.VEHICLE.getId(), InventoryType.ACCESSORY.getId())
                 )),
-                Aggregation.project("poNumber", "productCode", "status", "model", "category", "inventoryType", "serialNumber", "manufacturingYear", "initialCondition", "notes", "warehouseType", "inventoryType")
+                Aggregation.project("poNumber", "productCode", "status", "model", "category", "inventoryType", "serialNumber", "manufacturingYear", "initialCondition", "notes", "warehouseType")
                         .and("_id").as("id")
                         .and("specifications.liftingCapacityKg").as("liftingCapacityKg")    //
                         .and("specifications.chassisType").as("chassisType")    //
@@ -335,7 +336,8 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 Aggregation.unwind("warehouse"),
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("deletedAt").isNull(),
-                        Criteria.where("warehouse.deletedAt").isNull()
+                        Criteria.where("warehouse.deletedAt").isNull(),
+                        Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId())
                 )),
                 Aggregation.project("poNumber", "commodityCode", "status", "model", "quantity", "description", "notes", "contractNumber", "warehouseType")
                         .and("_id").as("id")
