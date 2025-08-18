@@ -3,13 +3,14 @@ package warehouse_management.com.warehouse_management.dto.warehouse_transfer_tic
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.bson.types.ObjectId;
 
 @Data
 public class CreateWarehouseTransferTicketDto {
 
     private String ticketCode;      // Số phiếu điều chuyển (không bắt buộc)
-    private String originWarehouseId;     // Kho nguồn
-    private String destinationWarehouseId; // Kho đích
+    private ObjectId originWarehouseId;     // Kho nguồn
+    private ObjectId destinationWarehouseId; // Kho đích
     private Department stockInDepartment;   // Bộ phận nhập kho
     private Department stockOutDepartment;  // Bộ phận xuất kho
     private ShipUnitInfo shipUnitInfo;  //  Thông tin vận chuyển
