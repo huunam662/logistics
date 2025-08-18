@@ -1,10 +1,6 @@
 package warehouse_management.com.warehouse_management.service;
 
-import com.mongodb.client.model.Accumulators;
-import com.mongodb.client.model.Aggregates;
-import com.mongodb.client.model.Filters;
 import lombok.RequiredArgsConstructor;
-import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
 import org.springframework.data.mongodb.core.aggregation.*;
@@ -12,7 +8,6 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
-import warehouse_management.com.warehouse_management.dto.container.response.ContainerItemsDetailsDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryItemToContainerDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryProductDetailsDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventorySparePartDetailsDto;
@@ -32,7 +27,6 @@ import warehouse_management.com.warehouse_management.utils.MongoRsqlUtils;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor

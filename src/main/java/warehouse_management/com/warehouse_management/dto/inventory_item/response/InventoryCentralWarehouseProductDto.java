@@ -1,16 +1,14 @@
 package warehouse_management.com.warehouse_management.dto.inventory_item.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.bson.types.ObjectId;
-import warehouse_management.com.warehouse_management.model.InventoryItem;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
-public class InventoryCentralWarehouseDto {
+public class InventoryCentralWarehouseProductDto {
 
     private ObjectId id; // _id – Khóa chính tự động tạo bởi MongoDB
     private String poNumber;       // Số của Đơn đặt hàng (Purchase Order) – Bắt buộc
@@ -20,6 +18,7 @@ public class InventoryCentralWarehouseDto {
     private String category;       // Chủng loại sản phẩm (VD: Ngồi lái) – Bắt buộc
     private String type;           // Loại sản phẩm (VD: Xe nâng điện) – Bắt buộc
     private String serialNumber;   // Số seri – Có cho xe/phụ kiện
+    private String inventoryType;   // Loại hàng tồn (VD: phụ kiện, ...) - Bắt buộc
     private Integer manufacturingYear; // Năm sản xuất – Không bắt buộc
     private String warehouseType;   // Loại kho
     private String initialCondition;       // Mô tả nguyên trạng khi nhập kho – Không bắt buộc

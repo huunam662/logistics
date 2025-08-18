@@ -151,8 +151,12 @@ public class WarehouseService {
         return inventoryItemRepository.findPageInventorySparePartsConsignment(warehouse.getId(), optionsReq);
     }
 
-    public Page<InventoryCentralWarehouseDto> getPageInventoryCentralWarehouse(PageOptionsDto optionsReq){
+    public Page<InventoryCentralWarehouseProductDto> getPageInventoryCentralWarehouse(PageOptionsDto optionsReq){
         return inventoryItemRepository.findPageInventoryCentralWarehouse(optionsReq);
+    }
+
+    public Page<InventoryCentralWarehouseSparePartDto> getPageInventoryCentralWarehouseSparePart(PageOptionsDto optionsReq){
+        return inventoryItemRepository.findPageInventoryCentralWarehouseSparePart(optionsReq);
     }
 
     @Transactional
