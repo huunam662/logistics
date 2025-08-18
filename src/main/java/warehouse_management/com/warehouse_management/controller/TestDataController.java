@@ -170,7 +170,6 @@ public class TestDataController {
                     if(j % 3 == 0){
                         item.setProductCode(productCode);
                         item.setSerialNumber("SERIAL_" + faker.number().digits(6));
-                        item.setType("Xe nâng điện");
                         item.setCategory(j % 2 == 0 ? "Ngồi lái" : "Đứng lái");
                         item.setManufacturingYear(2020 + faker.random().nextInt(5));
                     }
