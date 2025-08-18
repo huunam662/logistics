@@ -17,6 +17,7 @@ public class CreateInventorySparePartDto {
     private String notes;                  // Ghi chú chung – Không bắt buộc
     private String contractNumber; // Số hợp đồng
     private Pricing pricing;
+    private String warehouseId;
 
     @Data
     @NoArgsConstructor
