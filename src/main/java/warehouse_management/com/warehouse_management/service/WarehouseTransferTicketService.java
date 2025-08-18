@@ -48,8 +48,8 @@ public class WarehouseTransferTicketService {
     public WarehouseTransferTicket createTransferTicket(CreateWarehouseTransferTicketDto dto){
 
         WarehouseTransferTicket ticket = warehouseTransferTicketMapper.toWarehouseTransferTicket(dto);
-        Warehouse originWarehouse = warehouseService.getWarehouseToId(new ObjectId(dto.getOriginWarehouseId()));
-        Warehouse destinationWarehouse = warehouseService.getWarehouseToId(new ObjectId(dto.getDestinationWarehouseId()));
+        Warehouse originWarehouse = warehouseService.getWarehouseToId(dto.getOriginWarehouseId());
+        Warehouse destinationWarehouse = warehouseService.getWarehouseToId(dto.getDestinationWarehouseId());
         ticket.setOriginWarehouseId(originWarehouse.getId());
         ticket.setDestinationWarehouseId(destinationWarehouse.getId());
         ticket.setTitle("Chuyển hàng từ kho " + originWarehouse.getName() + " đến kho " + destinationWarehouse.getName());
