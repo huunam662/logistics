@@ -43,6 +43,12 @@ public interface CustomInventoryItemRepository {
 
     void updateStatusAndUnRefContainer(ObjectId containerId, String status);
 
+    void updateStatusAndWarehouseAndUnRefContainer(ObjectId containerId, ObjectId warehouseId, String status);
+
+    void updateStatusByIdIn(Collection<ObjectId> ids, String status);
+
+    void updateStatusAndWarehouseByIdIn(Collection<ObjectId> ids, ObjectId warehouseId, String status);
+
     long softDelete(ObjectId id, ObjectId deletedBy);
 
     long bulkSoftDelete(Collection<ObjectId> ids, ObjectId deletedBy);

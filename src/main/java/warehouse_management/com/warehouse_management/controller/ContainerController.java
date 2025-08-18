@@ -107,7 +107,7 @@ public class ContainerController {
     )
     public ResponseEntity<ApiResponse<?>> updateContainerStatus(
             @PathVariable("containerId") String containerId,
-            @Parameter(description = "[PENDING, APPROVED, HAD_DATE, IN_TRANSIT, UN_INSPECTED, COMPLETED]")
+            @Parameter(description = "[REJECTED, PENDING, APPROVED, HAD_DATE, IN_TRANSIT, UN_INSPECTED, COMPLETED]")
             @RequestParam("status") String status
     ){
         Container container = containerService.updateContainerStatus(containerId, status);
