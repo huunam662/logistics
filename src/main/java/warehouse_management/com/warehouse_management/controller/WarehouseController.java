@@ -196,8 +196,8 @@ public class WarehouseController {
 
     @GetMapping("/page/inventory-central-warehouse/spare-part")
     @Operation(
-            summary = "GET data sản phẩm tồn tại các kho đến. (phân trang)",
-            description = "GET data sản phẩm tồn tại các kho đến. (phân trang)"
+            summary = "GET data hàng hóa tồn tại các kho đến. (phân trang)",
+            description = "GET data hàng hóa tồn tại các kho đến. (phân trang)"
     )
     public ApiResponse<?> getPageInventoryCentralWarehouseSparePart(
             @ModelAttribute PageOptionsDto optionsReq
