@@ -23,6 +23,7 @@ public class CreateInventoryProductDto {
     private String serialNumber; // Số series nhà máy 8
     private String initialCondition; // Nguyên trạng 11
     private String notes; // Ghi chú  26
+    private String warehouseId;
 
     private Specifications specifications;
     private Pricing pricing;

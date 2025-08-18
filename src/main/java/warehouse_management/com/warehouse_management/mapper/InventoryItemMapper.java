@@ -15,20 +15,24 @@ import warehouse_management.com.warehouse_management.model.WarehouseTransferTick
 @Mapper(componentModel = "spring", builder = @Builder(disableBuilder = true))
 public interface InventoryItemMapper {
 
+    @Mapping(target = "warehouseId", ignore = true)
     @Mapping(target = "logistics.orderDate", ignore = true)
     @Mapping(target = "logistics.estimateCompletionDate", ignore = true)
     InventoryItem toInventoryItemModel(CreateInventoryProductDto inventoryItemReq);
 
+    @Mapping(target = "warehouseId", ignore = true)
     InventoryItem toInventoryItemSparePart(CreateInventorySparePartDto dto);
 
     InventoryItem cloneEntity(InventoryItem inventoryItem);
 
     InventoryItemPoNumberDto toInventoryItemPoNumberDto(InventoryItem inventoryItem);
 
+    @Mapping(target = "warehouseId", ignore = true)
     @Mapping(target = "logistics.orderDate", ignore = true)
     @Mapping(target = "logistics.estimateCompletionDate", ignore = true)
     void mapToUpdateInventoryProduct(@MappingTarget InventoryItem inventoryItem, CreateInventoryProductDto dto);
 
+    @Mapping(target = "warehouseId", ignore = true)
     void mapToUpdateInventorySparePart(@MappingTarget InventoryItem inventoryItem, CreateInventorySparePartDto dto);
 
     InventoryProductDetailsDto toInventoryProductDetailsDto(InventoryItem inventoryItem);
