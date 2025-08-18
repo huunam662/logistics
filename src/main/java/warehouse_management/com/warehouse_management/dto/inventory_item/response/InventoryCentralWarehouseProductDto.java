@@ -16,7 +16,6 @@ public class InventoryCentralWarehouseProductDto {
     private String status;         // Trạng thái hiện tại (IN_STOCK, IN_TRANSIT...) – Bắt buộc
     private String model;          // Model sản phẩm – Bắt buộc
     private String category;       // Chủng loại sản phẩm (VD: Ngồi lái) – Bắt buộc
-    private String type;           // Loại sản phẩm (VD: Xe nâng điện) – Bắt buộc
     private String serialNumber;   // Số seri – Có cho xe/phụ kiện
     private String inventoryType;   // Loại hàng tồn (VD: phụ kiện, ...) - Bắt buộc
     private Integer manufacturingYear; // Năm sản xuất – Không bắt buộc

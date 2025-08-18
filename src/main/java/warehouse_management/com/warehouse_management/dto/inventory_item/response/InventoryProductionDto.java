@@ -16,7 +16,6 @@ public class InventoryProductionDto {
     private LocalDateTime orderDate;        // Ngày đặt hàng
     private String productCode;    // Mã sản phẩm
     private String model;          // Model
-    private String type;           // Loại
     private String category;       // Chủng loại
     private Boolean hasSideShift;           // SS (Side Shift)
     private String serialNumber;   // Số seri
