@@ -47,7 +47,9 @@ public class InventoryItemService {
 
     @Transactional
     public InventoryItem createInventorySparePart(CreateInventorySparePartDto req){
+        Warehouse warehouse = warehouseService.getWarehouseToId(new ObjectId(req.getWarehouseId()));
         InventoryItem item = inventoryItemMapper.toInventoryItemSparePart(req);
+        item.setWarehouseId(warehouse.getId());
         item.setInventoryType(InventoryType.SPARE_PART.getId());
         if(item.getLogistics() == null) item.setLogistics(new InventoryItem.Logistics());
         try{
@@ -72,7 +74,9 @@ public class InventoryItemService {
     @Transactional
     public InventoryItem updateInventorySparePart(String id, CreateInventorySparePartDto req){
         InventoryItem item = getItemToId(new ObjectId(id));
+        Warehouse warehouse = warehouseService.getWarehouseToId(new ObjectId(req.getWarehouseId()));
         inventoryItemMapper.mapToUpdateInventorySparePart(item, req);
+        item.setWarehouseId(warehouse.getId());
         if(item.getLogistics() == null) item.setLogistics(new InventoryItem.Logistics());
         try{
             item.getLogistics().setOrderDate(LocalDate.parse(req.getOrderDate()).atStartOfDay());
@@ -85,7 +89,9 @@ public class InventoryItemService {
 
     @Transactional
     public InventoryItem createInventoryProduct(CreateInventoryProductDto req) {
+        Warehouse warehouse = warehouseService.getWarehouseToId(new ObjectId(req.getWarehouseId()));
         InventoryItem item = mapper.toInventoryItemModel(req);
+        item.setWarehouseId(warehouse.getId());
         item.setQuantity(1); // Xe hoặc Phụ kiện mặc định là 1
         if(item.getLogistics() == null) item.setLogistics(new InventoryItem.Logistics());
         try{
@@ -220,7 +226,9 @@ public class InventoryItemService {
     @Transactional
     public InventoryItem updateInventoryProduct(String id, CreateInventoryProductDto dto){
         InventoryItem inventoryItem = getItemToId(new ObjectId(id));
+        Warehouse warehouse = warehouseService.getWarehouseToId(new ObjectId(dto.getWarehouseId()));
         mapper.mapToUpdateInventoryProduct(inventoryItem, dto);
+        inventoryItem.setWarehouseId(warehouse.getId());
         try{
             inventoryItem.getLogistics().setOrderDate(LocalDate.parse(dto.getLogistics().getOrderDate()).atStartOfDay());
         }

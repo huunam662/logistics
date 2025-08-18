@@ -409,22 +409,13 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         List<WriteModel<Document>> writeModels = new ArrayList<>();
         for(var item : inventoryItems){
             Bson filter = Filters.eq("_id", item.getId());
-
-            List<Bson> updates = new ArrayList<>();
-            updates.add(Updates.set("quantity", item.getQuantity()));
-            updates.add(Updates.set("warehouseId", item.getWarehouseId())); // giữ ObjectId, không toString
-            updates.add(Updates.set("status", item.getStatus().getId()));
-
-            if (item.getLogistics() != null) {
-                if (item.getLogistics().getArrivalDate() != null) {
-                    updates.add(Updates.set("logistics.arrivalDate", item.getLogistics().getArrivalDate()));
-                }
-                if (item.getLogistics().getConsignmentDate() != null) {
-                    updates.add(Updates.set("logistics.consignmentDate", item.getLogistics().getConsignmentDate()));
-                }
-            }
-
-            Bson update = Updates.combine(updates);
+            Bson update = Updates.combine(
+                    Updates.set("quantity", item.getQuantity()),
+                    Updates.set("warehouseId", item.getWarehouseId()),
+                    Updates.set("status", item.getStatus().getId()),
+                    Updates.set("logistics.arrivalDate", item.getLogistics().getArrivalDate()),
+                    Updates.set("logistics.consignmentDate", item.getLogistics().getConsignmentDate())
+            );
             writeModels.add(new UpdateOneModel<>(filter, update));
         }
         coll.bulkWrite(writeModels);
@@ -435,6 +426,28 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     public void updateStatusAndUnRefContainer(ObjectId containerId, String status) {
         Query query = new Query(Criteria.where("containerId").is(containerId));
         Update update = new Update().set("status", status).set("containerId", null);
+        mongoTemplate.updateMulti(query, update, InventoryItem.class);
+    }
+
+    @Transactional
+    @Override
+    public void updateStatusAndWarehouseAndUnRefContainer(ObjectId containerId, ObjectId warehouseId, String status) {
+        Query query = new Query(Criteria.where("containerId").is(containerId));
+        Update update = new Update().set("status", status).set("containerId", null).set("warehouseId", warehouseId);
+        mongoTemplate.updateMulti(query, update, InventoryItem.class);
+    }
+
+    @Override
+    public void updateStatusByIdIn(Collection<ObjectId> ids, String status) {
+        Query query = new Query(Criteria.where("_id").in(ids));
+        Update update = new Update().set("status", status);
+        mongoTemplate.updateMulti(query, update, InventoryItem.class);
+    }
+
+    @Override
+    public void updateStatusAndWarehouseByIdIn(Collection<ObjectId> ids, ObjectId warehouseId, String status) {
+        Query query = new Query(Criteria.where("_id").in(ids));
+        Update update = new Update().set("status", status).set("warehouseId", warehouseId);
         mongoTemplate.updateMulti(query, update, InventoryItem.class);
     }
 

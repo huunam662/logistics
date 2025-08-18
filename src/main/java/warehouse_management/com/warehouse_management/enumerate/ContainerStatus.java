@@ -4,6 +4,7 @@ import org.springframework.lang.Nullable;
 
 public enum ContainerStatus implements EnumClass<String> {
 
+    REJECTED("REJECTED"),            // Hủy
     PENDING("PENDING"),          // Chờ xác nhận
     APPROVED("APPROVED"),        // Đã xác nhận
     HAD_DATE("HAD_DATE"),        // Đã có ngày

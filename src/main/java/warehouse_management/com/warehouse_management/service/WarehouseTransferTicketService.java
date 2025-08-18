@@ -16,12 +16,15 @@ import warehouse_management.com.warehouse_management.dto.pagination.request.Page
 import warehouse_management.com.warehouse_management.dto.warehouse_transfer_ticket.request.ApprovalTicketDto;
 import warehouse_management.com.warehouse_management.dto.warehouse_transfer_ticket.request.CreateWarehouseTransferTicketDto;
 import warehouse_management.com.warehouse_management.dto.warehouse_transfer_ticket.response.WarehouseTransferTicketPageDto;
+import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
+import warehouse_management.com.warehouse_management.enumerate.InventoryType;
 import warehouse_management.com.warehouse_management.enumerate.TransferTicketStatus;
 import warehouse_management.com.warehouse_management.exceptions.LogicErrException;
 import warehouse_management.com.warehouse_management.mapper.WarehouseTransferTicketMapper;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.model.WarehouseTransferTicket;
+import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
 import warehouse_management.com.warehouse_management.repository.warehouse_transfer_ticket.WarehouseTransferTicketRepository;
 import warehouse_management.com.warehouse_management.utils.GeneralResource;
 import warehouse_management.com.warehouse_management.utils.JsonUtils;
@@ -29,26 +32,24 @@ import java.io.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class WarehouseTransferTicketService {
 
-    private final MongoTemplate mongoTemplate;
     private final WarehouseService warehouseService;
     private final WarehouseTransferTicketRepository warehouseTransferTicketRepository;
     private final WarehouseTransferTicketMapper warehouseTransferTicketMapper;
+    private final InventoryItemRepository inventoryItemRepository;
 
     @Transactional
     public WarehouseTransferTicket createTransferTicket(CreateWarehouseTransferTicketDto dto){
 
         WarehouseTransferTicket ticket = warehouseTransferTicketMapper.toWarehouseTransferTicket(dto);
-        Warehouse originWarehouse = warehouseService.getWarehouseToId(ticket.getOriginWarehouseId());
-        Warehouse destinationWarehouse = warehouseService.getWarehouseToId(ticket.getDestinationWarehouseId());
+        Warehouse originWarehouse = warehouseService.getWarehouseToId(new ObjectId(dto.getOriginWarehouseId()));
+        Warehouse destinationWarehouse = warehouseService.getWarehouseToId(new ObjectId(dto.getDestinationWarehouseId()));
         ticket.setOriginWarehouseId(originWarehouse.getId());
         ticket.setDestinationWarehouseId(destinationWarehouse.getId());
         ticket.setTitle("Chuyển hàng từ kho " + originWarehouse.getName() + " đến kho " + destinationWarehouse.getName());
@@ -129,13 +130,60 @@ public class WarehouseTransferTicketService {
                 throw LogicErrException.of("Trạng thái duyệt không hợp lệ");
 
             if(dto.getStatus().equals(TransferTicketStatus.APPROVED.getId())){
+                // Update items nếu phiếu được duyệt
+                // Nếu ở kho đích đã tồn tại phụ tùng với trạng thái đang IN_STOCK thì cập nhập số lượng
+                Map<String, WarehouseTransferTicket.InventoryItemTicket> inventoryTicketSparePartMap = ticket.getInventoryItems().stream()
+                        .peek(item -> item.setStatus(InventoryItemStatus.OTHER.getId()))
+                        .filter(item -> item.getInventoryType().equals(InventoryType.SPARE_PART.getId()) && item.getCommodityCode() != null)
+                        .collect(Collectors.toMap(WarehouseTransferTicket.InventoryItemTicket::getCommodityCode, item -> item));
+                // Lấy ra các phụ tùng với mã sản phẩm đã tồn tại ở kho đích và trạng thái đang IN_STOCK
+                List<InventoryItem> sparePartsInStockDestination = inventoryItemRepository.findSparePartByCommodityCodeIn(inventoryTicketSparePartMap.keySet(), ticket.getDestinationWarehouseId(), InventoryItemStatus.IN_STOCK.getId());
+                // Danh sách lưu trữ các spare part cần xóa mềm thuộc ticket
+                if(!sparePartsInStockDestination.isEmpty()){
+                    List<ObjectId> sparePartsToDel = new ArrayList<>();
+                    // Cập nhật lại số lượng phụ tùng có sẵn trong kho đích (trùng mã hàng hóa)
+                    for(var sparePart : sparePartsInStockDestination){
+                        WarehouseTransferTicket.InventoryItemTicket sparePartInTicket = inventoryTicketSparePartMap.get(sparePart.getCommodityCode());
+                        sparePart.setQuantity(sparePart.getQuantity() + sparePartInTicket.getQuantity());
+                        sparePartsToDel.add(sparePartInTicket.getId());
+                    }
+                    inventoryItemRepository.bulkUpdateTransfer(sparePartsInStockDestination);
+                    // Xóa mềm các phụ tùng được clone trước đó ở kho nguồn
+                    inventoryItemRepository.bulkSoftDelete(sparePartsToDel, null);
+                }
+                List<ObjectId> itemIds = ticket.getInventoryItems().stream().map(WarehouseTransferTicket.InventoryItemTicket::getId).toList();
+                inventoryItemRepository.updateStatusByIdIn(itemIds, InventoryItemStatus.IN_STOCK.getId());
+                ticket.setApprovedAt(LocalDateTime.now());
                 // TODO: Ghi log lý do duyệt phiếu
             }
-            if(dto.getStatus().equals(TransferTicketStatus.REJECTED.getId())){
+            else if(dto.getStatus().equals(TransferTicketStatus.REJECTED.getId())){
+                // Update items nếu phiếu được từ chối
+                // Nếu ở kho nguồn đã tồn tại phụ tùng với trạng thái đang IN_STOCK thì cập nhập số lượng
+                Map<String, WarehouseTransferTicket.InventoryItemTicket> inventoryTicketSparePartMap = ticket.getInventoryItems().stream()
+                        .peek(item -> item.setStatus(InventoryItemStatus.OTHER.getId()))
+                        .filter(item -> item.getInventoryType().equals(InventoryType.SPARE_PART.getId()) && item.getCommodityCode() != null)
+                        .collect(Collectors.toMap(WarehouseTransferTicket.InventoryItemTicket::getCommodityCode, item -> item));
+                // Lấy ra các phụ tùng với mã hàng hóa đã tồn tại ở kho nguồn và trạng thái đang IN_STOCK
+                List<InventoryItem> sparePartsInStockOrigin = inventoryItemRepository.findSparePartByCommodityCodeIn(inventoryTicketSparePartMap.keySet(), ticket.getOriginWarehouseId(), InventoryItemStatus.IN_STOCK.getId());
+                // Danh sách lưu trữ các spare part cần xóa mềm thuộc ticket
+                if(!sparePartsInStockOrigin.isEmpty()){
+                    List<ObjectId> sparePartsToDel = new ArrayList<>();
+                    // Cập nhật lại số lượng phụ tùng bị clone trước đó
+                    for(var sparePart : sparePartsInStockOrigin){
+                        WarehouseTransferTicket.InventoryItemTicket sparePartInTicket = inventoryTicketSparePartMap.get(sparePart.getCommodityCode());
+                        sparePart.setQuantity(sparePart.getQuantity() + sparePartInTicket.getQuantity());
+                        sparePartsToDel.add(sparePartInTicket.getId());
+                    }
+                    inventoryItemRepository.bulkUpdateTransfer(sparePartsInStockOrigin);
+                    // Xóa mềm các phụ tùng được clone trước đó ở kho nguồn
+                    inventoryItemRepository.bulkSoftDelete(sparePartsToDel, null);
+                }
+                // Cập nhật hàng hóa quay lại kho nguồn
+                List<ObjectId> itemIds = ticket.getInventoryItems().stream().map(WarehouseTransferTicket.InventoryItemTicket::getId).toList();
+                inventoryItemRepository.updateStatusAndWarehouseByIdIn(itemIds, ticket.getOriginWarehouseId(), InventoryItemStatus.IN_STOCK.getId());
+                ticket.setApprovedAt(LocalDateTime.now());
                 // TODO: Ghi log lý do hủy phiếu
-                // TODO: Cập nhật lại hàng hóa
             }
-            ticket.setApprovedAt(LocalDateTime.now());
             ticket.setStatus(dto.getStatus());
             ticket.setReason(dto.getReason());
             warehouseTransferTicketRepository.save(ticket);
