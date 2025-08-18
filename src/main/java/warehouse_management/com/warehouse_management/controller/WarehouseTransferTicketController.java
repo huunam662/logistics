@@ -58,11 +58,14 @@ public class WarehouseTransferTicketController {
             summary = "PATCH Duyệt / Hủy phiếu.",
             description = "PATCH Duyệt / Hủy phiếu."
     )
-    public void approvalTransferTicket(
+    public ResponseEntity<?> approvalTransferTicket(
             @PathVariable("ticketId") String ticketId,
             @Valid @RequestBody ApprovalTicketDto dto
     ){
-        warehouseTransferTicketService.approvalTransferTicket(ticketId, dto);
+        WarehouseTransferTicket ticket = warehouseTransferTicketService.approvalTransferTicket(ticketId, dto);
+        ApiResponse<?> res = ApiResponse.success();
+        res.setMessage("Cập nhật trạng thái phiếu "+ticket.getTicketCode()+" thành công.");
+        return ResponseEntity.ok(res);
     }
 
     @GetMapping("/{ticketId}")
