@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.*;
+import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportDestinationProductDto;
+import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportDestinationSparePartDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportProductionProductDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportProductionSparePartDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
@@ -188,24 +190,24 @@ public class InventoryItemController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(Map.of("createdCount", created.size())));
     }
-//
-//    // Bulk insert kho destination - xe phụ kiện (import Excel)
-//    @PostMapping("/destination/products/import")
-//    public ResponseEntity<ApiResponse<?>> bulkCreateDestinationProducts(
-//            @Valid @RequestBody List<CreateInventoryProductDto> dtos) {
-//        List<InventoryItem> created = inventoryItemService.bulkCreateProductItems(dtos);
-//        return ResponseEntity.status(HttpStatus.CREATED)
-//                .body(ApiResponse.success(Map.of("createdCount", created.size())));
-//    }
-//
-//    // Bulk insert kho destination - phụ tùng (import Excel)
-//    @PostMapping("/destination/spare-parts/bulk")
-//    public ResponseEntity<ApiResponse<?>> bulkCreateDestinationSpareParts(
-//            @Valid @RequestBody List<CreateInventorySparePartDto> dtos) {
-//        List<InventoryItem> created = inventoryItemService.bulkCreateSparePartItems(dtos);
-//        return ResponseEntity.status(HttpStatus.CREATED)
-//                .body(ApiResponse.success(Map.of("createdCount", created.size())));
-//    }
+
+    // Bulk insert kho destination - xe phụ kiện (import Excel)
+    @PostMapping("/destination/products/import")
+    public ResponseEntity<ApiResponse<?>> bulkCreateDestinationProducts(
+            @Valid @RequestBody List<ExcelImportDestinationProductDto> dtos) {
+        List<InventoryItem> created = inventoryItemService.bulkCreateDestinationProductItems(dtos);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(Map.of("createdCount", created.size())));
+    }
+
+    // Bulk insert kho destination - phụ tùng (import Excel)
+    @PostMapping("/destination/spare-parts/import")
+    public ResponseEntity<ApiResponse<?>> bulkCreateDestinationSpareParts(
+            @Valid @RequestBody List<ExcelImportDestinationSparePartDto> dtos) {
+        List<InventoryItem> created = inventoryItemService.bulkCreateDestinationSparePartItems(dtos);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(Map.of("createdCount", created.size())));
+    }
 
 
     @PostMapping("/warehouse/stock-transfer")

@@ -15,6 +15,8 @@ import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.repository.container.ContainerRepository;
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
 import warehouse_management.com.warehouse_management.repository.warehouse.WarehouseRepository;
+import warehouse_management.com.warehouse_management.service.InventoryItemService;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -34,15 +36,23 @@ public class TestDataController {
     private final WarehouseRepository warehouseRepository;
     private final ContainerRepository containerRepository;
     private final InventoryItemRepository inventoryItemRepository;
+    private final InventoryItemService inventoryItemService;
     private final Faker faker = new Faker(new Locale("vi"));
 
-    public TestDataController(WarehouseRepository warehouseRepository, ContainerRepository containerRepository, InventoryItemRepository inventoryItemRepository) {
+    public TestDataController(WarehouseRepository warehouseRepository, ContainerRepository containerRepository, InventoryItemRepository inventoryItemRepository, InventoryItemService inventoryItemService) {
         this.warehouseRepository = warehouseRepository;
         this.containerRepository = containerRepository;
         this.inventoryItemRepository = inventoryItemRepository;
+        this.inventoryItemService = inventoryItemService;
     }
 
     private record InitDataRequest(boolean isDrop) {
+    }
+
+    @GetMapping("/test-audit")
+    private ResponseEntity<?> testAudit(@RequestParam("val") Integer value ) {
+        inventoryItemService.approve(value);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/init-data")

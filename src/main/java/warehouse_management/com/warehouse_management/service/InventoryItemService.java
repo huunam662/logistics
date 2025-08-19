@@ -7,7 +7,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
 import warehouse_management.com.warehouse_management.annotation.AuditAction;
+import warehouse_management.com.warehouse_management.aspect.AuditContext;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.*;
+import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportDestinationProductDto;
+import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportDestinationSparePartDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportProductionProductDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportProductionSparePartDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
@@ -180,7 +183,7 @@ public class InventoryItemService {
     @AuditAction(action = "CREATE_DCNB_TICKET")
     @Transactional
     public Map<String, Object> stockTransfer(InventoryStockTransferDto req) {
-        WarehouseTransaction ticket = warehouseTransferTicketService.getTicketToId(new ObjectId(req.getTicketId()));
+        WarehouseTransaction ticket = warehouseTransferTicketService.getWarehouseTransactionToId(new ObjectId(req.getTicketId()));
         Warehouse originWarehouse = warehouseService.getWarehouseToId(new ObjectId(req.getOriginWarehouseId()));
         Warehouse destinationWarehouse = warehouseService.getWarehouseToId(new ObjectId(req.getDestinationWarehouseId()));
         try{
@@ -323,6 +326,21 @@ public class InventoryItemService {
         return inventoryItemRepository.insert(itemsToInsert);
     }
 
+    public List<InventoryItem> bulkCreateDestinationProductItems(List<ExcelImportDestinationProductDto> dtos) {
+        if (dtos == null || dtos.isEmpty()) {
+            return List.of();
+        }
+        List<InventoryItem> itemsToInsert = dtos.stream()
+                .map(dto -> {
+                    //DTO MAPPING
+                    InventoryItem item = mapper.toInventoryItem(dto);
+                    return item;
+                })
+                .collect(Collectors.toList());
+
+        return inventoryItemRepository.insert(itemsToInsert);
+    }
+
     public List<InventoryItem> bulkCreateProductionSparePartItems(List<ExcelImportProductionSparePartDto> dtos) {
         if (dtos == null || dtos.isEmpty()) {
             return List.of();
@@ -339,5 +357,28 @@ public class InventoryItemService {
         return inventoryItemRepository.insert(itemsToInsert);
     }
 
+    public List<InventoryItem> bulkCreateDestinationSparePartItems(List<ExcelImportDestinationSparePartDto> dtos) {
+        if (dtos == null || dtos.isEmpty()) {
+            return List.of();
+        }
+        List<InventoryItem> itemsToInsert = dtos.stream()
+                .map(dto -> {
+                    //DTO MAPPING
+                    InventoryItem item = mapper.toInventoryItem(dto);
+                    return item;
+                })
+                .collect(Collectors.toList());
+
+        return inventoryItemRepository.insert(itemsToInsert);
+    }
+
+    @AuditAction(action = "testMethod")
+    public void approve(Integer approved) {
+        if (approved > 0) {
+            AuditContext.setDetail("Approved failed because another person has approved");
+        } else {
+            AuditContext.setDetail("Transaction has been approved by ...");
+        }
+    }
 
 }
