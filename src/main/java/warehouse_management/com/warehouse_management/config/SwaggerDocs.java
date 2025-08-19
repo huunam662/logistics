@@ -17,14 +17,18 @@ public class SwaggerDocs {
     @Bean
     public OpenAPI openAPI(){
 
-        Server server = new Server();
-        server.setUrl("http://localhost:8080/api");
-        server.setDescription("Local App.");
+        Server localDevServer = new Server();
+        localDevServer.setUrl("http://localhost:8080/api");
+        localDevServer.setDescription("Local Development Server");
+
+        Server prodDevServer = new Server();
+        prodDevServer.setUrl("https://gateway.dev.meu-solutions.com/logistic-erp/api");
+        prodDevServer.setDescription("Production Development Server");
 
         final String securitySchemaName = "Bearer Authorization";
 
         return new OpenAPI()
-                .servers(List.of(server))
+                .servers(List.of(localDevServer, prodDevServer))
                 .addSecurityItem(new SecurityRequirement().addList(securitySchemaName))
                 .info(info())
                 .components(components(securitySchemaName));
