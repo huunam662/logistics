@@ -1,6 +1,5 @@
 package warehouse_management.com.warehouse_management.service;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
@@ -22,13 +21,12 @@ import warehouse_management.com.warehouse_management.mapper.InventoryItemMapper;
 import warehouse_management.com.warehouse_management.model.Container;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.model.Warehouse;
-import warehouse_management.com.warehouse_management.model.WarehouseTransferTicket;
+import warehouse_management.com.warehouse_management.model.WarehouseTransaction;
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
-import warehouse_management.com.warehouse_management.repository.warehouse_transfer_ticket.WarehouseTransferTicketRepository;
+import warehouse_management.com.warehouse_management.repository.warehouse_transaction.WarehouseTransactionRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -40,9 +38,9 @@ public class InventoryItemService {
     private final InventoryItemMapper mapper;
     private final InventoryItemRepository inventoryItemRepository;
     private final WarehouseService warehouseService;
-    private final WarehouseTransferTicketService warehouseTransferTicketService;
+    private final WarehouseTransactionService warehouseTransferTicketService;
     private final InventoryItemMapper inventoryItemMapper;
-    private final WarehouseTransferTicketRepository warehouseTransferTicketRepository;
+    private final WarehouseTransactionRepository warehouseTransferTicketRepository;
 
 
     @Transactional
@@ -182,7 +180,7 @@ public class InventoryItemService {
     @AuditAction(action = "CREATE_DCNB_TICKET")
     @Transactional
     public Map<String, Object> stockTransfer(InventoryStockTransferDto req) {
-        WarehouseTransferTicket ticket = warehouseTransferTicketService.getTicketToId(new ObjectId(req.getTicketId()));
+        WarehouseTransaction ticket = warehouseTransferTicketService.getTicketToId(new ObjectId(req.getTicketId()));
         Warehouse originWarehouse = warehouseService.getWarehouseToId(new ObjectId(req.getOriginWarehouseId()));
         Warehouse destinationWarehouse = warehouseService.getWarehouseToId(new ObjectId(req.getDestinationWarehouseId()));
         try{

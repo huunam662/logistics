@@ -1,7 +1,6 @@
 package warehouse_management.com.warehouse_management.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,22 +13,22 @@ import org.springframework.web.bind.annotation.*;
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.pagination.response.PageInfoDto;
-import warehouse_management.com.warehouse_management.dto.warehouse_transfer_ticket.request.ApprovalTicketDto;
-import warehouse_management.com.warehouse_management.dto.warehouse_transfer_ticket.request.CreateWarehouseTransferTicketDto;
-import warehouse_management.com.warehouse_management.dto.warehouse_transfer_ticket.response.WarehouseTransferTicketPageDto;
-import warehouse_management.com.warehouse_management.model.WarehouseTransferTicket;
-import warehouse_management.com.warehouse_management.service.WarehouseTransferTicketService;
+import warehouse_management.com.warehouse_management.dto.warehouse_transaction.request.ApprovalTicketDto;
+import warehouse_management.com.warehouse_management.dto.warehouse_transaction.request.CreateWarehouseTransactionDto;
+import warehouse_management.com.warehouse_management.dto.warehouse_transaction.response.WarehouseTransactionPageDto;
+import warehouse_management.com.warehouse_management.model.WarehouseTransaction;
+import warehouse_management.com.warehouse_management.service.WarehouseTransactionService;
 
 import java.io.ByteArrayInputStream;
 import java.util.Map;
 
 @RestController
 @Tag(name = "Warehouse Transfer Ticket", description = "FOR ADMIN / VP")
-@RequestMapping("/v1/warehouse-transfer-ticket")
+@RequestMapping("/v1/warehouse-transaction")
 @RequiredArgsConstructor
-public class WarehouseTransferTicketController {
+public class WarehouseTransactionController {
 
-    private final WarehouseTransferTicketService warehouseTransferTicketService;
+    private final WarehouseTransactionService warehouseTransferTicketService;
 
 //    @GetMapping("/{ticketId}/inventory-items")
 //    @Operation(
@@ -45,33 +44,33 @@ public class WarehouseTransferTicketController {
 
     @GetMapping("/page")
     @Operation(
-            summary = "GET Lấy dữ liệu Phiếu chuyển duyệt (Phân trang).",
-            description = "GET Lấy dữ liệu Phiếu chuyển duyệt (Phân trang)."
+            summary = "GET Lấy dữ liệu phiên điều chuyển nội bộ (Phân trang).",
+            description = "GET Lấy dữ liệu phiên điều chuyển nội bộ (Phân trang)."
     )
-    public ApiResponse<?> getPageWarehouseTransferTicket(@ModelAttribute PageOptionsDto optionsDto){
-        Page<WarehouseTransferTicketPageDto> pageWarehouseTransferTicketDto = warehouseTransferTicketService.getPageWarehouseTransferTicket(optionsDto);
+    public ApiResponse<?> getPageWarehouseTransaction(@ModelAttribute PageOptionsDto optionsDto){
+        Page<WarehouseTransactionPageDto> pageWarehouseTransferTicketDto = warehouseTransferTicketService.getPageWarehouseTransferTicket(optionsDto);
         return ApiResponse.success(new PageInfoDto<>(pageWarehouseTransferTicketDto));
     }
 
     @PatchMapping("/{ticketId}/approval-status")
     @Operation(
-            summary = "PATCH Duyệt / Hủy phiếu.",
-            description = "PATCH Duyệt / Hủy phiếu."
+            summary = "PATCH Duyệt / Hủy phiên điều chuyển nội bộ.",
+            description = "PATCH Duyệt / Hủy phiên điều chuyển nội bộ."
     )
-    public ResponseEntity<?> approvalTransferTicket(
+    public ResponseEntity<?> approvalTransaction(
             @PathVariable("ticketId") String ticketId,
             @Valid @RequestBody ApprovalTicketDto dto
     ){
-        WarehouseTransferTicket ticket = warehouseTransferTicketService.approvalTransferTicket(ticketId, dto);
+        WarehouseTransaction ticket = warehouseTransferTicketService.approvalTransaction(ticketId, dto);
         ApiResponse<?> res = ApiResponse.success();
-        res.setMessage("Cập nhật trạng thái phiếu "+ticket.getTicketCode()+" thành công.");
+        res.setMessage("Cập nhật trạng thái phiên điều chuyển "+ticket.getTicketCode()+" thành công.");
         return ResponseEntity.ok(res);
     }
 
     @GetMapping("/{ticketId}")
     @Operation(
-            summary = "GET chi tiết phiếu duyệt",
-            description = "GET chi tiết phiếu duyệt"
+            summary = "GET chi tiết phiên điều chuyển nội bộ.",
+            description = "GET chi tiết phiên điều chuyển nội bộ."
     )
     public ApiResponse<?> getById(
             @PathVariable("ticketId") String ticketId
@@ -106,11 +105,11 @@ public class WarehouseTransferTicketController {
 
     @PostMapping
     @Operation(
-            summary = "POST Tạo phiếu chuyển duyệt.",
-            description = "POST Tạo phiếu chuyển duyệt."
+            summary = "POST Tạo phiên điều chuyển nội bộ.",
+            description = "POST Tạo phiên điều chuyển nội bộ."
     )
-    public ResponseEntity<?> createTicket(@Valid @RequestBody CreateWarehouseTransferTicketDto dto){
-        WarehouseTransferTicket ticket = warehouseTransferTicketService.createTransferTicket(dto);
+    public ResponseEntity<?> createTicket(@Valid @RequestBody CreateWarehouseTransactionDto dto){
+        WarehouseTransaction ticket = warehouseTransferTicketService.createWarehouseTransaction(dto);
         ApiResponse<?> res = ApiResponse.success(Map.of("ticketId", ticket.getId()));
         return ResponseEntity.ok(res);
     }

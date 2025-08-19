@@ -1,4 +1,4 @@
-package warehouse_management.com.warehouse_management.dto.warehouse_transfer_ticket.response;
+package warehouse_management.com.warehouse_management.dto.warehouse_transaction.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
@@ -6,7 +6,7 @@ import org.bson.types.ObjectId;
 import java.time.LocalDateTime;
 
 @Data
-public class WarehouseTransferTicketPageDto {
+public class WarehouseTransactionPageDto {
     private ObjectId id;
     private String title;
     private String reason;

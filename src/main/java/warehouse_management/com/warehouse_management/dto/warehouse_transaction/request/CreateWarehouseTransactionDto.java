@@ -1,11 +1,11 @@
-package warehouse_management.com.warehouse_management.dto.warehouse_transfer_ticket.request;
+package warehouse_management.com.warehouse_management.dto.warehouse_transaction.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-public class CreateWarehouseTransferTicketDto {
+public class CreateWarehouseTransactionDto {
 
     private String ticketCode;      // Số phiếu điều chuyển (không bắt buộc)
     private String originWarehouseId;     // Kho nguồn
