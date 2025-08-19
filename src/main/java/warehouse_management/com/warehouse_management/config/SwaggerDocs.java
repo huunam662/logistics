@@ -2,14 +2,17 @@ package warehouse_management.com.warehouse_management.config;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.Paths;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
+import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import java.util.List;
+import java.util.Set;
 
 @Configuration
 public class SwaggerDocs {
@@ -41,16 +44,11 @@ public class SwaggerDocs {
         contact.setName("By Meu Solutions");
         contact.setEmail("contact@meu-solutions.com");
 
-//        License license = new License();
-//        license.setUrl(openApiValue.getLicenseUrl());
-//        license.setName(openApiValue.getLicenseName());
-
         Info info = new Info();
         info.setTitle("MeU Warehouse Logistics API docs.");
         info.setVersion("v1.0.0");
         info.setDescription("For MeU Warehouse Logistics Application Client Production.");
         info.setContact(contact);
-//        info.setLicense(license);
 
         return info;
     }
@@ -68,4 +66,21 @@ public class SwaggerDocs {
 
         return components;
     }
+
+
+    @Bean
+    public OpenApiCustomizer removeApiPrefixCustomizer(){
+        return openApi -> {
+            Paths paths = new Paths();
+            Set<String> pathKeys = openApi.getPaths().keySet();
+            for(String path : pathKeys){
+                if(path.startsWith("/api")){
+                    paths.put(path.replaceFirst("/api", ""), openApi.getPaths().get(path));
+                }
+                else paths.put(path, openApi.getPaths().get(path));
+            }
+            openApi.setPaths(paths);
+        };
+    }
+
 }
