@@ -107,33 +107,30 @@ public class InventoryItemController {
 
     @GetMapping("/po-numbers")
     @Operation(
-            summary = "GET lấy danh sách PO NUMBER theo loại kho.",
-            description = "GET lấy danh sách PO NUMBER theo loại kho."
+            summary = "GET lấy danh sách PO NUMBER theo kho.",
+            description = "GET lấy danh sách PO NUMBER theo kho."
     )
     public ApiResponse<?> getInventoryInStockPoNumbers(
-            @Parameter(description = "[PRODUCTION, DEPARTURE, DESTINATION, CONSIGNMENT]")
-            @RequestParam("warehouseType") String warehouseType,
             @Parameter(description = "[VEHICLE, ACCESSORY, SPARE_PART]")
             @RequestParam("inventoryType") List<String> inventoryTypes,
             @RequestParam(value = "poNumber", required = false, defaultValue = "") String poNumber,
-            @RequestParam(value = "warehouseId", required = false) String warehouseId
+            @RequestParam(value = "warehouseId") String warehouseId
     ){
-        List<InventoryPoWarehouseDto> poNumbers = inventoryItemService.getInventoryInStockPoNumbers(warehouseType, inventoryTypes, poNumber, warehouseId);
+        List<InventoryPoWarehouseDto> poNumbers = inventoryItemService.getInventoryInStockPoNumbers(inventoryTypes, poNumber, new ObjectId(warehouseId));
         return ApiResponse.success(poNumbers);
     }
 
     @GetMapping("/po-items")
     @Operation(
-            summary = "GET lấy danh sách hàng hóa thuộc PO theo loại kho.",
-            description = "GET lấy danh sách hàng hóa thuộc PO theo loại kho."
+            summary = "GET lấy danh sách hàng hóa thuộc PO theo kho.",
+            description = "GET lấy danh sách hàng hóa thuộc PO theo kho."
     )
     public ApiResponse<?> getInventoryInStockPoNumbers(
-            @Parameter(description = "[PRODUCTION, DEPARTURE, DESTINATION, CONSIGNMENT]")
-            @RequestParam("warehouseType") String warehouseType,
+            @RequestParam("warehouseId") String warehouseId,
             @RequestParam("poNumber") String poNumber,
             @RequestParam(value = "filter", required = false) String filter
     ){
-        List<InventoryItemPoNumberDto> poNumbers = inventoryItemService.getInventoryInStockByPoNumber(warehouseType, poNumber, filter);
+        List<InventoryItemPoNumberDto> poNumbers = inventoryItemService.getInventoryInStockByPoNumber(new ObjectId(warehouseId), poNumber, filter);
         return ApiResponse.success(poNumbers);
     }
 
