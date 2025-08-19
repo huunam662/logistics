@@ -12,8 +12,6 @@ public interface WarehouseRepository extends MongoRepository<Warehouse, ObjectId
 CustomWarehouseRepository {
     Optional<Warehouse> findByCode(String code);
 
-    Optional<Warehouse> findById(ObjectId id);
-
     // Tìm kho theo tên gần đúng (không phân biệt hoa thường)
     List<Warehouse> findByNameRegexIgnoreCase(String namePattern);
 
