@@ -66,9 +66,9 @@ ingress:
     kubernetes.io/ingress.class: nginx
     kubernetes.io/tls-acme: "true"
   hosts:
-    - host: meu-logistic-core.meu-solutions.com
+    - host: gateway.dev.meu-solutions.com
       paths:
-        - path: /
+        - path: /logistic-erp
           pathType: ImplementationSpecific
   tls: [ ]
   #  - secretName: chart-example-tls
