@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 @Data
 public class WarehouseTransactionPageDto {
     private ObjectId id;
+    private String ticketCode;
     private String title;
     private String reason;
     private String status;
