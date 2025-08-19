@@ -33,9 +33,9 @@ public interface CustomInventoryItemRepository {
 
     Page<InventoryCentralWarehouseSparePartDto> findPageInventoryCentralWarehouseSparePart(PageOptionsDto optionsReq);
 
-    List<InventoryPoWarehouseDto> findPoNumbersOfInventoryInStock(String warehouseType, List<String> inventoryTypes, String poNumber, String warehouseId);
+    List<InventoryPoWarehouseDto> findPoNumbersOfInventoryInStock(List<String> inventoryTypes, String poNumber, ObjectId warehouseId);
 
-    List<InventoryItemPoNumberDto> findInventoryInStockByPoNumber(String warehouseType, String poNumber, String filter);
+    List<InventoryItemPoNumberDto> findInventoryInStockByPoNumber(ObjectId warehouseId, String poNumber, String filter);
 
     List<InventoryItem> insertAll(Collection<InventoryItem> inventoryItems);
 

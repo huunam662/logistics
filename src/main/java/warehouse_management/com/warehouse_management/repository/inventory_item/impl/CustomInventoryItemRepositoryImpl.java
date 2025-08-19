@@ -355,19 +355,15 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     }
 
     @Override
-    public List<InventoryPoWarehouseDto> findPoNumbersOfInventoryInStock(String warehouseType, List<String> inventoryTypes, String poNumber, String warehouseId){
-        List<Criteria> filters = new ArrayList<>(List.of(
-                Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
-                Criteria.where("deletedAt").isNull(),
-                Criteria.where("inventoryType").in(inventoryTypes),
-                Criteria.where("warehouse.type").is(warehouseType),
-                Criteria.where("poNumber").regex(poNumber, "i") // giống like '%%'
-        ));
-        if(warehouseId != null) filters.add(Criteria.where("warehouseId").is(new ObjectId(warehouseId)));
+    public List<InventoryPoWarehouseDto> findPoNumbersOfInventoryInStock(List<String> inventoryTypes, String poNumber, ObjectId warehouseId){
         List<AggregationOperation> aggOps = List.of(
-                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
-                Aggregation.unwind("warehouse"),
-                Aggregation.match(new Criteria().andOperator(filters)),
+                Aggregation.match(new Criteria().andOperator(
+                        Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
+                        Criteria.where("deletedAt").isNull(),
+                        Criteria.where("inventoryType").in(inventoryTypes),
+                        Criteria.where("poNumber").regex(poNumber, "i"), // giống like '%%'
+                        Criteria.where("warehouseId").is(warehouseId)
+                )),
                 Aggregation.group("poNumber"),
                 Aggregation.project().and("_id").as("poNumber")
                         .andExclude("_id")
@@ -377,22 +373,19 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     }
 
     @Override
-    public List<InventoryItemPoNumberDto> findInventoryInStockByPoNumber(String warehouseType, String poNumber, String filter) {
-        List<AggregationOperation> aggOps = new ArrayList<>(List.of(
-                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
-                Aggregation.unwind("warehouse"),
-                Aggregation.match(new Criteria().andOperator(
-                        Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
-                        Criteria.where("deletedAt").isNull(),
-                        Criteria.where("poNumber").is(poNumber),
-                        Criteria.where("warehouse.type").is(warehouseType)
-                ))
+    public List<InventoryItemPoNumberDto> findInventoryInStockByPoNumber(ObjectId warehouseId, String poNumber, String filter) {
+        List<Criteria> criteria = new ArrayList<>(List.of(
+                Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
+                Criteria.where("deletedAt").isNull(),
+                Criteria.where("poNumber").is(poNumber),
+                Criteria.where("warehouseId").is(warehouseId)
         ));
         if(filter != null && !filter.isBlank()){
             Criteria filterCriteria = MongoRsqlUtils.RsqlParser.parse(filter, Map.of());
-            aggOps.add(Aggregation.match(filterCriteria));
+            criteria.add(filterCriteria);
         }
-        AggregationResults<InventoryItemPoNumberDto> aggResults = mongoTemplate.aggregate(Aggregation.newAggregation(aggOps), InventoryItem.class, InventoryItemPoNumberDto.class);
+        AggregationOperation agg = Aggregation.match(new Criteria().andOperator(criteria));
+        AggregationResults<InventoryItemPoNumberDto> aggResults = mongoTemplate.aggregate(Aggregation.newAggregation(agg), InventoryItem.class, InventoryItemPoNumberDto.class);
         return aggResults.getMappedResults();
     }
 
