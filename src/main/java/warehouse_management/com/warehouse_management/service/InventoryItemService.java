@@ -373,5 +373,13 @@ public class InventoryItemService {
         return inventoryItemRepository.insert(itemsToInsert);
     }
 
+    @AuditAction(action = "testMethod")
+    public void approve(Integer approved) {
+        if (approved > 0) {
+            AuditContext.setDetail("Approved failed because another person has approved");
+        } else {
+            AuditContext.setDetail("Transaction has been approved by ...");
+        }
+    }
 
 }
