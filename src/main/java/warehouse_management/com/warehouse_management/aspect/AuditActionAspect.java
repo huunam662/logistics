@@ -40,7 +40,9 @@ public class AuditActionAspect {
             errorMessage = e.getMessage();
             throw e;
         } finally {
-            AuditLog log = new AuditLog(userId, action, LocalDateTime.now(), status, errorMessage, "");
+            String detail = AuditContext.getDetail();
+            AuditContext.clear(); // tránh leak memory
+            AuditLog log = new AuditLog(userId, action, LocalDateTime.now(), status, errorMessage, detail);
             auditLogRepository.save(log);
         }
 
