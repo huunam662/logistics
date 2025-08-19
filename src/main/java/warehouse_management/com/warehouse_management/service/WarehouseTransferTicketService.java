@@ -52,7 +52,7 @@ public class WarehouseTransferTicketService {
         Warehouse destinationWarehouse = warehouseService.getWarehouseToId(dto.getDestinationWarehouseId());
         ticket.setOriginWarehouseId(originWarehouse.getId());
         ticket.setDestinationWarehouseId(destinationWarehouse.getId());
-        ticket.setTitle("Chuyển hàng từ kho \"" + originWarehouse.getName() + "\" đến kho \"" + destinationWarehouse.getName() + "\"us" +
+        ticket.setTitle("Chuyển hàng từ kho \"" + originWarehouse.getName() + "\" đến kho \"" + destinationWarehouse.getName() + "\"" +
                 "");
         ticket.setReason("Điều chuyển kho");
         ticket.setRequesterId(null);
