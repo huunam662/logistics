@@ -68,7 +68,7 @@ ingress:
   hosts:
     - host: gateway.dev.meu-solutions.com
       paths:
-        - path: /logistic-erp
+        - path: /logistic-erp(/|$)(.*)
           pathType: ImplementationSpecific
   tls: [ ]
   #  - secretName: chart-example-tls
