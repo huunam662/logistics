@@ -9,11 +9,12 @@ import org.bson.types.ObjectId;
 import warehouse_management.com.warehouse_management.annotation.Validation;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ExcelImportProductionProductDto {
+public class ExcelImportDestinationProductDto {
     // Thông tin ràng buộc khóa
     private ObjectId warehouseId;
     private String inventoryType;
@@ -21,7 +22,6 @@ public class ExcelImportProductionProductDto {
 
     @Validation(label = "PO", required = true)
     private String poNumber; // Số của Đơn đặt hàng (Purchase Order) 1
-
 
 
     @Validation(label = "Mã sản phẩm", required = true)
@@ -86,13 +86,14 @@ public class ExcelImportProductionProductDto {
     @Data
     @AllArgsConstructor
     public static class Logistics {
-        @Validation(label = "Ngày đặt hàng", required = true)
+        @Validation(label = "Ngày giao hàng", required = true)
         @Schema(example = "yyyy-MM-dd")
-        private String orderDate; // Ngày đặt hàng 2
-        @Validation(label = "Ngày dự kiến SX xong", required = true)
-        @Schema(example = "yyyy-MM-dd")
-        private String estimateCompletionDate; // Chỉ dùng trong báo cáo hàng chờ SX 27
+        private LocalDateTime departureDate;      // Ngày giao hàng
+
     }
 
+    @Validation(label = "Trạng thái", required = true)
+    private String status;
+    private Integer manufacturingYear;
 
 }

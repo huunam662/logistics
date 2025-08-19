@@ -9,6 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
 import warehouse_management.com.warehouse_management.annotation.AuditAction;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.*;
+import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportDestinationProductDto;
+import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportDestinationSparePartDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportProductionProductDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportProductionSparePartDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
@@ -325,6 +327,21 @@ public class InventoryItemService {
         return inventoryItemRepository.insert(itemsToInsert);
     }
 
+    public List<InventoryItem> bulkCreateDestinationProductItems(List<ExcelImportDestinationProductDto> dtos) {
+        if (dtos == null || dtos.isEmpty()) {
+            return List.of();
+        }
+        List<InventoryItem> itemsToInsert = dtos.stream()
+                .map(dto -> {
+                    //DTO MAPPING
+                    InventoryItem item = mapper.toInventoryItem(dto);
+                    return item;
+                })
+                .collect(Collectors.toList());
+
+        return inventoryItemRepository.insert(itemsToInsert);
+    }
+
     public List<InventoryItem> bulkCreateProductionSparePartItems(List<ExcelImportProductionSparePartDto> dtos) {
         if (dtos == null || dtos.isEmpty()) {
             return List.of();
@@ -334,6 +351,21 @@ public class InventoryItemService {
                     //DTO MAPPING
                     InventoryItem item = mapper.toInventoryItem(dto);
                     item.setStatus(InventoryItemStatus.IN_STOCK);
+                    return item;
+                })
+                .collect(Collectors.toList());
+
+        return inventoryItemRepository.insert(itemsToInsert);
+    }
+
+    public List<InventoryItem> bulkCreateDestinationSparePartItems(List<ExcelImportDestinationSparePartDto> dtos) {
+        if (dtos == null || dtos.isEmpty()) {
+            return List.of();
+        }
+        List<InventoryItem> itemsToInsert = dtos.stream()
+                .map(dto -> {
+                    //DTO MAPPING
+                    InventoryItem item = mapper.toInventoryItem(dto);
                     return item;
                 })
                 .collect(Collectors.toList());
