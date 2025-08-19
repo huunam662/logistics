@@ -4,7 +4,7 @@ import org.springframework.lang.Nullable;
 
 import java.util.Arrays;
 
-public enum TransferTicketStatus implements EnumClass<String> {
+public enum WarehouseTransactionStatus implements EnumClass<String> {
 
     PENDING("PENDING"),
     APPROVED("APPROVED"),
@@ -12,7 +12,7 @@ public enum TransferTicketStatus implements EnumClass<String> {
 
     private final String id;
 
-    TransferTicketStatus(String id) {
+    WarehouseTransactionStatus(String id) {
         this.id = id;
     }
 
@@ -21,8 +21,8 @@ public enum TransferTicketStatus implements EnumClass<String> {
     }
 
     @Nullable
-    public static TransferTicketStatus fromId(String id) {
-        for (TransferTicketStatus at : TransferTicketStatus.values()) {
+    public static WarehouseTransactionStatus fromId(String id) {
+        for (WarehouseTransactionStatus at : WarehouseTransactionStatus.values()) {
             if (at.getId().equals(id)) {
                 return at;
             }
@@ -31,7 +31,7 @@ public enum TransferTicketStatus implements EnumClass<String> {
     }
 
     public static boolean contains(String id) {
-        TransferTicketStatus status = fromId(id);
+        WarehouseTransactionStatus status = fromId(id);
         if(status == null) return false;
         return Arrays.stream(values()).toList().contains(status);
     }

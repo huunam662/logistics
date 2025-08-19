@@ -12,7 +12,7 @@ import warehouse_management.com.warehouse_management.dto.inventory_item.request.
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
 import warehouse_management.com.warehouse_management.model.Container;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
-import warehouse_management.com.warehouse_management.model.WarehouseTransferTicket;
+import warehouse_management.com.warehouse_management.model.WarehouseTransaction;
 
 @Mapper(componentModel = "spring", builder = @Builder(disableBuilder = true))
 public interface InventoryItemMapper {
@@ -44,7 +44,7 @@ public interface InventoryItemMapper {
 
     Container.InventoryItemContainer toInventoryItemContainer(InventoryItem inventoryItem);
 
-    WarehouseTransferTicket.InventoryItemTicket toInventoryItemTicket(InventoryItem inventoryItem);
+    WarehouseTransaction.InventoryItemTicket toInventoryItemTicket(InventoryItem inventoryItem);
 
     InventoryProductDetailsDto toInventoryProductDetailsDto(Container.InventoryItemContainer dto);
 
