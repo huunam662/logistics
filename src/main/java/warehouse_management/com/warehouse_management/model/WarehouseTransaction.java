@@ -103,7 +103,6 @@ public class WarehouseTransaction {
         private String inventoryType;   // Loại hàng tồn (VD: phụ kiện, ...) - Bắt buộc
         private Integer manufacturingYear; // Năm sản xuất – Không bắt buộc
         private Integer quantity;   // Số lượng hàng hóa
-        private String status;         // Trạng thái hiện tại (IN_STOCK, IN_TRANSIT...) – Bắt buộc
         private String contractNumber; // Số hợp đồng
         private String warehouseType;  // Loại kho (kho bảo quản dành cho hàng hóa)
         private String initialCondition;       // Mô tả nguyên trạng khi nhập kho – Không bắt buộc
@@ -136,12 +135,6 @@ public class WarehouseTransaction {
         public static class Pricing {
             @Field(targetType = FieldType.DECIMAL128)
             private BigDecimal purchasePrice;       // Giá mua vào
-            @Field(targetType = FieldType.DECIMAL128)
-            private BigDecimal salePriceR0;         // Giá bán đề xuất R0
-            @Field(targetType = FieldType.DECIMAL128)
-            private BigDecimal salePriceR1;         // Giá bán đề xuất R1
-            @Field(targetType = FieldType.DECIMAL128)
-            private BigDecimal actualSalePrice;     // Giá bán thực tế
             private String agent;                   // Đại lý (nếu có)
         }
 
@@ -152,7 +145,6 @@ public class WarehouseTransaction {
             private LocalDateTime orderDate;        // Ngày đặt hàng
             private LocalDateTime departureDate;    // Ngày khởi hành
             private LocalDateTime arrivalDate;      // Ngày đến
-            private LocalDateTime estimateCompletionDate; // Ngày dự kiến sản xuất xong
         }
     }
 }
