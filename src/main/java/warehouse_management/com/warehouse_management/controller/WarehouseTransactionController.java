@@ -19,6 +19,7 @@ import warehouse_management.com.warehouse_management.dto.warehouse_transaction.r
 import warehouse_management.com.warehouse_management.enumerate.WarehouseTranType;
 import warehouse_management.com.warehouse_management.model.WarehouseTransaction;
 import warehouse_management.com.warehouse_management.service.WarehouseTransactionService;
+import warehouse_management.com.warehouse_management.service.report.ReportService;
 
 import java.io.ByteArrayInputStream;
 import java.util.Map;
@@ -30,6 +31,7 @@ import java.util.Map;
 public class WarehouseTransactionController {
 
     private final WarehouseTransactionService warehouseTransferTicketService;
+    private final ReportService reportService;
 
 //    @GetMapping("/{ticketId}/inventory-items")
 //    @Operation(
@@ -123,7 +125,7 @@ public class WarehouseTransactionController {
             @RequestParam(name = "type", required = false, defaultValue = "PXKDCNB") String type
     ) {
         // type sẽ là "in" nếu không truyền, hoặc "out" nếu truyền ?type=out
-        byte[] excelBytes = warehouseTransferTicketService.getReport(ticketId, type);
+        byte[] excelBytes = reportService.getReport(ticketId, type);
 
         InputStreamResource resource = new InputStreamResource(new ByteArrayInputStream(excelBytes));
 
