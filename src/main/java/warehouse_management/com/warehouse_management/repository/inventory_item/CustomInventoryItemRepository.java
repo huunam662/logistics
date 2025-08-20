@@ -53,6 +53,8 @@ public interface CustomInventoryItemRepository {
 
     long bulkSoftDelete(Collection<ObjectId> ids, ObjectId deletedBy);
 
+    long bulkHardDelete(Collection<ObjectId> ids);
+
     List<InventoryProductDetailsDto> findInventoryProductDetailsInIds(ObjectId ids);
 
     List<InventorySparePartDetailsDto> findInventorySparePartDetailsInIds(ObjectId ids);

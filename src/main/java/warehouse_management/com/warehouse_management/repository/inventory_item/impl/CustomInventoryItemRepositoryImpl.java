@@ -5,6 +5,7 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.model.WriteModel;
+import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -464,6 +465,13 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 .set("deletedBy", deletedBy);
         UpdateResult result = mongoTemplate.updateMulti(query, update, InventoryItem.class);
         return result.getModifiedCount();
+    }
+
+    @Override
+    public long bulkHardDelete(Collection<ObjectId> ids) {
+        Query query = new Query(Criteria.where("_id").in(ids));
+        DeleteResult delete = mongoTemplate.remove(query, InventoryItem.class);
+        return delete.getDeletedCount();
     }
 
     @Override
