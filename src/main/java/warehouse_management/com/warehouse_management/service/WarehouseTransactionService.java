@@ -17,6 +17,7 @@ import warehouse_management.com.warehouse_management.dto.warehouse_transaction.r
 import warehouse_management.com.warehouse_management.dto.warehouse_transaction.response.WarehouseTransactionPageDto;
 import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
 import warehouse_management.com.warehouse_management.enumerate.InventoryType;
+import warehouse_management.com.warehouse_management.enumerate.WarehouseTranType;
 import warehouse_management.com.warehouse_management.enumerate.WarehouseTransactionStatus;
 import warehouse_management.com.warehouse_management.exceptions.LogicErrException;
 import warehouse_management.com.warehouse_management.mapper.WarehouseTransactionMapper;
@@ -201,6 +202,13 @@ public class WarehouseTransactionService {
 
     public Page<WarehouseTransactionPageDto> getPageWarehouseTransferTicket(PageOptionsDto optionsDto) {
         return warehouseTransferTicketRepository.findPageWarehouseTransferTicket(optionsDto);
+    }
+
+    public Page<WarehouseTransactionPageDto> getPageWarehouseTransferTicket(
+            PageOptionsDto optionsDto,
+            WarehouseTranType tranType
+    ) {
+        return warehouseTransferTicketRepository.findPageWarehouseTransferTicket(optionsDto, tranType);
     }
 
     public byte[] getReport(String ticketId, String type) {
