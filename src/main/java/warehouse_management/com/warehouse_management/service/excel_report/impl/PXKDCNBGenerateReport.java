@@ -4,8 +4,6 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.bson.types.ObjectId;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.TransactionDefinition;
-import warehouse_management.com.warehouse_management.exceptions.LogicErrException;
 import warehouse_management.com.warehouse_management.model.WarehouseTransaction;
 import warehouse_management.com.warehouse_management.repository.warehouse_transaction.WarehouseTransactionRepository;
 import warehouse_management.com.warehouse_management.service.excel_report.GenerateReportStrategy;
@@ -61,7 +59,7 @@ public class PXKDCNBGenerateReport implements GenerateReportStrategy {
 
     @Override
     public void preprocessWorkbook(Workbook workbook, Map<String, Object> context) {
-        List<?> items = (List<?>) context.get("inventoryItems"); // Lấy danh sách item từ context
+        List<?> items = (List<?>) context.get("dataset"); // Lấy danh sách item từ context
         if (items != null && items.size() > 1) {
             Sheet sheet = workbook.getSheetAt(0);
             int datasetRowIdx = GeneralResource.PXKDCNB_DATASET_ROW_IDX;
