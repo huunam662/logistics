@@ -215,7 +215,8 @@ public class ContainerService {
                 // Xóa mềm các phụ tùng được clone trước đó ở kho nguồn
                 inventoryItemRepository.bulkSoftDelete(sparePartsToDel, null);
             }
-            inventoryItemRepository.updateStatusAndUnRefContainer(container.getId(), InventoryItemStatus.IN_STOCK.getId());
+            List<ObjectId> itemIds = container.getInventoryItems().stream().map(Container.InventoryItemContainer::getId).toList();
+            inventoryItemRepository.updateStatusAndUnRefContainer(itemIds, InventoryItemStatus.IN_STOCK.getId());
             container.setCompletionDate(LocalDateTime.now());
         }
         else if(containerStatus.equals(ContainerStatus.REJECTED)){
@@ -240,8 +241,9 @@ public class ContainerService {
                 // Xóa mềm các phụ tùng được clone trước đó ở kho nguồn
                 inventoryItemRepository.bulkSoftDelete(sparePartsToDel, null);
             }
+            List<ObjectId> itemIds = container.getInventoryItems().stream().map(Container.InventoryItemContainer::getId).toList();
             // Cập nhật hàng hóa quay lại kho cũ
-            inventoryItemRepository.updateStatusAndWarehouseAndUnRefContainer(container.getId(), container.getFromWareHouseId(), InventoryItemStatus.IN_STOCK.getId());
+            inventoryItemRepository.updateStatusAndWarehouseAndUnRefContainer(itemIds, container.getFromWareHouseId(), InventoryItemStatus.IN_STOCK.getId());
             container.setCompletionDate(LocalDateTime.now());
         }
         container.setContainerStatus(containerStatus);

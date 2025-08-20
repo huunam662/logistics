@@ -33,17 +33,17 @@ public interface CustomInventoryItemRepository {
 
     Page<InventoryCentralWarehouseSparePartDto> findPageInventoryCentralWarehouseSparePart(PageOptionsDto optionsReq);
 
-    List<InventoryPoWarehouseDto> findPoNumbersOfInventoryInStock(String warehouseType, List<String> inventoryTypes, String poNumber, String warehouseId);
+    List<InventoryPoWarehouseDto> findPoNumbersOfInventoryInStock(List<String> inventoryTypes, String poNumber, ObjectId warehouseId);
 
-    List<InventoryItemPoNumberDto> findInventoryInStockByPoNumber(String warehouseType, String poNumber, String filter);
+    List<InventoryItemPoNumberDto> findInventoryInStockByPoNumber(ObjectId warehouseId, String poNumber, String filter);
 
     List<InventoryItem> insertAll(Collection<InventoryItem> inventoryItems);
 
     void bulkUpdateTransfer(Collection<InventoryItem> inventoryItems);
 
-    void updateStatusAndUnRefContainer(ObjectId containerId, String status);
+    void updateStatusAndUnRefContainer(Collection<ObjectId> ids, String status);
 
-    void updateStatusAndWarehouseAndUnRefContainer(ObjectId containerId, ObjectId warehouseId, String status);
+    void updateStatusAndWarehouseAndUnRefContainer(Collection<ObjectId> ids, ObjectId warehouseId, String status);
 
     void updateStatusByIdIn(Collection<ObjectId> ids, String status);
 

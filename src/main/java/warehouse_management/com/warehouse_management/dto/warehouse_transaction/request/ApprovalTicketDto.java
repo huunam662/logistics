@@ -1,4 +1,4 @@
-package warehouse_management.com.warehouse_management.dto.warehouse_transfer_ticket.request;
+package warehouse_management.com.warehouse_management.dto.warehouse_transaction.request;
 
 import lombok.Data;
 

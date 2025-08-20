@@ -9,10 +9,9 @@ import org.springframework.data.annotation.*;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.mapping.FieldType;
-import warehouse_management.com.warehouse_management.enumerate.TransferTicketStatus;
+import warehouse_management.com.warehouse_management.enumerate.WarehouseTransactionStatus;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -20,8 +19,8 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "warehouse_transfer_ticket")
-public class WarehouseTransferTicket {
+@Document(collection = "warehouse_transaction")
+public class WarehouseTransaction {
 
     @Id
     private ObjectId id; // _id – Khóa chính
@@ -58,11 +57,11 @@ public class WarehouseTransferTicket {
     private Department stockOutDepartment;  // Bộ phận xuất kho
     private ShipUnitInfo shipUnitInfo;  //  Thông tin vận chuyển
 
-    public TransferTicketStatus getStatusEnum() {
-        return status == null ? null : TransferTicketStatus.fromId(status);
+    public WarehouseTransactionStatus getStatusEnum() {
+        return status == null ? null : WarehouseTransactionStatus.fromId(status);
     }
 
-    public void setStatusEnum(TransferTicketStatus status) {
+    public void setStatusEnum(WarehouseTransactionStatus status) {
         this.status = status == null ? null : status.getId();
     }
 
