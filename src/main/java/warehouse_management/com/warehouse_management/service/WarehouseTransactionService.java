@@ -1,7 +1,6 @@
 package warehouse_management.com.warehouse_management.service;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.bson.types.ObjectId;
@@ -10,7 +9,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import warehouse_management.com.warehouse_management.annotation.AuditAction;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.warehouse_transaction.request.ApprovalTicketDto;
 import warehouse_management.com.warehouse_management.dto.warehouse_transaction.request.CreateWarehouseTransactionDto;
@@ -26,9 +24,8 @@ import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.model.WarehouseTransaction;
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
 import warehouse_management.com.warehouse_management.repository.warehouse_transaction.WarehouseTransactionRepository;
-import warehouse_management.com.warehouse_management.service.excel_report.GenerateReportStrategy;
-import warehouse_management.com.warehouse_management.service.excel_report.GenerateReportStrategyFactory;
-import warehouse_management.com.warehouse_management.utils.GeneralResource;
+import warehouse_management.com.warehouse_management.service.report.GenerateReportStrategy;
+import warehouse_management.com.warehouse_management.service.report.GenerateReportStrategyFactory;
 import warehouse_management.com.warehouse_management.utils.JsonUtils;
 import java.io.*;
 import java.time.LocalDate;
@@ -195,82 +192,9 @@ public class WarehouseTransactionService {
         return warehouseTransferTicketRepository.findPageWarehouseTransferTicket(optionsDto, tranType);
     }
 
-    public byte[] getReport(String ticketId, String type) {
-        GenerateReportStrategy strategy = GenerateReportStrategyFactory.getStrategy(type)
-                .orElseThrow(() -> LogicErrException.of("Loại báo cáo không hợp lệ: " + type));
-
-        Map<String, Object> contextMap = strategy.prepareContext(ticketId);
-
-        String templateFileName = strategy.getTemplateFileName();
 
 
-        try (InputStream fis = new ClassPathResource("report_templates/" + templateFileName).getInputStream();
-             Workbook workbook = new XSSFWorkbook(fis);
-             ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
-            strategy.preprocessWorkbook(workbook, contextMap);
-
-            workbook.write(bos);
-
-            try (InputStream templateStream = new ByteArrayInputStream(bos.toByteArray());
-                 ByteArrayOutputStream os = new ByteArrayOutputStream()) {
-
-                org.jxls.common.Context context = new org.jxls.common.Context(contextMap);
-                org.jxls.util.JxlsHelper.getInstance().processTemplate(templateStream, os, context);
-
-                return os.toByteArray();
-            }
-        } catch (IOException e) {
-            throw LogicErrException.of("Failed to generate report: " + e.getMessage());
-        }
-    }
-
-    public byte[] getReportTemp(String ticketId, String type) {
-        WarehouseTransaction ticket = getById(ticketId);
-        int dataSetSize = ticket.getInventoryItems().size();
-        // 2. Chọn template dựa vào type
-        int datasetContentRowIdx = getDatasetRowIdx(type);
-        String templateFileName = type + ".xlsx";
-        // 3. Parse jsonPrint ra Map -> lấy dataset
-        Map<String, Object> jsonMap = JsonUtils.parseJsonPrint(ticket.getJsonPrint());
 
 
-        try (InputStream fis = new ClassPathResource("report_templates/" + templateFileName).getInputStream(); Workbook workbook = new XSSFWorkbook(fis); ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
-            Sheet sheet = workbook.getSheetAt(0);
-            // shift row nếu cần để tránh bị đè lên các ô phía dưới tại phiếu PXKDCNB
-            if (dataSetSize > 1) {
-                sheet.shiftRows(datasetContentRowIdx, sheet.getLastRowNum(), dataSetSize - 1);
-            }
-            workbook.write(bos);
-
-
-            try (InputStream templateStream = new ByteArrayInputStream(bos.toByteArray());
-                 ByteArrayOutputStream os = new ByteArrayOutputStream()) {
-
-                org.jxls.common.Context context = new org.jxls.common.Context();
-                jsonMap.forEach(context::putVar); // put tất cả key từ jsonPrint
-                org.jxls.util.JxlsHelper.getInstance().processTemplate(templateStream, os, context);
-
-                return os.toByteArray();
-            }
-
-        } catch (IOException e) {
-            throw LogicErrException.of("Failed to generate report: " + e.getMessage());
-        }
-    }
-
-
-    public int getDatasetRowIdx(String type) {
-        switch (type) {
-            case "PNK":
-                return GeneralResource.PXK_PNK_DATASET_ROW_IDX;
-            case "PXK":
-                return GeneralResource.PXK_PNK_DATASET_ROW_IDX;
-            case "PXKDCNB":
-                return GeneralResource.PXKDCNB_DATASET_ROW_IDX;
-
-            default:
-                return -1;
-        }
-    }
 
 }
