@@ -1,9 +1,9 @@
-package warehouse_management.com.warehouse_management.dto.excel_report;
+package warehouse_management.com.warehouse_management.dto.report;
 
 import lombok.Data;
 
 @Data
-public class InventoryItemDataSetDto {
+public class InventoryItemDataSetIDto {
     private int index;     // STT
     private String name;
     private String serialNumber;

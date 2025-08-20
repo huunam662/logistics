@@ -1,4 +1,4 @@
-package warehouse_management.com.warehouse_management.service.excel_report;
+package warehouse_management.com.warehouse_management.service.report;
 
 import org.apache.poi.ss.usermodel.Workbook;
 
