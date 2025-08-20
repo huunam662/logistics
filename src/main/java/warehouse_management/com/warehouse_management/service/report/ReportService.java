@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 @Component
-public class ReportUtil {
+public class ReportService {
     public byte[] getReport(String ticketId, String type) {
         GenerateReportStrategy strategy = GenerateReportStrategyFactory.getStrategy(type)
                 .orElseThrow(() -> LogicErrException.of("Loại báo cáo không hợp lệ: " + type));
