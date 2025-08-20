@@ -16,6 +16,7 @@ import warehouse_management.com.warehouse_management.dto.pagination.response.Pag
 import warehouse_management.com.warehouse_management.dto.warehouse_transaction.request.ApprovalTicketDto;
 import warehouse_management.com.warehouse_management.dto.warehouse_transaction.request.CreateWarehouseTransactionDto;
 import warehouse_management.com.warehouse_management.dto.warehouse_transaction.response.WarehouseTransactionPageDto;
+import warehouse_management.com.warehouse_management.enumerate.WarehouseTranType;
 import warehouse_management.com.warehouse_management.model.WarehouseTransaction;
 import warehouse_management.com.warehouse_management.service.WarehouseTransactionService;
 
@@ -51,6 +52,40 @@ public class WarehouseTransactionController {
         Page<WarehouseTransactionPageDto> pageWarehouseTransferTicketDto = warehouseTransferTicketService.getPageWarehouseTransferTicket(optionsDto);
         return ApiResponse.success(new PageInfoDto<>(pageWarehouseTransferTicketDto));
     }
+
+    @GetMapping("/page/local_transfer")
+    @Operation(
+            summary = "GET Lấy giao dịch điều chuyển nội bộ (Phân trang).",
+            description = "Dùng cho giao dịch LOCAL_TRANSFER"
+    )
+    public ApiResponse<?> getPageLocalTransfer(@ModelAttribute PageOptionsDto optionsDto){
+        Page<WarehouseTransactionPageDto> page =
+                warehouseTransferTicketService.getPageWarehouseTransferTicket(optionsDto, WarehouseTranType.LOCAL_TRANSFER);
+        return ApiResponse.success(new PageInfoDto<>(page));
+    }
+
+    @GetMapping("/page/warehouse_inout")
+    @Operation(
+            summary = "GET Lấy giao dịch nhập/xuất kho (Phân trang).",
+            description = "Dùng cho giao dịch WAREHOUSE_INOUT"
+    )
+    public ApiResponse<?> getPageWarehouseInOut(@ModelAttribute PageOptionsDto optionsDto){
+        Page<WarehouseTransactionPageDto> page =
+                warehouseTransferTicketService.getPageWarehouseTransferTicket(optionsDto, WarehouseTranType.WAREHOUSE_INOUT);
+        return ApiResponse.success(new PageInfoDto<>(page));
+    }
+
+    @GetMapping("/page/sale_right_transfer")
+    @Operation(
+            summary = "GET Lấy giao dịch điều chuyển quyền bán hàng (Phân trang).",
+            description = "Dùng cho giao dịch SALE_RIGHT_TRANSFER"
+    )
+    public ApiResponse<?> getPageSaleRightTransfer(@ModelAttribute PageOptionsDto optionsDto){
+        Page<WarehouseTransactionPageDto> page =
+                warehouseTransferTicketService.getPageWarehouseTransferTicket(optionsDto, WarehouseTranType.SALE_RIGHT_TRANSFER);
+        return ApiResponse.success(new PageInfoDto<>(page));
+    }
+
 
     @PatchMapping("/{ticketId}/approval-status")
     @Operation(

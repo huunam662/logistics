@@ -17,6 +17,7 @@ import warehouse_management.com.warehouse_management.dto.warehouse_transaction.r
 import warehouse_management.com.warehouse_management.dto.warehouse_transaction.response.WarehouseTransactionPageDto;
 import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
 import warehouse_management.com.warehouse_management.enumerate.InventoryType;
+import warehouse_management.com.warehouse_management.enumerate.WarehouseTranType;
 import warehouse_management.com.warehouse_management.enumerate.WarehouseTransactionStatus;
 import warehouse_management.com.warehouse_management.exceptions.LogicErrException;
 import warehouse_management.com.warehouse_management.mapper.WarehouseTransactionMapper;
@@ -25,6 +26,8 @@ import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.model.WarehouseTransaction;
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
 import warehouse_management.com.warehouse_management.repository.warehouse_transaction.WarehouseTransactionRepository;
+import warehouse_management.com.warehouse_management.service.excel_report.GenerateReportStrategy;
+import warehouse_management.com.warehouse_management.service.excel_report.GenerateReportStrategyFactory;
 import warehouse_management.com.warehouse_management.utils.GeneralResource;
 import warehouse_management.com.warehouse_management.utils.JsonUtils;
 import java.io.*;
@@ -185,8 +188,43 @@ public class WarehouseTransactionService {
         return warehouseTransferTicketRepository.findPageWarehouseTransferTicket(optionsDto);
     }
 
-    @AuditAction(action = "GENERATE_REPORT")
+    public Page<WarehouseTransactionPageDto> getPageWarehouseTransferTicket(
+            PageOptionsDto optionsDto,
+            WarehouseTranType tranType
+    ) {
+        return warehouseTransferTicketRepository.findPageWarehouseTransferTicket(optionsDto, tranType);
+    }
+
     public byte[] getReport(String ticketId, String type) {
+        GenerateReportStrategy strategy = GenerateReportStrategyFactory.getStrategy(type)
+                .orElseThrow(() -> LogicErrException.of("Loại báo cáo không hợp lệ: " + type));
+
+        Map<String, Object> contextMap = strategy.prepareContext(ticketId);
+
+        String templateFileName = strategy.getTemplateFileName();
+
+
+        try (InputStream fis = new ClassPathResource("report_templates/" + templateFileName).getInputStream();
+             Workbook workbook = new XSSFWorkbook(fis);
+             ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+            strategy.preprocessWorkbook(workbook, contextMap);
+
+            workbook.write(bos);
+
+            try (InputStream templateStream = new ByteArrayInputStream(bos.toByteArray());
+                 ByteArrayOutputStream os = new ByteArrayOutputStream()) {
+
+                org.jxls.common.Context context = new org.jxls.common.Context(contextMap);
+                org.jxls.util.JxlsHelper.getInstance().processTemplate(templateStream, os, context);
+
+                return os.toByteArray();
+            }
+        } catch (IOException e) {
+            throw LogicErrException.of("Failed to generate report: " + e.getMessage());
+        }
+    }
+
+    public byte[] getReportTemp(String ticketId, String type) {
         WarehouseTransaction ticket = getById(ticketId);
         int dataSetSize = ticket.getInventoryItems().size();
         // 2. Chọn template dựa vào type
@@ -219,6 +257,7 @@ public class WarehouseTransactionService {
             throw LogicErrException.of("Failed to generate report: " + e.getMessage());
         }
     }
+
 
     public int getDatasetRowIdx(String type) {
         switch (type) {
