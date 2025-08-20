@@ -3,24 +3,23 @@ package warehouse_management.com.warehouse_management.service;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
-import org.springframework.data.mongodb.core.aggregation.Aggregation;
-import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
-import warehouse_management.com.warehouse_management.common.pagination.req.PageOptionsReq;
-import warehouse_management.com.warehouse_management.enumerate.InventoryType;
+import org.springframework.transaction.annotation.Transactional;
+import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
+import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
+import warehouse_management.com.warehouse_management.dto.warehouse.response.GetDepartureWarehouseForContainerDto;
 import warehouse_management.com.warehouse_management.enumerate.WarehouseType;
 import warehouse_management.com.warehouse_management.exceptions.LogicErrException;
-import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.dto.warehouse.request.CreateWarehouseDto;
 import warehouse_management.com.warehouse_management.dto.warehouse.request.UpdateWarehouseDto;
 import warehouse_management.com.warehouse_management.dto.warehouse.response.WarehouseResponseDto;
 import warehouse_management.com.warehouse_management.mapper.warehouse.WarehouseMapper;
 import warehouse_management.com.warehouse_management.model.Warehouse;
-import warehouse_management.com.warehouse_management.dto.Inventory.view.InventoryWarehouseContainerView;
-import warehouse_management.com.warehouse_management.repository.WarehouseRepository;
-import warehouse_management.com.warehouse_management.utils.MongoRsqlUtils;
+import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
+import warehouse_management.com.warehouse_management.repository.warehouse.WarehouseRepository;
+
 import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j(topic = "WAREHOUSE-SERVICE")
@@ -30,70 +29,41 @@ public class WarehouseService {
     private final WarehouseRepository warehouseRepository;
     private final WarehouseRepository repository;
     private final WarehouseMapper mapper;
+    private final InventoryItemRepository inventoryItemRepository;
 
-    public WarehouseService(WarehouseRepository repository, WarehouseMapper mapper, WarehouseRepository warehouseRepository) {
+    public WarehouseService(InventoryItemRepository inventoryItemRepository, WarehouseRepository repository, WarehouseMapper mapper, WarehouseRepository warehouseRepository) {
         this.repository = repository;
         this.mapper = mapper;
         this.warehouseRepository = warehouseRepository;
+        this.inventoryItemRepository = inventoryItemRepository;
     }
 
     public Warehouse getWarehouseToId(ObjectId warehouseId) {
-        return warehouseRepository.findById(warehouseId).orElseThrow(
-                () -> new NoSuchElementException("Kho không tồn tại.")
-        );
+        Warehouse warehouse = warehouseRepository.findById(warehouseId).orElse(null);
+        if (warehouse == null || warehouse.getDeletedAt() != null)
+            throw LogicErrException.of("Kho không tồn tại.");
+        return warehouse;
     }
 
-    public Page<Warehouse> getPageWarehouse(PageOptionsReq optionsReq) {
-//        Aggregation aggQuery = Aggregation.newAggregation(
-//                Aggregation.lookup("user", "managedBy", "_id", "userManaged"),
-//                Aggregation.unwind("userManaged")
-//        );
-//        return MongoRsqlUtils.queryAggregatePage(Warehouse.class, WarehouseView.class, aggQuery, optionsReq);
-        return MongoRsqlUtils.queryPage(Warehouse.class, optionsReq);
+    public Page<WarehouseResponseDto> getPageWarehouse(PageOptionsDto optionsReq) {
+        return warehouseRepository.findPageWarehouse(optionsReq);
     }
 
-    private Page<InventoryWarehouseContainerView> getPageInventoryProductionAccessories(ObjectId warehouseId, PageOptionsReq optionsReq){
-        Criteria isWarehouseId = Criteria.where("warehouseId").is(warehouseId);
-        Criteria notDeleted = Criteria.where("isDeleted").is(false);
-        Criteria isProduction = Criteria.where("inventoryType").is(InventoryType.PRODUCT_ACCESSORIES.getId());
-        Aggregation aggQuery = Aggregation.newAggregation(
-                Aggregation.match(isWarehouseId),
-                Aggregation.match(notDeleted),
-                Aggregation.match(isProduction),
-                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
-                Aggregation.unwind("warehouse")
-        );
-        return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryWarehouseContainerView.class, aggQuery, optionsReq);
-    }
 
-    public Page<InventoryWarehouseContainerView> getPageInventoryProduction(ObjectId warehouseId, PageOptionsReq optionsReq) {
+    public Page<InventoryProductionDto> getPageInventoryProduction(ObjectId warehouseId, PageOptionsDto optionsReq) {
         Warehouse warehouse = getWarehouseToId(warehouseId);
         if (!warehouse.getType().equals(WarehouseType.PRODUCTION))
             throw LogicErrException.of("Kết quả cần tìm không phải là kho chờ sản xuất.");
 
-        return getPageInventoryProductionAccessories(warehouse.getId(), optionsReq);
+        return inventoryItemRepository.findPageInventoryProduction(warehouse.getId(), optionsReq);
     }
 
-    public Page<InventoryWarehouseContainerView> getPageInventoryDeparture(ObjectId warehouseId, PageOptionsReq optionsReq) {
+    public Page<InventoryDepartureDto> getPageInventoryDeparture(ObjectId warehouseId, PageOptionsDto optionsReq) {
         Warehouse warehouse = getWarehouseToId(warehouseId);
         if (!warehouse.getType().equals(WarehouseType.DEPARTURE))
             throw LogicErrException.of("Kết quả cần tìm không phải là kho di.");
 
-        Criteria isWarehouseId = Criteria.where("warehouseId").is(warehouseId);
-        Criteria notDeleted = Criteria.where("isDeleted").is(false);
-        Criteria isProduction = Criteria.where("inventoryType").is(InventoryType.PRODUCT_ACCESSORIES.getId());
-        Aggregation aggQuery = Aggregation.newAggregation(
-                Aggregation.match(isWarehouseId),
-                Aggregation.match(notDeleted),
-                Aggregation.match(isProduction),
-                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
-                Aggregation.unwind("warehouse"),
-                Aggregation.lookup("container", "containerId", "_id", "container"),
-                Aggregation.unwind("container"),
-                Aggregation.lookup("warehouse", "container.toWarehouseId", "_id", "container.toWarehouse"),
-                Aggregation.unwind("container.toWarehouse")
-        );
-        return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryWarehouseContainerView.class, aggQuery, optionsReq);
+        return inventoryItemRepository.findPageInventoryDeparture(warehouse.getId(), optionsReq);
     }
 
     public WarehouseResponseDto createWarehouse(CreateWarehouseDto createDto) {
@@ -102,12 +72,12 @@ public class WarehouseService {
         return mapper.toResponseDto(savedWarehouse);
     }
 
-    public Page<InventoryWarehouseContainerView> getPageInventoryDestination(ObjectId warehouseId, PageOptionsReq optionsReq) {
+    public Page<InventoryDestinationDto> getPageInventoryDestination(ObjectId warehouseId, PageOptionsDto optionsReq) {
         Warehouse warehouse = getWarehouseToId(warehouseId);
         if (!warehouse.getType().equals(WarehouseType.DESTINATION))
             throw LogicErrException.of("Kết quả cần tìm không phải là kho đích.");
 
-        return getPageInventoryProductionAccessories(warehouse.getId(), optionsReq);
+        return inventoryItemRepository.findPageInventoryDestination(warehouse.getId(), optionsReq);
     }
 
     public List<WarehouseResponseDto> getAllWarehouses() {
@@ -117,83 +87,96 @@ public class WarehouseService {
                 .collect(Collectors.toList());
     }
 
-    public Page<InventoryWarehouseContainerView> getPageInventoryConsignment(ObjectId warehouseId, PageOptionsReq optionsReq) {
+    public Page<InventoryConsignmentDto> getPageInventoryConsignment(ObjectId warehouseId, PageOptionsDto optionsReq) {
         Warehouse warehouse = getWarehouseToId(warehouseId);
         if (!warehouse.getType().equals(WarehouseType.CONSIGNMENT))
             throw LogicErrException.of("Kết quả cần tìm không phải là kho ký gửi.");
-        return getPageInventoryProductionAccessories(warehouse.getId(), optionsReq);
+        return inventoryItemRepository.findPageInventoryConsignment(warehouse.getId(), optionsReq);
     }
 
     public WarehouseResponseDto getWarehouseById(String id) {
-        Warehouse warehouse = findWarehouseById(id);
+        Warehouse warehouse = getWarehouseToId(new ObjectId(id));
         return mapper.toResponseDto(warehouse);
     }
 
-    private Page<InventoryWarehouseContainerView> getPageInventorySpareParts(ObjectId warehouseId, PageOptionsReq optionsReq){
-        Criteria isWarehouseId = Criteria.where("warehouseId").is(warehouseId);
-        Criteria notDeleted = Criteria.where("isDeleted").is(false);
-        Criteria isSpareParts = Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId());
-        Aggregation aggQuery = Aggregation.newAggregation(
-                Aggregation.match(isWarehouseId),
-                Aggregation.match(notDeleted),
-                Aggregation.match(isSpareParts),
-                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
-                Aggregation.unwind("warehouse")
-        );
-        return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryWarehouseContainerView.class, aggQuery, optionsReq);
-    }
+    public WarehouseResponseDto updateWarehouse(String id, UpdateWarehouseDto updateDto) throws Exception {
+        Optional<Warehouse> existingWarehouse = repository.findById(new ObjectId(id));
 
-    public WarehouseResponseDto updateWarehouse(String id, UpdateWarehouseDto updateDto) {
-        Warehouse existingWarehouse = findWarehouseById(id);
-        mapper.updateFromDto(updateDto, existingWarehouse);
-        Warehouse updatedWarehouse = repository.save(existingWarehouse);
+        Warehouse warehouse = existingWarehouse.orElseThrow(
+                () -> new Exception("Not found warehouse")
+        );
+
+        mapper.updateFromDto(updateDto, warehouse);
+        Warehouse updatedWarehouse = repository.save(warehouse);
         return mapper.toResponseDto(updatedWarehouse);
     }
 
-    public Page<InventoryWarehouseContainerView> getPageInventorySparePartsProduction(ObjectId warehouseId, PageOptionsReq optionsReq) {
+    public Page<InventoryProductionSparePartsDto> getPageInventorySparePartsProduction(ObjectId warehouseId, PageOptionsDto optionsReq) {
         Warehouse warehouse = getWarehouseToId(warehouseId);
         if (!warehouse.getType().equals(WarehouseType.PRODUCTION))
             throw LogicErrException.of("Kết quả cần tìm không phải là kho chờ sản xuất.");
 
-        return getPageInventorySpareParts(warehouse.getId(), optionsReq);
+        return inventoryItemRepository.findPageInventorySparePartsProduction(warehouse.getId(), optionsReq);
     }
 
-    public Page<InventoryWarehouseContainerView> getPageInventorySparePartsDeparture(ObjectId warehouseId, PageOptionsReq optionsReq) {
+
+    public Page<InventoryDepartureSparePartsDto> getPageInventorySparePartsDeparture(ObjectId warehouseId, PageOptionsDto optionsReq) {
         Warehouse warehouse = getWarehouseToId(warehouseId);
         if (!warehouse.getType().equals(WarehouseType.DEPARTURE))
             throw LogicErrException.of("Kết quả cần tìm không phải là kho đi.");
 
-
-        return getPageInventorySpareParts(warehouse.getId(), optionsReq);
+        return inventoryItemRepository.findPageInventorySparePartsDeparture(warehouse.getId(), optionsReq);
     }
 
-    public void deleteWarehouse(String id) {
+    public boolean deleteWarehouse(String id) {
+        boolean success = warehouseRepository.softDeleteById(new ObjectId(id),
+                new ObjectId("6529f2e5b3a04a4a2e8b4f1c"), "ACTIVE");
 
-        Warehouse warehouse = findWarehouseById(id);
-        repository.delete(warehouse);
+        return success;
     }
 
-    public Page<InventoryWarehouseContainerView> getPageInventorySparePartsDestination(ObjectId warehouseId, PageOptionsReq optionsReq) {
+    public Page<InventoryDestinationSparePartsDto> getPageInventorySparePartsDestination(ObjectId warehouseId, PageOptionsDto optionsReq) {
         Warehouse warehouse = getWarehouseToId(warehouseId);
         if (!warehouse.getType().equals(WarehouseType.DESTINATION))
             throw LogicErrException.of("Kết quả cần tìm không phải là kho đích.");
-        return getPageInventorySpareParts(warehouse.getId(), optionsReq);
+
+        return inventoryItemRepository.findPageInventorySparePartsDestination(warehouse.getId(), optionsReq);
     }
 
-    public Page<InventoryWarehouseContainerView> getPageInventorySparePartsConsignment(ObjectId warehouseId, PageOptionsReq optionsReq) {
+    public Page<InventoryConsignmentSparePartsDto> getPageInventorySparePartsConsignment(ObjectId warehouseId, PageOptionsDto optionsReq) {
         Warehouse warehouse = getWarehouseToId(warehouseId);
         if (!warehouse.getType().equals(WarehouseType.CONSIGNMENT))
             throw LogicErrException.of("Kết quả cần tìm không phải là kho ký gửi.");
-        return getPageInventorySpareParts(warehouse.getId(), optionsReq);
+
+        return inventoryItemRepository.findPageInventorySparePartsConsignment(warehouse.getId(), optionsReq);
     }
 
-    private Warehouse findWarehouseById(String id) {
-        ObjectId objectId;
-        try {
-            objectId = new ObjectId(id);
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
-        return null;
+    public Page<InventoryCentralWarehouseProductDto> getPageInventoryCentralWarehouse(PageOptionsDto optionsReq){
+        return inventoryItemRepository.findPageInventoryCentralWarehouse(optionsReq);
     }
+
+    public Page<InventoryCentralWarehouseSparePartDto> getPageInventoryCentralWarehouseSparePart(PageOptionsDto optionsReq){
+        return inventoryItemRepository.findPageInventoryCentralWarehouseSparePart(optionsReq);
+    }
+
+    @Transactional
+    public long bulkSoftDeleteWarehouses(List<String> warehouseIdStrings) {
+        // Lấy ID người dùng hiện tại
+//        ObjectId currentUserId = getCurrentUserId(); // Placeholder
+
+        List<ObjectId> warehouseIds = warehouseIdStrings.stream()
+                .map(ObjectId::new)
+                .toList();
+
+        if (warehouseIds.isEmpty()) {
+            return 0;
+        }
+
+        return warehouseRepository.bulkSoftDelete(warehouseIds, new ObjectId("6529f2e5b3a04a4a2e8b4f1c"));
+    }
+
+    public List<GetDepartureWarehouseForContainerDto> getDepartureWarehousesForContainer(String warehouseType) {
+        return warehouseRepository.getDepartureWarehousesForContainer(warehouseType);
+    }
+
 }

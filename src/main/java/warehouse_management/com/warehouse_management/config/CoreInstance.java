@@ -7,10 +7,17 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.bson.types.ObjectId;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
+import org.springframework.context.annotation.Primary;
+import org.springframework.data.domain.AuditorAware;
+import org.springframework.data.mongodb.config.EnableMongoAuditing;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import java.io.IOException;
+import java.util.Optional;
 
 @Configuration
+@EnableMongoAuditing
 public class CoreInstance {
 
     @Bean
@@ -20,7 +27,7 @@ public class CoreInstance {
             @Override
             public void serialize(ObjectId value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
                 if (value != null) {
-                    gen.writeString(value.toHexString());
+                    gen.writeString(value.toString());
                 } else {
                     gen.writeNull();
                 }
@@ -29,4 +36,18 @@ public class CoreInstance {
         return module;
     }
 
+    @Primary
+    @Bean
+    public AuditorAware<ObjectId> auditorWare() {
+        return () -> {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if(authentication == null || !authentication.isAuthenticated() || authentication instanceof AnonymousAuthenticationToken){
+                return Optional.empty();
+            }
+            if(!(authentication.getPrincipal() instanceof UserDetailsImpl user)){
+                return Optional.empty();
+            }
+            return Optional.of(new ObjectId(user.getId()));
+        };
+    }
 }

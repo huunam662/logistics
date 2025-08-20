@@ -5,10 +5,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bson.types.ObjectId;
-import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.*;
 import org.springframework.data.mongodb.core.mapping.Document;
 import warehouse_management.com.warehouse_management.enumerate.ActiveStatus;
 import warehouse_management.com.warehouse_management.enumerate.WarehouseType;
+
+import java.time.LocalDateTime;
 
 @Document(collection = "warehouse")
 @Data
@@ -31,12 +33,29 @@ public class Warehouse {
 
     private String note;       // Ghi chú thêm
 
+    @CreatedBy
+    private ObjectId createdBy;
+    @LastModifiedBy
+    private ObjectId updatedBy;
+    private ObjectId deletedBy;
+
+    @CreatedDate
+    private LocalDateTime createdAt;
+    @LastModifiedDate
+    private LocalDateTime updatedAt;
+
+    private LocalDateTime deletedAt;
+
     public ActiveStatus getStatus() {
         return status == null ? null : ActiveStatus.fromId(status);
     }
 
     public void setStatus(ActiveStatus status) {
         this.status = status == null ? null : status.getId();
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public WarehouseType getType() {

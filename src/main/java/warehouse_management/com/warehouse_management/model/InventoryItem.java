@@ -4,9 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bson.types.ObjectId;
-import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.*;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.data.mongodb.core.mapping.FieldType;
 import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -19,16 +22,17 @@ public class InventoryItem {
     private ObjectId id; // _id – Khóa chính tự động tạo bởi MongoDB
 
     private String poNumber;       // Số của Đơn đặt hàng (Purchase Order) – Bắt buộc
-    private String productCode;    // Mã định danh của sản phẩm hoặc hàng hóa – Bắt buộc
+    private String productCode;    // Mã định danh của sản phẩm (đối với sản phẩm xe & phụ kiện, phụ tùng thuộc sản phẩm này) – Bắt buộc
+    private String commodityCode;  // Mã hàng hóa (đôi với phụ tùng)
     private String serialNumber;   // Số seri – Có cho xe/phụ kiện
     private String model;          // Model sản phẩm – Bắt buộc
-    private String type;           // Loại sản phẩm (VD: Xe nâng điện) – Bắt buộc
     private String category;       // Chủng loại sản phẩm (VD: Ngồi lái) – Bắt buộc
     private String inventoryType;   // Loại hàng tồn (VD: phụ kiện, ...) - Bắt buộc
     private Integer manufacturingYear; // Năm sản xuất – Không bắt buộc
     private Integer quantity;   // Số lượng hàng hóa
     private String status;         // Trạng thái hiện tại (IN_STOCK, IN_TRANSIT...) – Bắt buộc
-
+    private String contractNumber; // Số hợp đồng
+    private String warehouseType;  // Loại kho (kho bảo quản dành cho hàng hóa)
     private ObjectId warehouseId;  // _id của warehouse – Có nếu đang ở kho
     private ObjectId containerId;  // _id của container – Có nếu đang trong container
 
@@ -38,11 +42,19 @@ public class InventoryItem {
 
     private String initialCondition;       // Mô tả nguyên trạng khi nhập kho – Không bắt buộc
     private String notes;                  // Ghi chú chung – Không bắt buộc
+    private String description;         // Mô tả
 
-    private Boolean isDeleted = false;     // Cờ xóa mềm – Bắt buộc, mặc định false
+    @CreatedBy
+    private ObjectId createdBy;
+    @LastModifiedBy
+    private ObjectId updatedBy;
+    private ObjectId deletedBy;
 
-    private LocalDateTime createdAt;       // Thời gian tạo – Bắt buộc
-    private LocalDateTime updatedAt;       // Thời gian cập nhật cuối – Bắt buộc
+    @CreatedDate
+    private LocalDateTime createdAt;
+    @LastModifiedDate
+    private LocalDateTime updatedAt;
+    private LocalDateTime deletedAt;
 
     // --- Inner Classes ---
 
@@ -57,6 +69,7 @@ public class InventoryItem {
         private String batteryInfo;             // Thông tin bình điện
         private String batterySpecification;    // Thông số bình điện
         private String chargerSpecification;    // Thông số bộ sạc
+        private String forkDimensions;          // Thông số càng
         private Integer valveCount;             // Số lượng van
         private Boolean hasSideShift;           // Có side shift không
         private String otherDetails;            // Chi tiết khác
@@ -66,9 +79,13 @@ public class InventoryItem {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Pricing {
+        @Field(targetType = FieldType.DECIMAL128)
         private BigDecimal purchasePrice;       // Giá mua vào
+        @Field(targetType = FieldType.DECIMAL128)
         private BigDecimal salePriceR0;         // Giá bán đề xuất R0
+        @Field(targetType = FieldType.DECIMAL128)
         private BigDecimal salePriceR1;         // Giá bán đề xuất R1
+        @Field(targetType = FieldType.DECIMAL128)
         private BigDecimal actualSalePrice;     // Giá bán thực tế
         private String agent;                   // Đại lý (nếu có)
     }
@@ -87,6 +104,10 @@ public class InventoryItem {
 
     public InventoryItemStatus getStatus() {
         return status == null ? null : InventoryItemStatus.fromId(status);
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public void setStatus(InventoryItemStatus inventoryItemStatus) {

@@ -2,46 +2,59 @@ package warehouse_management.com.warehouse_management.mapper;
 
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
-import warehouse_management.com.warehouse_management.dto.Inventory.response.*;
-import warehouse_management.com.warehouse_management.dto.Inventory.view.InventoryWarehouseContainerView;
-import java.util.List;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
+import warehouse_management.com.warehouse_management.dto.inventory_item.request.*;
+import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportDestinationProductDto;
+import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportDestinationSparePartDto;
+import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportProductionProductDto;
+import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportProductionSparePartDto;
+import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
+import warehouse_management.com.warehouse_management.model.Container;
+import warehouse_management.com.warehouse_management.model.InventoryItem;
+import warehouse_management.com.warehouse_management.model.WarehouseTransaction;
 
-@Mapper(builder = @Builder(disableBuilder = true))
+@Mapper(componentModel = "spring", builder = @Builder(disableBuilder = true))
 public interface InventoryItemMapper {
 
-    InventoryItemMapper INSTANCE = Mappers.getMapper(InventoryItemMapper.class);
+    @Mapping(target = "warehouseId", ignore = true)
+    @Mapping(target = "logistics.orderDate", ignore = true)
+    @Mapping(target = "logistics.estimateCompletionDate", ignore = true)
+    InventoryItem toInventoryItemModel(CreateInventoryProductDto inventoryItemReq);
 
-    InventoryProductionRes toInventoryProductionRes(InventoryWarehouseContainerView inventoryWarehouseContainerView);
+    @Mapping(target = "warehouseId", ignore = true)
+    InventoryItem toInventoryItemSparePart(CreateInventorySparePartDto dto);
 
-    List<InventoryProductionRes> toInventoryProductionResList(List<InventoryWarehouseContainerView> inventoryWarehouseContainerViews);
+    InventoryItem cloneEntity(InventoryItem inventoryItem);
 
-    InventoryDepartureRes toInventoryDepartureRes(InventoryWarehouseContainerView inventoryWarehouseContainerView);
+    InventoryItemPoNumberDto toInventoryItemPoNumberDto(InventoryItem inventoryItem);
 
-    List<InventoryDepartureRes> toInventoryDepartureResList(List<InventoryWarehouseContainerView> inventoryWarehouseContainerViews);
+    @Mapping(target = "warehouseId", ignore = true)
+    @Mapping(target = "logistics.orderDate", ignore = true)
+    @Mapping(target = "logistics.estimateCompletionDate", ignore = true)
+    void mapToUpdateInventoryProduct(@MappingTarget InventoryItem inventoryItem, CreateInventoryProductDto dto);
 
-    InventoryDestinationRes toInventoryDestinationRes(InventoryWarehouseContainerView inventoryWarehouseContainerView);
+    @Mapping(target = "warehouseId", ignore = true)
+    void mapToUpdateInventorySparePart(@MappingTarget InventoryItem inventoryItem, CreateInventorySparePartDto dto);
 
-    List<InventoryDestinationRes> toInventoryDestinationResList(List<InventoryWarehouseContainerView> inventoryWarehouseContainerViews);
+    InventoryProductDetailsDto toInventoryProductDetailsDto(InventoryItem inventoryItem);
 
-    InventoryConsignmentRes toInventoryConsignmentRes(InventoryWarehouseContainerView inventoryWarehouseContainerView);
+    @Mapping(target = "orderDate", source = "logistics.orderDate")
+    InventorySparePartDetailsDto toInventorySparePartDetailsDto(InventoryItem inventoryItem);
 
-    List<InventoryConsignmentRes> toInventoryConsignmentResList(List<InventoryWarehouseContainerView> inventoryWarehouseContainerViews);
+    Container.InventoryItemContainer toInventoryItemContainer(InventoryItem inventoryItem);
 
-    InventoryDestinationSparePartsRes toInventoryDestinationSparePartsRes(InventoryWarehouseContainerView inventoryWarehouseContainerView);
+    WarehouseTransaction.InventoryItemTicket toInventoryItemTicket(InventoryItem inventoryItem);
 
-    List<InventoryDestinationSparePartsRes> toInventoryDestinationSparePartsResList(List<InventoryWarehouseContainerView> inventoryWarehouseContainerViews);
+    InventoryProductDetailsDto toInventoryProductDetailsDto(Container.InventoryItemContainer dto);
 
-    InventoryProductionSparePartsRes toInventoryProductionSparePartsRes(InventoryWarehouseContainerView inventoryWarehouseContainerView);
+    InventorySparePartDetailsDto toInventorySparePartDetailsDto(Container.InventoryItemContainer dto);
 
-    List<InventoryProductionSparePartsRes> toInventoryProductionSparePartsResList(List<InventoryWarehouseContainerView> inventoryWarehouseContainerViews);
 
-    InventoryConsignmentSparePartsRes toInventoryConsignmentSparePartsRes(InventoryWarehouseContainerView inventoryWarehouseContainerView);
+    InventoryItem toInventoryItem(ExcelImportProductionProductDto dto);
+    InventoryItem toInventoryItem(ExcelImportProductionSparePartDto dto);
 
-    List<InventoryConsignmentSparePartsRes> toInventoryConsignmentSparePartsResList(List<InventoryWarehouseContainerView> inventoryWarehouseContainerViews);
+    InventoryItem toInventoryItem(ExcelImportDestinationProductDto dto);
 
-    InventoryDepartureSparePartsRes toInventoryDepartureSparePartsRes(InventoryWarehouseContainerView inventoryWarehouseContainerView);
-
-    List<InventoryDepartureSparePartsRes> toInventoryDepartureSparePartsResList(List<InventoryWarehouseContainerView> inventoryWarehouseContainerViews);
-
+    InventoryItem toInventoryItem(ExcelImportDestinationSparePartDto dto);
 }

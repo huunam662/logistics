@@ -1,14 +1,14 @@
 package warehouse_management.com.warehouse_management.utils;
 
 import cz.jirutka.rsql.parser.RSQLParser;
-import cz.jirutka.rsql.parser.ast.AndNode;
-import cz.jirutka.rsql.parser.ast.ComparisonNode;
-import cz.jirutka.rsql.parser.ast.OrNode;
-import cz.jirutka.rsql.parser.ast.RSQLVisitor;
+import cz.jirutka.rsql.parser.ast.*;
+import lombok.NonNull;
 import org.bson.Document;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
@@ -16,49 +16,71 @@ import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.aggregation.CountOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import warehouse_management.com.warehouse_management.common.pagination.req.PageOptionsReq;
+import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public class MongoRsqlUtils {
 
-
-    public static <T> Page<T> queryPage(Class<T> entityType, Query query, Map<String, String> propertyMapper, PageOptionsReq optionsReq){
+    public static <T> Page<T> queryPage(
+            @NonNull Class<?> inputType,
+            @NonNull Class<T> outputType,
+            @NonNull Query query,
+            @NonNull Map<String, String> rsqlPropertyMapper,
+            @NonNull PageOptionsDto optionsReq
+    ){
         MongoTemplate mongoTemplate = SpringContext.getBean(MongoTemplate.class);
         String filter = optionsReq.getFilter();
         if(filter != null && !filter.isBlank()){
-            Criteria filterCriteria = new RSQLParser().parse(filter).accept(new MongoRsqlVisitor(propertyMapper));
+            Criteria filterCriteria = RsqlParser.parse(filter, rsqlPropertyMapper);
             query.addCriteria(filterCriteria);
         }
-        long totalT = mongoTemplate.count(query, entityType);
+        long totalT = mongoTemplate.count(query, inputType);
         Pageable pageable = optionsReq.getPageable();
         query.with(pageable);
-        List<T> tResultList = mongoTemplate.find(query, entityType);
+        List<T> tResultList = mongoTemplate.find(query, outputType, mongoTemplate.getCollectionName(inputType));
         return new PageImpl<>(tResultList, pageable, totalT);
     }
 
-    public static <T> Page<T> queryPage(Class<T> entityClass, PageOptionsReq optionsReq){
-        return queryPage(entityClass, new Query(), Map.of(), optionsReq);
+    public static <T> Page<T> queryPage(
+            @NonNull Class<?> inputType,
+            @NonNull Class<T> outputType,
+            @NonNull PageOptionsDto optionsReq
+    ){
+        return queryPage(inputType, outputType, new Query(), Map.of(), optionsReq);
     }
 
-    public static <T> Page<T> queryPage(Class<T> entityClass, Query query, PageOptionsReq optionsReq){
-        return queryPage(entityClass, query, Map.of(), optionsReq);
+    public static <T> Page<T> queryPage(
+            @NonNull Class<?> inputType,
+            @NonNull Class<T> outputType,
+            @NonNull Query query,
+            @NonNull PageOptionsDto optionsReq
+    ){
+        return queryPage(inputType, outputType, query, Map.of(), optionsReq);
     }
 
-    public static <T> Page<T> queryPage(Class<T> entityClass, Map<String, String> propertyMapper, PageOptionsReq optionsReq){
-        return queryPage(entityClass, new Query(), propertyMapper, optionsReq);
+    public static <T> Page<T> queryPage(
+            @NonNull Class<?> inputType,
+            @NonNull Class<T> outputType,
+            @NonNull Map<String, String> propertyMapper,
+            @NonNull PageOptionsDto optionsReq
+    ){
+        return queryPage(inputType, outputType, new Query(), propertyMapper, optionsReq);
     }
 
-    public static <T> Page<T> queryAggregatePage(Class<?> inputType, Class<T> outputType, Aggregation agg, Map<String, String> propertyMapper, PageOptionsReq optionsReq){
+    public static <T> Page<T> queryAggregatePage(
+            @NonNull Class<?> inputType,
+            @NonNull Class<T> outputType,
+            @NonNull Aggregation agg,
+            @NonNull Map<String, String> rsqlPropertyMapper,
+            @NonNull PageOptionsDto optionsReq
+    ){
         MongoTemplate mongoTemplate = SpringContext.getBean(MongoTemplate.class);
         String filter = optionsReq.getFilter();
         List<AggregationOperation> aggOp = new ArrayList<>(agg.getPipeline().getOperations());
         if(filter != null && !filter.isBlank()){
-            Criteria filterCriteria = new RSQLParser().parse(filter).accept(new MongoRsqlVisitor(propertyMapper));
+            Criteria filterCriteria = RsqlParser.parse(filter, rsqlPropertyMapper);
             aggOp.add(Aggregation.match(filterCriteria));
         }
         CountOperation countOp = Aggregation.count().as("count");
@@ -68,7 +90,7 @@ public class MongoRsqlUtils {
         List<Document> resultsCount = countResults.getMappedResults();
         long totalT = resultsCount.isEmpty() ? 0L : Optional.ofNullable(resultsCount.getFirst().get("count", Number.class)).orElse(0L).longValue();
         aggOp.remove(countOp);
-        Pageable pageable = optionsReq.getPageable();
+        Pageable pageable = rsqlPropertyMapper.isEmpty() ? optionsReq.getPageable() : buildSortProperty(optionsReq.getPageable(), rsqlPropertyMapper);
         if(!pageable.getSort().isEmpty()){
             aggOp.add(Aggregation.sort(pageable.getSort()));
         }
@@ -80,16 +102,62 @@ public class MongoRsqlUtils {
         return new PageImpl<>(results, pageable, totalT);
     }
 
-    public static <T> Page<T> queryAggregatePage(Class<?> inputType, Class<T> outputType, Aggregation agg, PageOptionsReq optionsReq){
+    public static <T> Page<T> queryAggregatePage(
+            @NonNull Class<?> inputType,
+            @NonNull Class<T> outputType,
+            @NonNull Aggregation agg,
+            @NonNull PageOptionsDto optionsReq
+    ){
         return queryAggregatePage(inputType, outputType, agg, Map.of(), optionsReq);
+    }
+
+    public static Pageable buildSortProperty(
+            @NonNull Pageable pageable,
+            @NonNull Map<String, String> propertyMapper
+    ){
+        if(pageable.getSort().isEmpty()) return pageable;
+        Sort newSort = Sort.by(pageable.getSort().stream()
+                .map(order -> {
+                    String newProperty = order.getProperty();
+                    if(propertyMapper.containsKey(newProperty))
+                        newProperty = propertyMapper.get(newProperty);
+                    return new Sort.Order(
+                            order.getDirection(),
+                            newProperty,
+                            order.getNullHandling()
+                    );
+                })
+                .toList());
+
+        return PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                newSort
+        );
+
+    }
+
+    public static class RsqlParser {
+        private static Set<ComparisonOperator> customOperators() {
+            Set<ComparisonOperator> operators = new HashSet<>(RSQLOperators.defaultOperators());
+            operators.add(new ComparisonOperator("=isnull=", false));
+            operators.add(new ComparisonOperator("=notnull=", false));
+            return operators;
+        }
+        public static Criteria parse(
+                @NonNull String filter,
+                @NonNull Map<String, String> rsqlPropertyMapper
+        ){
+            return new RSQLParser(customOperators()).parse(filter).accept(new MongoRsqlVisitor(rsqlPropertyMapper));
+        }
     }
 
     public static class MongoRsqlVisitor implements RSQLVisitor<Criteria, Void> {
 
-        private final Map<String, String> propertyMapper;
+        private final Map<String, String> rsqlPropertyMapper;
 
-        public MongoRsqlVisitor(Map<String, String> propertyMapper) {
-            this.propertyMapper = propertyMapper;
+        public MongoRsqlVisitor(Map<String, String> rsqlPropertyMapper) {
+            this.rsqlPropertyMapper = rsqlPropertyMapper;
         }
 
         @Override
@@ -115,9 +183,11 @@ public class MongoRsqlUtils {
             String field = node.getSelector();
             List<String> args = node.getArguments();
             String op = node.getOperator().getSymbol();
-            if(propertyMapper.containsKey(field))
-                field = propertyMapper.get(field);
+            if(rsqlPropertyMapper.containsKey(field))
+                field = rsqlPropertyMapper.get(field);
             return switch (op) {
+                case "=isnull=" -> Criteria.where(field).isNull();
+                case "=notnull=" -> Criteria.where(field).not().isNull();
                 case "==", "!=" -> {
                     String val = args.getFirst();
                     Criteria result = Criteria.where(field);
