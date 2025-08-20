@@ -27,6 +27,7 @@ public class WarehouseTransaction {
     private String title;   // Tiêu đề
     private String reason;  // Lý do tạo phiếu
     private String ticketCode;      // Số phiếu điều chuyển (không bắt buộc)
+    private String transactionType;
 
     private String status; // PENDING, APPROVED, REJECTED
 
