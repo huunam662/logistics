@@ -176,10 +176,27 @@ public class ContainerService {
         if(!container.getContainerStatus().equals(ContainerStatus.PENDING))
             throw LogicErrException.of("Chỉ được phép thêm hàng hóa khi đang chờ xác nhận.");
         try{
-            List<InventoryItem> itemsInContainer = inventoryItemService.transferItems(req.getInventoryItems(), container.getToWarehouseId(), container, container.getArrivalDate(), null, InventoryItemStatus.IN_TRANSIT);
-            container.setContainerStatus(ContainerStatus.PENDING);
+            List<InventoryItem> itemsPushToCont = inventoryItemService.transferItems(req.getInventoryItems(), container.getToWarehouseId(), container, container.getArrivalDate(), null, InventoryItemStatus.IN_TRANSIT);
+                container.setContainerStatus(ContainerStatus.PENDING);
             if(container.getInventoryItems() == null) container.setInventoryItems(new ArrayList<>());
-            container.getInventoryItems().addAll(itemsInContainer.stream().map(inventoryItemMapper::toInventoryItemContainer).toList());
+            final int itemsContSize = container.getInventoryItems().size();
+            for(var itemPush : itemsPushToCont){
+                if(itemPush.getInventoryType().equals(InventoryType.SPARE_PART.getId())){
+                    boolean isExistsInCont = false;
+                    for(int i = 0; i < itemsContSize; i++){
+                        Container.InventoryItemContainer itemInCont = container.getInventoryItems().get(i);
+                        if(!itemInCont.getInventoryType().equals(InventoryType.SPARE_PART.getId()))
+                            continue;
+                        if(itemInCont.getCommodityCode().equals(itemPush.getCommodityCode())){
+                            itemInCont.setQuantity(itemPush.getQuantity());
+                            isExistsInCont = true;
+                            break;
+                        }
+                    }
+                    if(isExistsInCont) continue;
+                }
+                container.getInventoryItems().add(inventoryItemMapper.toInventoryItemContainer(itemPush));
+            }
             containerRepository.save(container);
             // TODO: Ghi nhận log giao dịch
 
