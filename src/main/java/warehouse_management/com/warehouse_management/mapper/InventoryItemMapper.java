@@ -57,4 +57,12 @@ public interface InventoryItemMapper {
     InventoryItem toInventoryItem(ExcelImportDestinationProductDto dto);
 
     InventoryItem toInventoryItem(ExcelImportDestinationSparePartDto dto);
+
+    WarehouseTransaction.InventoryItemTicket toInventoryItemTicket(ExcelImportProductionProductDto dto);
+
+    WarehouseTransaction.InventoryItemTicket toInventoryItemTicket(ExcelImportDestinationProductDto dto);
+
+    WarehouseTransaction.InventoryItemTicket toInventoryItemTicket(ExcelImportProductionSparePartDto dto);
+
+    WarehouseTransaction.InventoryItemTicket toInventoryItemTicket(ExcelImportDestinationSparePartDto dto);
 }

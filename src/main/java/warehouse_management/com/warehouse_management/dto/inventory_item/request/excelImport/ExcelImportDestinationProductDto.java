@@ -40,7 +40,7 @@ public class ExcelImportDestinationProductDto {
 
     private String initialCondition; // Nguyên trạng 11
     private String notes; // Ghi chú  26
-
+    private Integer quantity = 1;
 
     // ====== Thông số kỹ thuật ======
     private Specifications specifications;
