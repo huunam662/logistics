@@ -49,6 +49,9 @@ public class ExcelImportProductionSparePartDto {
         @Validation(label = "Ngày đặt hàng", required = true)
         @Schema(example = "yyyy-MM-dd")
         private String orderDate; // Ngày đặt hàng 2
+        @Validation(label = "Ngày dự kiến SX xong", required = true)
+        @Schema(example = "yyyy-MM-dd")
+        private String estimateCompletionDate; // Chỉ dùng trong báo cáo hàng chờ SX 27
     }
 
 }
