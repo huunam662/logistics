@@ -19,4 +19,7 @@ CustomContainerRepository{
     @Query("{ 'deletedAt': null }")
     List<Container> findAll();
 
+    @Query("{'_id': {'$in': ?0}}")
+    List<Container> findAllInIds(List<ObjectId> ids);
+
 }
