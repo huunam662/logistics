@@ -11,19 +11,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import warehouse_management.com.warehouse_management.dto.container.response.ContainerDetailsProductDto;
+import warehouse_management.com.warehouse_management.dto.container.response.ContainerDetailsSparePartDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryItemToContainerDto;
-import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryItemPoNumberDto;
-import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryProductDetailsDto;
-import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventorySparePartDetailsDto;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.pagination.response.PageInfoDto;
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
 import warehouse_management.com.warehouse_management.dto.container.request.BulkDeleteContainerDto;
 import warehouse_management.com.warehouse_management.dto.container.request.CreateContainerDto;
 import warehouse_management.com.warehouse_management.dto.container.response.ContainerResponseDto;
-import warehouse_management.com.warehouse_management.mapper.InventoryItemMapper;
 import warehouse_management.com.warehouse_management.model.Container;
-import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.service.ContainerService;
 
 import java.util.List;
@@ -56,16 +53,17 @@ public class ContainerController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteContainer(@PathVariable("id") String id) {
-        containerService.softDeleteContainer(new ObjectId(id));
-        return ResponseEntity.noContent().build();
-    }
-
     @PostMapping("/delete-bulk")
     public ResponseEntity<ApiResponse<Boolean>> bulkDeleteContainers(
             @Valid @RequestBody BulkDeleteContainerDto bulkDeleteRequest) {
         boolean deletedCount = containerService.bulkSoftDeleteContainers(bulkDeleteRequest.getIds());
+
+        return ResponseEntity.ok(ApiResponse.success(deletedCount));
+    }
+
+    @DeleteMapping("/{containerId}")
+    public ResponseEntity<ApiResponse<Boolean>> deleteContainers(@PathVariable("containerId") String containerId) {
+        boolean deletedCount = containerService.softDeleteContainers(containerId);
 
         return ResponseEntity.ok(ApiResponse.success(deletedCount));
     }
@@ -86,7 +84,7 @@ public class ContainerController {
             description = "GET Lấy các sản phẩm trong container."
     )
     public ResponseEntity<?> getInventoryItemsProduct(@PathVariable("containerId") String containerId) {
-        List<InventoryProductDetailsDto> dtos = containerService.getInventoryItemsProductToContainerId(containerId);
+        ContainerDetailsProductDto dtos = containerService.getInventoryItemsProductToContainerId(containerId);
         return ResponseEntity.ok().body(ApiResponse.success(dtos));
     }
 
@@ -96,7 +94,7 @@ public class ContainerController {
             description = "GET Lấy các hàng hóa trong container."
     )
     public ResponseEntity<?> getInventoryItemsSparePart(@PathVariable("containerId") String containerId) {
-        List<InventorySparePartDetailsDto> dtos = containerService.getInventoryItemsSparePartToContainerId(containerId);
+        ContainerDetailsSparePartDto dtos = containerService.getInventoryItemsSparePartToContainerId(containerId);
         return ResponseEntity.ok().body(ApiResponse.success(dtos));
     }
 

@@ -33,9 +33,9 @@ public interface CustomInventoryItemRepository {
 
     Page<InventoryCentralWarehouseSparePartDto> findPageInventoryCentralWarehouseSparePart(PageOptionsDto optionsReq);
 
-    List<InventoryPoWarehouseDto> findPoNumbersOfInventoryInStock(List<String> inventoryTypes, String poNumber, ObjectId warehouseId);
+    List<InventoryPoWarehouseDto> findPoNumbersOfInventoryInStock(String warehouseType, List<String> inventoryTypes, String poNumber, String warehouseId);
 
-    List<InventoryItemPoNumberDto> findInventoryInStockByPoNumber(ObjectId warehouseId, String poNumber, String filter);
+    List<InventoryItemPoNumberDto> findInventoryInStockByPoNumber(String warehouseType, String warehouseId, String poNumber, String filter);
 
     List<InventoryItem> insertAll(Collection<InventoryItem> inventoryItems);
 
@@ -52,6 +52,8 @@ public interface CustomInventoryItemRepository {
     long softDelete(ObjectId id, ObjectId deletedBy);
 
     long bulkSoftDelete(Collection<ObjectId> ids, ObjectId deletedBy);
+
+    long bulkHardDelete(Collection<ObjectId> ids);
 
     List<InventoryProductDetailsDto> findInventoryProductDetailsInIds(ObjectId ids);
 

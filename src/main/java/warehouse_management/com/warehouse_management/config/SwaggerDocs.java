@@ -68,6 +68,7 @@ public class SwaggerDocs {
     }
 
 
+    // Ẩn prefix /api ở các endpoints trên swagger ui
     @Bean
     public OpenApiCustomizer removeApiPrefixCustomizer(){
         return openApi -> {
