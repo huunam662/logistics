@@ -110,6 +110,7 @@ public class ContainerService {
         container.setDepartureDate(createDto.getDepartureDate());
         container.setArrivalDate(createDto.getArrivalDate());
         container.setNote(createDto.getNote());
+        container.setContainerStatus(ContainerStatus.PENDING);
 
         return containerRepository.save(container);
     }
@@ -172,10 +173,13 @@ public class ContainerService {
             throw LogicErrException.of("Hàng hóa cần nhập sang kho khác hiện đang rỗng.");
 
         Container container = getContainerToId(new ObjectId(req.getContainerId()));
+        if(!container.getContainerStatus().equals(ContainerStatus.PENDING))
+            throw LogicErrException.of("Chỉ được phép thêm hàng hóa khi đang chờ xác nhận.");
         try{
             List<InventoryItem> itemsInContainer = inventoryItemService.transferItems(req.getInventoryItems(), container.getToWarehouseId(), container, container.getArrivalDate(), null, InventoryItemStatus.IN_TRANSIT);
             container.setContainerStatus(ContainerStatus.PENDING);
-            container.setInventoryItems(itemsInContainer.stream().map(inventoryItemMapper::toInventoryItemContainer).toList());
+            if(container.getInventoryItems() == null) container.setInventoryItems(new ArrayList<>());
+            container.getInventoryItems().addAll(itemsInContainer.stream().map(inventoryItemMapper::toInventoryItemContainer).toList());
             containerRepository.save(container);
             // TODO: Ghi nhận log giao dịch
 
