@@ -122,7 +122,7 @@ public class WarehouseTransactionController {
     )
     public ResponseEntity<InputStreamResource> getExcelReportDCNB(
             @PathVariable("ticketId") String ticketId,
-            @RequestParam(name = "type", required = false, defaultValue = "PXKDCNB") String type
+            @RequestParam(name = "type", required = false) String type
     ) {
         // type sẽ là "in" nếu không truyền, hoặc "out" nếu truyền ?type=out
         byte[] excelBytes = reportService.getReport(ticketId, type);
