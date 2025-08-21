@@ -8,8 +8,6 @@ import java.time.LocalDateTime;
 public class CreateContainerDto {
     private String containerCode;
 
-    private String containerStatus;
-
     private String fromWareHouseId;
     private String toWarehouseId;
 

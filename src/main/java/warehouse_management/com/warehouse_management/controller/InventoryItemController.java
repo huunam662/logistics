@@ -122,9 +122,10 @@ public class InventoryItemController {
             @Parameter(description = "[VEHICLE, ACCESSORY, SPARE_PART]")
             @RequestParam("inventoryType") List<String> inventoryTypes,
             @RequestParam(value = "poNumber", required = false, defaultValue = "") String poNumber,
-            @RequestParam(value = "warehouseId") String warehouseId
+            @RequestParam(value = "warehouseId", required = false) String warehouseId,
+            @RequestParam(value = "warehouseType", required = false) String warehouseType
     ){
-        List<InventoryPoWarehouseDto> poNumbers = inventoryItemService.getInventoryInStockPoNumbers(inventoryTypes, poNumber, new ObjectId(warehouseId));
+        List<InventoryPoWarehouseDto> poNumbers = inventoryItemService.getInventoryInStockPoNumbers(inventoryTypes, poNumber, warehouseId, warehouseType);
         return ApiResponse.success(poNumbers);
     }
 
@@ -134,11 +135,12 @@ public class InventoryItemController {
             description = "GET lấy danh sách hàng hóa thuộc PO theo kho."
     )
     public ApiResponse<?> getInventoryInStockPoNumbers(
-            @RequestParam("warehouseId") String warehouseId,
+            @RequestParam(value = "warehouseType", required = false) String warehouseType,
+            @RequestParam(value = "warehouseId", required = false) String warehouseId,
             @RequestParam("poNumber") String poNumber,
             @RequestParam(value = "filter", required = false) String filter
     ){
-        List<InventoryItemPoNumberDto> poNumbers = inventoryItemService.getInventoryInStockByPoNumber(new ObjectId(warehouseId), poNumber, filter);
+        List<InventoryItemPoNumberDto> poNumbers = inventoryItemService.getInventoryInStockByPoNumber(warehouseType, warehouseId, poNumber, filter);
         return ApiResponse.success(poNumbers);
     }
 

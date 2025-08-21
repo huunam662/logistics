@@ -125,12 +125,12 @@ public class InventoryItemService {
         return response;
     }
 
-    public List<InventoryPoWarehouseDto> getInventoryInStockPoNumbers(List<String> inventoryTypes, String poNumber, ObjectId warehouseId) {
-        return inventoryItemRepository.findPoNumbersOfInventoryInStock(inventoryTypes, poNumber, warehouseId);
+    public List<InventoryPoWarehouseDto> getInventoryInStockPoNumbers(List<String> inventoryTypes, String poNumber, String warehouseId, String warehouseType) {
+        return inventoryItemRepository.findPoNumbersOfInventoryInStock(warehouseType, inventoryTypes, poNumber, warehouseId);
     }
 
-    public List<InventoryItemPoNumberDto> getInventoryInStockByPoNumber(ObjectId warehouseId, String poNumber, String filter){
-        return inventoryItemRepository.findInventoryInStockByPoNumber(warehouseId, poNumber, filter);
+    public List<InventoryItemPoNumberDto> getInventoryInStockByPoNumber(String warehouseType, String warehouseId, String poNumber, String filter){
+        return inventoryItemRepository.findInventoryInStockByPoNumber(warehouseType, warehouseId, poNumber, filter);
     }
 
     @Transactional

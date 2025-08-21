@@ -8,6 +8,8 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
+import warehouse_management.com.warehouse_management.dto.container.response.ContainerDetailsProductDto;
+import warehouse_management.com.warehouse_management.dto.container.response.ContainerDetailsSparePartDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.InventoryItemToContainerDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryProductDetailsDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventorySparePartDetailsDto;
@@ -21,11 +23,11 @@ import warehouse_management.com.warehouse_management.exceptions.LogicErrExceptio
 import warehouse_management.com.warehouse_management.mapper.InventoryItemMapper;
 import warehouse_management.com.warehouse_management.model.Container;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
-import warehouse_management.com.warehouse_management.model.WarehouseTransaction;
 import warehouse_management.com.warehouse_management.repository.container.ContainerRepository;
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
 import warehouse_management.com.warehouse_management.utils.MongoRsqlUtils;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -64,7 +66,11 @@ public class ContainerService {
                                 .withInitialValue(0)
                                 .reduce(
                                         ArithmeticOperators.Add.valueOf("$$value")
-                                                .add("$$this.pricing.purchasePrice")
+                                                .add(
+                                                        ArithmeticOperators.Multiply.valueOf("$$this.pricing.purchasePrice")
+                                                                .multiplyBy("$$this.quantity")
+                                                )
+
                                 )
                 ).as("totalAmounts");
 
@@ -104,6 +110,7 @@ public class ContainerService {
         container.setDepartureDate(createDto.getDepartureDate());
         container.setArrivalDate(createDto.getArrivalDate());
         container.setNote(createDto.getNote());
+        container.setContainerStatus(ContainerStatus.PENDING);
 
         return containerRepository.save(container);
     }
@@ -127,9 +134,31 @@ public class ContainerService {
                 .map(ObjectId::new)
                 .toList();
 
+        List<Container> containers = containerRepository.findAllInIds(containerIds);
+        for(Container c : containers){
+            if(!c.getContainerStatus().equals(ContainerStatus.PENDING))
+                throw LogicErrException.of("CONT " + c.getContainerCode() + "chỉ được phép xóa khi đang chờ xác nhận");
+            containerCompletedAndRejectedLogic(c, c.getFromWareHouseId());
+        }
+
         long deletedCount = containerRepository.bulkSoftDelete(containerIds, currentUserId);
 
         return deletedCount > 0;
+    }
+
+    @Transactional
+    public boolean softDeleteContainers(String containerId){
+        if (containerId == null || containerId.isBlank()) {
+            return false;
+        }
+        Container container = getContainerToId(new ObjectId(containerId));
+        if(!container.getContainerStatus().equals(ContainerStatus.PENDING))
+            throw LogicErrException.of("Chỉ được phép xóa khi đang chờ xác nhận");
+        containerCompletedAndRejectedLogic(container, container.getFromWareHouseId());
+        List<ObjectId> itemIds = container.getInventoryItems().stream().map(Container.InventoryItemContainer::getId).toList();
+        inventoryItemRepository.updateStatusAndWarehouseAndUnRefContainer(itemIds, container.getFromWareHouseId(), InventoryItemStatus.IN_STOCK.getId());
+        containerRepository.softDeleteById(new ObjectId(containerId), null);
+        return true;
     }
 
     public Container getContainerToId(ObjectId id){
@@ -144,10 +173,13 @@ public class ContainerService {
             throw LogicErrException.of("Hàng hóa cần nhập sang kho khác hiện đang rỗng.");
 
         Container container = getContainerToId(new ObjectId(req.getContainerId()));
+        if(!container.getContainerStatus().equals(ContainerStatus.PENDING))
+            throw LogicErrException.of("Chỉ được phép thêm hàng hóa khi đang chờ xác nhận.");
         try{
             List<InventoryItem> itemsInContainer = inventoryItemService.transferItems(req.getInventoryItems(), container.getToWarehouseId(), container, container.getArrivalDate(), null, InventoryItemStatus.IN_TRANSIT);
             container.setContainerStatus(ContainerStatus.PENDING);
-            container.setInventoryItems(itemsInContainer.stream().map(inventoryItemMapper::toInventoryItemContainer).toList());
+            if(container.getInventoryItems() == null) container.setInventoryItems(new ArrayList<>());
+            container.getInventoryItems().addAll(itemsInContainer.stream().map(inventoryItemMapper::toInventoryItemContainer).toList());
             containerRepository.save(container);
             // TODO: Ghi nhận log giao dịch
 
@@ -159,29 +191,39 @@ public class ContainerService {
         }
     }
     
-    public List<InventoryProductDetailsDto> getInventoryItemsProductToContainerId(String containerId){
+    public ContainerDetailsProductDto getInventoryItemsProductToContainerId(String containerId){
         Container container = getContainerToId(new ObjectId(containerId));
+        if (container.getInventoryItems() == null) container.setInventoryItems(List.of());
         List<InventoryProductDetailsDto> dtos = new ArrayList<>();
-        if (container.getInventoryItems() == null) return dtos;
         List<String> vehicleAccessory = List.of(InventoryType.VEHICLE.getId(), InventoryType.ACCESSORY.getId());
+        BigDecimal totalAmounts = BigDecimal.ZERO;
         for(var item : container.getInventoryItems()){
             if(vehicleAccessory.contains(item.getInventoryType())){
+                totalAmounts = totalAmounts.add(item.getPricing().getPurchasePrice().multiply(BigDecimal.valueOf(item.getQuantity())));
                 dtos.add(inventoryItemMapper.toInventoryProductDetailsDto(item));
             }
         }
-        return dtos;
+        ContainerDetailsProductDto dto = new ContainerDetailsProductDto();
+        dto.setTotalAmounts(totalAmounts);
+        dto.setInventoryItemsProduct(dtos);
+        return dto;
     }
 
-    public List<InventorySparePartDetailsDto> getInventoryItemsSparePartToContainerId(String containerId){
+    public ContainerDetailsSparePartDto getInventoryItemsSparePartToContainerId(String containerId){
         Container container = getContainerToId(new ObjectId(containerId));
+        if (container.getInventoryItems() == null) container.setInventoryItems(List.of());
         List<InventorySparePartDetailsDto> dtos = new ArrayList<>();
-        if (container.getInventoryItems() == null) return dtos;
+        BigDecimal totalAmounts = BigDecimal.ZERO;
         for(var item : container.getInventoryItems()){
             if(item.getInventoryType().equals(InventoryType.SPARE_PART.getId())){
+                totalAmounts = totalAmounts.add(item.getPricing().getPurchasePrice().multiply(BigDecimal.valueOf(item.getQuantity())));
                 dtos.add(inventoryItemMapper.toInventorySparePartDetailsDto(item));
             }
         }
-        return dtos;
+        ContainerDetailsSparePartDto dto = new ContainerDetailsSparePartDto();
+        dto.setTotalAmounts(totalAmounts);
+        dto.setInventoryItemsSparePart(dtos);
+        return dto;
     }
 
     @Transactional
