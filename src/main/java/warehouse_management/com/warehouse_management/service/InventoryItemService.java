@@ -187,7 +187,6 @@ public class InventoryItemService {
         Warehouse destinationWarehouse = warehouseService.getWarehouseToId(new ObjectId(req.getDestinationWarehouseId()));
         try{
             List<InventoryItem> itemsResults = transferItems(req.getInventoryItems(), destinationWarehouse.getId(), null, null, null, InventoryItemStatus.OTHER);
-            ticket.setJsonPrint(warehouseTransferTicketService.buildJsonPrint(ticket, itemsResults));
             ticket.setInventoryItems(itemsResults.stream().map(inventoryItemMapper::toInventoryItemTicket).toList());
             warehouseTransferTicketRepository.save(ticket);
             // TODO: Ghi nhận log chuyển kho (người thực hiện, thời gian, PO, số lượng)
