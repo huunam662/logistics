@@ -58,22 +58,34 @@ public class WarehouseTransactionController {
     @GetMapping("/page/local_transfer")
     @Operation(
             summary = "GET Lấy giao dịch điều chuyển nội bộ (Phân trang).",
-            description = "Dùng cho giao dịch LOCAL_TRANSFER"
+            description = "Dùng cho giao dịch DEST_TO_DEST_TRANSFER"
     )
     public ApiResponse<?> getPageLocalTransfer(@ModelAttribute PageOptionsDto optionsDto){
         Page<WarehouseTransactionPageDto> page =
-                warehouseTransferTicketService.getPageWarehouseTransferTicket(optionsDto, WarehouseTranType.LOCAL_TRANSFER);
+                warehouseTransferTicketService.getPageWarehouseTransferTicket(optionsDto, WarehouseTranType.DEST_TO_DEST_TRANSFER);
         return ApiResponse.success(new PageInfoDto<>(page));
     }
 
-    @GetMapping("/page/warehouse_inout")
+    @GetMapping("/page/data_entry")
     @Operation(
             summary = "GET Lấy giao dịch nhập/xuất kho (Phân trang).",
-            description = "Dùng cho giao dịch WAREHOUSE_INOUT"
+            description = "Dùng cho giao dịch DATA_ENTRY"
     )
     public ApiResponse<?> getPageWarehouseInOut(@ModelAttribute PageOptionsDto optionsDto){
         Page<WarehouseTransactionPageDto> page =
-                warehouseTransferTicketService.getPageWarehouseTransferTicket(optionsDto, WarehouseTranType.WAREHOUSE_INOUT);
+                warehouseTransferTicketService.getPageWarehouseTransferTicket(optionsDto, WarehouseTranType.DATA_ENTRY);
+        return ApiResponse.success(new PageInfoDto<>(page));
+    }
+
+
+    @GetMapping("/page/departure_to_dest_transfer")
+    @Operation(
+            summary = "GET Lấy giao dịch chuyển hàng kho đi sang kho đến (Luồng container)(Phân trang).",
+            description = "Dùng cho giao dịch DEPARTURE_TO_DEST_TRANSFER"
+    )
+    public ApiResponse<?> getPageDepartureToDestTransfer(@ModelAttribute PageOptionsDto optionsDto){
+        Page<WarehouseTransactionPageDto> page =
+                warehouseTransferTicketService.getPageWarehouseTransferTicket(optionsDto, WarehouseTranType.DEPARTURE_TO_DEST_TRANSFER);
         return ApiResponse.success(new PageInfoDto<>(page));
     }
 
@@ -87,6 +99,7 @@ public class WarehouseTransactionController {
                 warehouseTransferTicketService.getPageWarehouseTransferTicket(optionsDto, WarehouseTranType.SALE_RIGHT_TRANSFER);
         return ApiResponse.success(new PageInfoDto<>(page));
     }
+
 
 
     @PatchMapping("/{ticketId}/approval-status")

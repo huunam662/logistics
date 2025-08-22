@@ -16,15 +16,15 @@ import warehouse_management.com.warehouse_management.dto.inventory_item.response
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.container.request.CreateContainerDto;
 import warehouse_management.com.warehouse_management.dto.container.response.ContainerResponseDto;
-import warehouse_management.com.warehouse_management.enumerate.ContainerStatus;
-import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
-import warehouse_management.com.warehouse_management.enumerate.InventoryType;
+import warehouse_management.com.warehouse_management.enumerate.*;
 import warehouse_management.com.warehouse_management.exceptions.LogicErrException;
 import warehouse_management.com.warehouse_management.mapper.InventoryItemMapper;
 import warehouse_management.com.warehouse_management.model.Container;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
+import warehouse_management.com.warehouse_management.model.WarehouseTransaction;
 import warehouse_management.com.warehouse_management.repository.container.ContainerRepository;
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
+import warehouse_management.com.warehouse_management.repository.warehouse_transaction.WarehouseTransactionRepository;
 import warehouse_management.com.warehouse_management.utils.MongoRsqlUtils;
 
 import java.math.BigDecimal;
@@ -35,11 +35,12 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class ContainerService {
-
+    private final InventoryItemMapper mapper;
     private final ContainerRepository containerRepository;
     private final InventoryItemRepository inventoryItemRepository;
     private final InventoryItemService inventoryItemService;
     private final InventoryItemMapper inventoryItemMapper;
+    private final WarehouseTransactionRepository warehouseTransferTicketRepository;
 
     public Page<ContainerResponseDto> getContainers(PageOptionsDto req) {
         MatchOperation matchStage = Aggregation.match(new Criteria().andOperator(
@@ -198,6 +199,7 @@ public class ContainerService {
                 container.getInventoryItems().add(inventoryItemMapper.toInventoryItemContainer(itemPush));
             }
             containerRepository.save(container);
+            createDepToDesTran(itemsPushToCont, WarehouseTranType.DEPARTURE_TO_DEST_TRANSFER);
             // TODO: Ghi nhận log giao dịch
 
             return Map.of("containerId", container.getId());
@@ -293,5 +295,17 @@ public class ContainerService {
             // Xóa cứng các phụ tùng được clone trước đó ở kho nguồn (do trước đó chỉ lấy ra số lượng bé hơn số lượng tồn kho)
             inventoryItemRepository.bulkHardDelete(sparePartsToDel);
         }
+    }
+
+    private void createDepToDesTran(List<InventoryItem> dtos, WarehouseTranType tranType) {
+        WarehouseTransaction ticket = new WarehouseTransaction();
+        ticket.setTitle(tranType.getTitle());
+        List<WarehouseTransaction.InventoryItemTicket> itemsToTran = dtos.stream()
+                .map(mapper::toInventoryItemTicket)
+                .collect(Collectors.toList());
+        ticket.setInventoryItems(itemsToTran);
+        ticket.setTranType(WarehouseTranType.DEPARTURE_TO_DEST_TRANSFER);
+        ticket.setStatus(WarehouseTransactionStatus.APPROVED.getId());
+        warehouseTransferTicketRepository.save(ticket);
     }
 }

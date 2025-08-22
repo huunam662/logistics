@@ -19,7 +19,7 @@ import warehouse_management.com.warehouse_management.dto.inventory_item.response
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.pagination.response.PageInfoDto;
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
-import warehouse_management.com.warehouse_management.enumerate.InventoryItemImportType;
+import warehouse_management.com.warehouse_management.enumerate.WarehouseSubTranType;
 import warehouse_management.com.warehouse_management.mapper.InventoryItemMapper;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.model.Warehouse;
@@ -188,7 +188,7 @@ public class InventoryItemController {
                 dtos,
                 mapper::toInventoryItem,
                 mapper::toInventoryItemTicket,
-                InventoryItemImportType.PRODUCTION_PRODUCT
+                WarehouseSubTranType.EXCEL_TO_PRODUCTION_PRODUCT
         );
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(Map.of("createdCount", created.size())));
@@ -202,40 +202,11 @@ public class InventoryItemController {
                 dtos,
                 mapper::toInventoryItem,
                 mapper::toInventoryItemTicket,
-                InventoryItemImportType.PRODUCTION_SPARE_PART
+                WarehouseSubTranType.EXCEL_TO_PRODUCTION_SPARE_PART
         );
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(Map.of("createdCount", created.size())));
     }
-
-    // Bulk insert kho destination - xe phụ kiện (import Excel)
-    @PostMapping("/destination/products/import")
-    public ResponseEntity<ApiResponse<?>> bulkCreateDestinationProducts(
-             @RequestBody List<ExcelImportDestinationProductDto> dtos) {
-        List<InventoryItem> created = inventoryItemService.bulkImport(
-                dtos,
-                mapper::toInventoryItem,
-                mapper::toInventoryItemTicket,
-                InventoryItemImportType.DESTINATION_PRODUCT
-        );
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(Map.of("createdCount", created.size())));
-    }
-
-    // Bulk insert kho destination - phụ tùng (import Excel)
-    @PostMapping("/destination/spare-parts/import")
-    public ResponseEntity<ApiResponse<?>> bulkCreateDestinationSpareParts(
-            @RequestBody List<ExcelImportDestinationSparePartDto> dtos) {
-        List<InventoryItem> created = inventoryItemService.bulkImport(
-                dtos,
-                mapper::toInventoryItem,
-                mapper::toInventoryItemTicket,
-                InventoryItemImportType.DESTINATION_SPARE_PART
-        );
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(Map.of("createdCount", created.size())));
-    }
-
 
     @PostMapping("/warehouse/stock-transfer")
     @Operation(
