@@ -19,6 +19,7 @@ public class InventoryProductionDto {
     private String category;       // Chủng loại
     private Boolean hasSideShift;           // SS (Side Shift)
     private String serialNumber;   // Số seri
+    private String inventoryType;   // Loại
     private Integer liftingCapacityKg;      // Sức nâng (kg)
     private String chassisType;             // Loại khung nâng
     private Integer liftingHeightMm;        // Độ cao nâng (mm)
