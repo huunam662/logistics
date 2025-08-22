@@ -37,7 +37,6 @@ import java.util.Map;
 public class InventoryItemController {
     private final InventoryItemMapper mapper;
     private final InventoryItemService inventoryItemService;
-    private final WarehouseTransactionService warehouseTransactionService;
 
     @GetMapping("/{id}/product")
     @Operation(
