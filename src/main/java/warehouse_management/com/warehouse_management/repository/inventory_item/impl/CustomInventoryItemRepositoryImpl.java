@@ -189,6 +189,8 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     @Override
     public Page<InventoryConsignmentDto> findPageInventoryConsignment(ObjectId warehouseId, PageOptionsDto optionsReq) {
         List<AggregationOperation> pipelines = List.of(
+                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
+                Aggregation.unwind("warehouse"),
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("warehouseId").is(warehouseId),
                         Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
@@ -215,6 +217,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .and("pricing.agent").as("agent")   //
                         .and("logistics.arrivalDate").as("arrivalDate") //
                         .and("logistics.consignmentDate").as("consignmentDate") //
+                        .and("warehouse.name").as("warehouseName")
         );
         Aggregation aggregation = Aggregation.newAggregation(pipelines);
         return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryConsignmentDto.class, aggregation, optionsReq);

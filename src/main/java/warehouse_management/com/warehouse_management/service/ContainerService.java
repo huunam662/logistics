@@ -177,7 +177,7 @@ public class ContainerService {
         if(!container.getContainerStatus().equals(ContainerStatus.PENDING))
             throw LogicErrException.of("Chỉ được phép thêm hàng hóa khi đang chờ xác nhận.");
         try{
-            List<InventoryItem> itemsPushToCont = inventoryItemService.transferItems(req.getInventoryItems(), container.getToWarehouseId(), container, container.getArrivalDate(), null, InventoryItemStatus.OTHER);
+            List<InventoryItem> itemsPushToCont = inventoryItemService.transferItems(req.getInventoryItems(), container.getFromWareHouseId(), container, container.getArrivalDate(), null, InventoryItemStatus.OTHER);
             container.setContainerStatus(ContainerStatus.PENDING);
             if(container.getInventoryItems() == null) container.setInventoryItems(new ArrayList<>());
             final int itemsContSize = container.getInventoryItems().size();
@@ -250,24 +250,15 @@ public class ContainerService {
         Container container = getContainerToId(new ObjectId(containerId));
         if(container.getContainerStatus().equals(ContainerStatus.COMPLETED))
             throw LogicErrException.of("Cont hàng đã được hoàn tất trước đó.");
-        if(container.getContainerStatus().equals(ContainerStatus.REJECTED))
-            throw LogicErrException.of("Cont hàng đã được hủy trước đó.");
         ContainerStatus containerStatus = ContainerStatus.fromId(status);
         if(containerStatus == null) throw LogicErrException.of("Trạng thái không hợp lệ.");
         // update container
         if(containerStatus.equals(ContainerStatus.COMPLETED)){
             containerCompletedAndRejectedLogic(container, container.getToWarehouseId());
             List<ObjectId> itemIds = container.getInventoryItems().stream().map(Container.InventoryItemContainer::getId).toList();
-            inventoryItemRepository.updateStatusAndUnRefContainer(itemIds, InventoryItemStatus.IN_STOCK.getId());
+            inventoryItemRepository.updateStatusAndWarehouseAndUnRefContainer(itemIds, container.getToWarehouseId(), InventoryItemStatus.IN_STOCK.getId());
             container.setCompletionDate(LocalDateTime.now());
             // TODO: Phiếu xuất/nhập
-        }
-        else if(containerStatus.equals(ContainerStatus.REJECTED)){
-            containerCompletedAndRejectedLogic(container, container.getFromWareHouseId());
-            List<ObjectId> itemIds = container.getInventoryItems().stream().map(Container.InventoryItemContainer::getId).toList();
-            // Cập nhật hàng hóa quay lại kho cũ
-            inventoryItemRepository.updateStatusAndWarehouseAndUnRefContainer(itemIds, container.getFromWareHouseId(), InventoryItemStatus.IN_STOCK.getId());
-            container.setCompletionDate(LocalDateTime.now());
         }
         container.setContainerStatus(containerStatus);
         containerRepository.save(container);

@@ -28,6 +28,7 @@ public class InventoryConsignmentDto {
     private String batterySpecification;    // Thông số bình điện
     private String chargerSpecification;    // Thông số bộ sạc
     private String forkDimensions;          // Thông số càng
+    private String warehouseName;           // Tên kho
     private String warehouseType;           // Loại kho
     private Integer valveCount;             // Số lượng van
     private String otherDetails;            // Chi tiết khác
