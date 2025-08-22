@@ -51,6 +51,7 @@ public class InventoryItemService {
         InventoryItem item = inventoryItemMapper.toInventoryItemSparePart(req);
         item.setWarehouseId(warehouse.getId());
         item.setInventoryType(InventoryType.SPARE_PART.getId());
+        item.setStatus(InventoryItemStatus.IN_STOCK);
         if(item.getLogistics() == null) item.setLogistics(new InventoryItem.Logistics());
         try{
             item.getLogistics().setOrderDate(LocalDate.parse(req.getOrderDate()).atStartOfDay());
@@ -93,6 +94,7 @@ public class InventoryItemService {
         InventoryItem item = mapper.toInventoryItemModel(req);
         item.setWarehouseId(warehouse.getId());
         item.setQuantity(1); // Xe hoặc Phụ kiện mặc định là 1
+        item.setStatus(InventoryItemStatus.IN_STOCK);
         if(item.getLogistics() == null) item.setLogistics(new InventoryItem.Logistics());
         try{
             item.getLogistics().setOrderDate(LocalDate.parse(req.getLogistics().getOrderDate()).atStartOfDay());
