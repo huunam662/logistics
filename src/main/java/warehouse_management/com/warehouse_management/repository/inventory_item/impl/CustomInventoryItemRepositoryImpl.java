@@ -102,6 +102,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .and("pricing.salePriceR0").as("salePriceR0")   //
                         .and("pricing.salePriceR1").as("salePriceR1")   //
                         .and("pricing.actualSalePrice").as("actualSalePrice")   //
+                        .and("pricing.agent").as("agent")   //
                         .and("logistics.arrivalDate").as("arrivalDate") //
         );
         Aggregation aggregation = Aggregation.newAggregation(pipelines);
@@ -211,6 +212,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .and("pricing.salePriceR0").as("salePriceR0")   //
                         .and("pricing.salePriceR1").as("salePriceR1")   //
                         .and("pricing.actualSalePrice").as("actualSalePrice")   //
+                        .and("pricing.agent").as("agent")   //
                         .and("logistics.arrivalDate").as("arrivalDate") //
                         .and("logistics.consignmentDate").as("consignmentDate") //
         );
