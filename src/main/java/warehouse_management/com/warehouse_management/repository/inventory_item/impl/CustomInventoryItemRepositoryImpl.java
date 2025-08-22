@@ -175,11 +175,11 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .and("pricing.salePriceR0").as("salePriceR0")   //
                         .and("pricing.salePriceR1").as("salePriceR1")   //
                         .and("pricing.actualSalePrice").as("actualSalePrice")   //
-                        .and("container.status").as("containerStatus")  //
-                        .and("container.code").as("containerCode")  //
+                        .and("container.containerStatus").as("containerStatus")  //
+                        .and("container.containerCode").as("containerCode")  //
+                        .and("container.departureDate").as("containerDepartureDate") //
+                        .and("container.arrivalDate").as("containerArrivalDate") //
                         .and("containerToWarehouse.name").as("containerToWarehouse")    //
-                        .and("containerToWarehouse.departureDate").as("containerDepartureDate") //
-                        .and("containerToWarehouse.arrivalDate").as("containerArrivalDate") //
 
         );
         Aggregation aggregation = Aggregation.newAggregation(pipelines);
