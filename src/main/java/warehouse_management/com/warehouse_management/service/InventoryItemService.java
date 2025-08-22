@@ -64,7 +64,7 @@ public class InventoryItemService {
 
         WarehouseTransaction transaction = new WarehouseTransaction();
         transaction.setTitle("Phiếu nhập kho hàng hóa mới");
-        transaction.setReason("Nhập kho hàng hóa " + item.getProductCode() + " theo PO " + item.getPoNumber());
+        transaction.setReason("Nhập kho hàng hóa " + item.getCommodityCode() + " theo PO " + item.getPoNumber());
         transaction.setTicketCode(generateTicketCode("PNK")); // Tạo mã phiếu nhập kho
         transaction.setTranType(WarehouseTranType.WAREHOUSE_IN);
         transaction.setStatusEnum(WarehouseTransactionStatus.APPROVED); // Tự động duyệt

@@ -66,7 +66,7 @@ public class WarehouseTransactionController {
         return ApiResponse.success(new PageInfoDto<>(page));
     }
 
-        @GetMapping("/page/warehouse_inout")
+    @GetMapping("/page/warehouse_inout")
     @Operation(
             summary = "GET Lấy giao dịch nhập/xuất kho (Phân trang).",
             description = "Dùng cho giao dịch WAREHOUSE_INOUT"
