@@ -9,7 +9,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.mapping.FieldType;
 import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
