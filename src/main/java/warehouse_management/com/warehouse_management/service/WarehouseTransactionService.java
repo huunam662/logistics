@@ -47,6 +47,7 @@ public class WarehouseTransactionService {
         Warehouse originWarehouse = warehouseService.getWarehouseToId(new ObjectId(dto.getOriginWarehouseId()));
         Warehouse destinationWarehouse = warehouseService.getWarehouseToId(new ObjectId(dto.getDestinationWarehouseId()));
         ticket.setOriginWarehouseId(originWarehouse.getId());
+        ticket.setTranType(WarehouseTranType.DEST_TO_DEST_TRANSFER);
         ticket.setDestinationWarehouseId(destinationWarehouse.getId());
         ticket.setTitle("Chuyển hàng từ kho \"" + originWarehouse.getName() + "\" đến kho \"" + destinationWarehouse.getName() + "\"" +
                 "");
@@ -61,52 +62,6 @@ public class WarehouseTransactionService {
     }
 
 
-    public String buildJsonPrint(WarehouseTransaction ticket, List<InventoryItem> inventoryItems) {
-        HashMap<String, Object> printData = new HashMap<>();
-//  Ship Unit Info
-        WarehouseTransaction.ShipUnitInfo shipInfo = ticket.getShipUnitInfo();
-        if (shipInfo != null) {
-            printData.put("shipFullName", shipInfo.getFullName());
-            printData.put("shipLicensePlate", shipInfo.getLicensePlate());
-            printData.put("shipPhone", shipInfo.getPhone());
-            printData.put("shipIdentityCode", shipInfo.getIdentityCode());
-            printData.put("shipMethod", shipInfo.getShipMethod());
-        }
-
-//  Stock In Department
-        WarehouseTransaction.Department inDept = ticket.getStockInDepartment();
-        if (inDept != null) {
-            printData.put("inDeptName", inDept.getName());
-            printData.put("inDeptAddress", inDept.getAddress());
-            printData.put("inDeptPhone", inDept.getPhone());
-            printData.put("inDeptPosition", inDept.getPosition());
-        }
-
-//  Stock Out Department
-        WarehouseTransaction.Department outDept = ticket.getStockOutDepartment();
-        if (outDept != null) {
-            printData.put("outDeptName", outDept.getName());
-            printData.put("outDeptAddress", outDept.getAddress());
-            printData.put("outDeptPhone", outDept.getPhone());
-            printData.put("outDeptPosition", outDept.getPosition());
-        }
-
-        printData.put("dataset", inventoryItems);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("'Ngày' dd, 'Tháng' MM, 'Năm' yyyy");
-        LocalDate tranDate = LocalDate.now();
-        if (ticket.getCreatedAt() != null) {
-            tranDate = ticket.getCreatedAt().toLocalDate();
-        }
-        String formattedDate = tranDate.format(formatter);
-        printData.put("dayString", formattedDate);
-        int totalQuantity = inventoryItems.stream()
-                .mapToInt(InventoryItem::getQuantity)
-                .sum();
-        printData.put("total1", totalQuantity);
-        printData.put("total2", totalQuantity);
-        return JsonUtils.toJson(printData);
-
-    }
 
     public WarehouseTransaction getWarehouseTransactionToId(ObjectId ticketId) {
         WarehouseTransaction ticket = warehouseTransferTicketRepository.findById(ticketId).orElse(null);

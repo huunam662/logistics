@@ -37,18 +37,15 @@ public class CustomWarehouseTransactionRepositoryImpl implements CustomWarehouse
     public Page<WarehouseTransactionPageDto> findPageWarehouseTransferTicket(PageOptionsDto optionsDto, WarehouseTranType tranType) {
         Criteria criteria = Criteria.where("deletedAt").isNull();
         if (tranType != null) {
-            if (tranType == WarehouseTranType.WAREHOUSE_INOUT) {
-                criteria.and("tranType").in(WarehouseTranType.WAREHOUSE_IN.getId(), WarehouseTranType.WAREHOUSE_OUT.getId());
-            } else {
-                criteria.and("tranType").is(tranType.getId());
-            }
+            criteria.and("tranType").is(tranType.getId());
+
         }
 
         List<AggregationOperation> pipelines = List.of(
                 Aggregation.lookup("user", "createdBy", "_id", "user"),
                 Aggregation.unwind("user", true),
                 Aggregation.match(criteria),
-                Aggregation.project("title", "ticketCode", "reason", "status", "createdAt", "approvedAt")
+                Aggregation.project("title", "ticketCode", "tranType", "reason", "status", "createdAt", "approvedAt")
                         .and("_id").as("id")
                         .and("user.username").as("requesterName")
         );
