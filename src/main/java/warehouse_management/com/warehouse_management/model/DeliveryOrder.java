@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bson.types.ObjectId;
-import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.*;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.mapping.FieldType;
@@ -29,12 +29,27 @@ public class DeliveryOrder {
 
     private LocalDateTime deliveryDate;  // Ngày giao hàng (hỗ trợ chọn quá khứ).
 
+    private Integer overdueDays;    // Số ngày quá hạn
+
     private Integer holdingDays;    // Số ngày giữ hàng (số nguyên dương).
+
+    private LocalDateTime holdingDeadline;  // Hạn giữ hàng
 
     private DeliveryOrderStatus status; // Trạng thái đơn giao hàng
 
     private List<InventoryItemDelivery> inventoryItems; // Các mặt hàng đã giao
 
+    @CreatedBy
+    private ObjectId createdBy;
+    @LastModifiedBy
+    private ObjectId updatedBy;
+    private ObjectId deletedBy;
+
+    @CreatedDate
+    private LocalDateTime createdAt;
+    @LastModifiedDate
+    private LocalDateTime updatedAt;
+    private LocalDateTime deletedAt;
 
     @Data
     @NoArgsConstructor
