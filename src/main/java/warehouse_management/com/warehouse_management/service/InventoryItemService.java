@@ -59,7 +59,25 @@ public class InventoryItemService {
         catch (Exception e){
             throw LogicErrException.of("Ngày đặt hàng phải đúng định dạng 'yyyy-MM-dd'");
         }
+        // Ghi vào phiếu nhập
+        WarehouseTransaction.InventoryItemTicket itemSnapshot = inventoryItemMapper.toInventoryItemTicket(item);
+
+        WarehouseTransaction transaction = new WarehouseTransaction();
+        transaction.setTitle("Phiếu nhập kho hàng hóa mới");
+        transaction.setReason("Nhập kho hàng hóa " + item.getProductCode() + " theo PO " + item.getPoNumber());
+        transaction.setTicketCode(generateTicketCode("PNK")); // Tạo mã phiếu nhập kho
+        transaction.setTranType(WarehouseTranType.WAREHOUSE_IN);
+        transaction.setStatusEnum(WarehouseTransactionStatus.APPROVED); // Tự động duyệt
+        transaction.setApprovedAt(LocalDateTime.now());
+        transaction.setDestinationWarehouseId(item.getWarehouseId());
+        transaction.setInventoryItems(List.of(itemSnapshot));
+        warehouseTransferTicketRepository.save(transaction);
+
         return inventoryItemRepository.save(item);
+    }
+
+    private String generateTicketCode(String prefix) {
+        return prefix + "-" + System.currentTimeMillis();
     }
 
     public InventoryProductDetailsDto getInventoryProductDetails(ObjectId id){
@@ -108,7 +126,20 @@ public class InventoryItemService {
         catch (Exception e){
             throw LogicErrException.of("Ngày dự kiến SX xong phải đúng định dạng 'yyyy-MM-dd'");
         }
-        // Lưu DB
+        // Ghi vào phiếu nhập
+        WarehouseTransaction.InventoryItemTicket itemSnapshot = inventoryItemMapper.toInventoryItemTicket(item);
+
+        WarehouseTransaction transaction = new WarehouseTransaction();
+        transaction.setTitle("Phiếu nhập kho hàng hóa mới");
+        transaction.setReason("Nhập kho hàng hóa " + item.getProductCode() + " theo PO " + item.getPoNumber());
+        transaction.setTicketCode(generateTicketCode("PNK")); // Tạo mã phiếu nhập kho
+        transaction.setTranType(WarehouseTranType.WAREHOUSE_IN);
+        transaction.setStatusEnum(WarehouseTransactionStatus.APPROVED); // Tự động duyệt
+        transaction.setApprovedAt(LocalDateTime.now());
+        transaction.setDestinationWarehouseId(item.getWarehouseId());
+        transaction.setInventoryItems(List.of(itemSnapshot));
+        warehouseTransferTicketRepository.save(transaction);
+
         return inventoryItemRepository.save(item);
     }
 

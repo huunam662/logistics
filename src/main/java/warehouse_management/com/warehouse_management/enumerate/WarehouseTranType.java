@@ -6,8 +6,9 @@ import org.springframework.lang.Nullable;
 public enum WarehouseTranType {
     LOCAL_TRANSFER("LOCAL_TRANSFER"),
     WAREHOUSE_INOUT("WAREHOUSE_INOUT"),
-    SALE_RIGHT_TRANSFER("SALE_RIGHT_TRANSFER");
-
+    SALE_RIGHT_TRANSFER("SALE_RIGHT_TRANSFER"),
+    WAREHOUSE_IN("WAREHOUSE_IN"),
+    WAREHOUSE_OUT("WAREHOUSE_OUT");
 
     private final String id;
 
