@@ -16,9 +16,7 @@ import warehouse_management.com.warehouse_management.dto.inventory_item.request.
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.pagination.response.PageInfoDto;
-import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
-import warehouse_management.com.warehouse_management.enumerate.InventoryType;
-import warehouse_management.com.warehouse_management.enumerate.WarehouseType;
+import warehouse_management.com.warehouse_management.enumerate.*;
 import warehouse_management.com.warehouse_management.exceptions.LogicErrException;
 import warehouse_management.com.warehouse_management.mapper.InventoryItemMapper;
 import warehouse_management.com.warehouse_management.model.Container;
@@ -33,6 +31,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -188,7 +187,6 @@ public class InventoryItemService {
         Warehouse destinationWarehouse = warehouseService.getWarehouseToId(new ObjectId(req.getDestinationWarehouseId()));
         try{
             List<InventoryItem> itemsResults = transferItems(req.getInventoryItems(), destinationWarehouse.getId(), null, null, null, InventoryItemStatus.OTHER);
-            ticket.setJsonPrint(warehouseTransferTicketService.buildJsonPrint(ticket, itemsResults));
             ticket.setInventoryItems(itemsResults.stream().map(inventoryItemMapper::toInventoryItemTicket).toList());
             warehouseTransferTicketRepository.save(ticket);
             // TODO: Ghi nhận log chuyển kho (người thực hiện, thời gian, PO, số lượng)
@@ -347,66 +345,41 @@ public class InventoryItemService {
         return itemsResults;
     }
 
-    public List<InventoryItem> bulkCreateProductionProductItems(List<ExcelImportProductionProductDto> dtos) {
+    private void createImportTransaction(List<WarehouseTransaction.InventoryItemTicket> dtos, InventoryItemImportType importType) {
+        WarehouseTransaction ticket = new WarehouseTransaction();
+        ticket.setTitle(String.format("%s từ excel", importType.getTitle()));
+        ticket.setInventoryItems(dtos);
+        ticket.setStatus(WarehouseTransactionStatus.APPROVED.getId());
+        warehouseTransferTicketRepository.save(ticket);
+    }
+
+    public <T> List<InventoryItem> bulkImport(
+            List<T> dtos,
+            Function<T, InventoryItem> toInventoryItem,
+            Function<T, WarehouseTransaction.InventoryItemTicket> toInventoryItemTicket,
+            InventoryItemImportType importType
+    ) {
         if (dtos == null || dtos.isEmpty()) {
             return List.of();
         }
+
         List<InventoryItem> itemsToInsert = dtos.stream()
                 .map(dto -> {
-                    //DTO MAPPING
-                    InventoryItem item = mapper.toInventoryItem(dto);
+                    InventoryItem item = toInventoryItem.apply(dto);
                     item.setStatus(InventoryItemStatus.IN_STOCK);
                     return item;
                 })
                 .collect(Collectors.toList());
 
-        return inventoryItemRepository.insert(itemsToInsert);
-    }
+        inventoryItemRepository.insert(itemsToInsert);
 
-    public List<InventoryItem> bulkCreateDestinationProductItems(List<ExcelImportDestinationProductDto> dtos) {
-        if (dtos == null || dtos.isEmpty()) {
-            return List.of();
-        }
-        List<InventoryItem> itemsToInsert = dtos.stream()
-                .map(dto -> {
-                    //DTO MAPPING
-                    InventoryItem item = mapper.toInventoryItem(dto);
-                    return item;
-                })
+        List<WarehouseTransaction.InventoryItemTicket> itemsToTran = dtos.stream()
+                .map(toInventoryItemTicket)
                 .collect(Collectors.toList());
 
-        return inventoryItemRepository.insert(itemsToInsert);
-    }
+        createImportTransaction(itemsToTran, importType);
 
-    public List<InventoryItem> bulkCreateProductionSparePartItems(List<ExcelImportProductionSparePartDto> dtos) {
-        if (dtos == null || dtos.isEmpty()) {
-            return List.of();
-        }
-        List<InventoryItem> itemsToInsert = dtos.stream()
-                .map(dto -> {
-                    //DTO MAPPING
-                    InventoryItem item = mapper.toInventoryItem(dto);
-                    item.setStatus(InventoryItemStatus.IN_STOCK);
-                    return item;
-                })
-                .collect(Collectors.toList());
-
-        return inventoryItemRepository.insert(itemsToInsert);
-    }
-
-    public List<InventoryItem> bulkCreateDestinationSparePartItems(List<ExcelImportDestinationSparePartDto> dtos) {
-        if (dtos == null || dtos.isEmpty()) {
-            return List.of();
-        }
-        List<InventoryItem> itemsToInsert = dtos.stream()
-                .map(dto -> {
-                    //DTO MAPPING
-                    InventoryItem item = mapper.toInventoryItem(dto);
-                    return item;
-                })
-                .collect(Collectors.toList());
-
-        return inventoryItemRepository.insert(itemsToInsert);
+        return itemsToInsert;
     }
 
     @AuditAction(action = "testMethod")

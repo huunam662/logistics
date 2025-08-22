@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,9 +19,14 @@ import warehouse_management.com.warehouse_management.dto.inventory_item.response
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.pagination.response.PageInfoDto;
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
+import warehouse_management.com.warehouse_management.enumerate.InventoryItemImportType;
+import warehouse_management.com.warehouse_management.mapper.InventoryItemMapper;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.model.Warehouse;
+import warehouse_management.com.warehouse_management.model.WarehouseTransaction;
 import warehouse_management.com.warehouse_management.service.InventoryItemService;
+import warehouse_management.com.warehouse_management.service.WarehouseTransactionService;
+
 import java.util.List;
 import java.util.Map;
 
@@ -29,7 +35,9 @@ import java.util.Map;
 @RequestMapping("/v1/inventory-items")
 @RequiredArgsConstructor
 public class InventoryItemController {
+    private final InventoryItemMapper mapper;
     private final InventoryItemService inventoryItemService;
+    private final WarehouseTransactionService warehouseTransactionService;
 
     @GetMapping("/{id}/product")
     @Operation(
@@ -176,7 +184,12 @@ public class InventoryItemController {
     @PostMapping("/production/products/import")
     public ResponseEntity<ApiResponse<?>> bulkCreateProductionProducts(
             @RequestBody List<ExcelImportProductionProductDto> dtos) {
-        List<InventoryItem> created = inventoryItemService.bulkCreateProductionProductItems(dtos);
+        List<InventoryItem> created = inventoryItemService.bulkImport(
+                dtos,
+                mapper::toInventoryItem,
+                mapper::toInventoryItemTicket,
+                InventoryItemImportType.PRODUCTION_PRODUCT
+        );
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(Map.of("createdCount", created.size())));
     }
@@ -184,8 +197,13 @@ public class InventoryItemController {
     //     Bulk insert kho production - phụ tùng (import Excel)
     @PostMapping("/production/spare-parts/import")
     public ResponseEntity<ApiResponse<?>> bulkCreateProductionSpareParts(
-            @Valid @RequestBody List<ExcelImportProductionSparePartDto> dtos) {
-        List<InventoryItem> created = inventoryItemService.bulkCreateProductionSparePartItems(dtos);
+             @RequestBody List<ExcelImportProductionSparePartDto> dtos) {
+        List<InventoryItem> created = inventoryItemService.bulkImport(
+                dtos,
+                mapper::toInventoryItem,
+                mapper::toInventoryItemTicket,
+                InventoryItemImportType.PRODUCTION_SPARE_PART
+        );
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(Map.of("createdCount", created.size())));
     }
@@ -193,8 +211,13 @@ public class InventoryItemController {
     // Bulk insert kho destination - xe phụ kiện (import Excel)
     @PostMapping("/destination/products/import")
     public ResponseEntity<ApiResponse<?>> bulkCreateDestinationProducts(
-            @Valid @RequestBody List<ExcelImportDestinationProductDto> dtos) {
-        List<InventoryItem> created = inventoryItemService.bulkCreateDestinationProductItems(dtos);
+             @RequestBody List<ExcelImportDestinationProductDto> dtos) {
+        List<InventoryItem> created = inventoryItemService.bulkImport(
+                dtos,
+                mapper::toInventoryItem,
+                mapper::toInventoryItemTicket,
+                InventoryItemImportType.DESTINATION_PRODUCT
+        );
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(Map.of("createdCount", created.size())));
     }
@@ -202,8 +225,13 @@ public class InventoryItemController {
     // Bulk insert kho destination - phụ tùng (import Excel)
     @PostMapping("/destination/spare-parts/import")
     public ResponseEntity<ApiResponse<?>> bulkCreateDestinationSpareParts(
-            @Valid @RequestBody List<ExcelImportDestinationSparePartDto> dtos) {
-        List<InventoryItem> created = inventoryItemService.bulkCreateDestinationSparePartItems(dtos);
+            @RequestBody List<ExcelImportDestinationSparePartDto> dtos) {
+        List<InventoryItem> created = inventoryItemService.bulkImport(
+                dtos,
+                mapper::toInventoryItem,
+                mapper::toInventoryItemTicket,
+                InventoryItemImportType.DESTINATION_SPARE_PART
+        );
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(Map.of("createdCount", created.size())));
     }

@@ -4,35 +4,30 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.bson.types.ObjectId;
 import org.springframework.stereotype.Component;
-
-import warehouse_management.com.warehouse_management.dto.report.PXKDCNBInventoryItemDatasetIDto;
+import warehouse_management.com.warehouse_management.dto.report.PNKPXKInventoryItemDataSetIDto;
 import warehouse_management.com.warehouse_management.enumerate.InventoryType;
-
 import warehouse_management.com.warehouse_management.model.WarehouseTransaction;
 import warehouse_management.com.warehouse_management.repository.warehouse_transaction.WarehouseTransactionRepository;
 import warehouse_management.com.warehouse_management.service.report.GenerateReportStrategy;
 import warehouse_management.com.warehouse_management.utils.GeneralResource;
 
-
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 
 @Component
-public class PXKDCNBGenerateReport implements GenerateReportStrategy {
+public class PNKGenerateReport implements GenerateReportStrategy {
     private final WarehouseTransactionRepository warehouseTransferTicketRepository;
 
-    public PXKDCNBGenerateReport(WarehouseTransactionRepository warehouseTransferTicketRepository) {
+    public PNKGenerateReport(WarehouseTransactionRepository warehouseTransferTicketRepository) {
         this.warehouseTransferTicketRepository = warehouseTransferTicketRepository;
     }
 
     @Override
     public String getReportType() {
-        return "PXKDCNB";
+        return "PNK";
     }
 
     @Override
@@ -41,33 +36,22 @@ public class PXKDCNBGenerateReport implements GenerateReportStrategy {
                 .orElseThrow());
         WarehouseTransaction transaction = warehouseTransaction.get();
         Map<String, Object> result = new HashMap<>();
-        result.put("outDeptName", transaction.getStockOutDepartment().getName());
-        result.put("outDeptAddress", transaction.getStockOutDepartment().getAddress());
-        result.put("outDeptPhone", transaction.getStockOutDepartment().getPhone());
-        result.put("outDeptPosition", transaction.getStockOutDepartment().getPosition());
-
-        result.put("inDeptName", transaction.getStockInDepartment().getName());
-        result.put("inDeptAddress", transaction.getStockInDepartment().getAddress());
-        result.put("inDeptPhone", transaction.getStockInDepartment().getPhone());
-        result.put("inDeptPosition", transaction.getStockInDepartment().getPosition());
-
-        result.put("shipFullName", transaction.getShipUnitInfo().getFullName());
-        result.put("shipLicensePlate", transaction.getShipUnitInfo().getLicensePlate());
-        result.put("shipPhone", transaction.getShipUnitInfo().getPhone());
-        result.put("shipIdentityCode", transaction.getShipUnitInfo().getIdentityCode());
-
-
         result.put("dataset", buildDataSetItems(transaction.getInventoryItems()));
-
-        result.put("tranCode", transaction.getTicketCode());
-
+        int totalQuantity = Optional.ofNullable(transaction.getInventoryItems())
+                .orElse(List.of())
+                .stream()
+                .mapToInt(item -> Optional.ofNullable(item.getQuantity()).orElse(0))
+                .sum();
+        result.put("total1", totalQuantity);
+        result.put("total2", totalQuantity);
+        result.put("dayString", buildDayString(transaction.getCreatedAt()));
 
         return result;
     }
 
     @Override
     public String getTemplateFileName() {
-        return "PXKDCNB.xlsx";
+        return "PNK.xlsx";
     }
 
     @Override
@@ -75,24 +59,28 @@ public class PXKDCNBGenerateReport implements GenerateReportStrategy {
         List<?> items = (List<?>) context.get("dataset"); // Lấy danh sách item từ context
         if (items != null && items.size() > 1) {
             Sheet sheet = workbook.getSheetAt(0);
-            int datasetRowIdx = GeneralResource.PXKDCNB_DATASET_ROW_IDX;
+            int datasetRowIdx = GeneralResource.PXK_PNK_DATASET_ROW_IDX;
             sheet.shiftRows(datasetRowIdx, sheet.getLastRowNum(), items.size() - 1);
         }
     }
 
 
-    private List<PXKDCNBInventoryItemDatasetIDto> buildDataSetItems(List<WarehouseTransaction.InventoryItemTicket> inventoryItems) {
-        List<PXKDCNBInventoryItemDatasetIDto> rs = new ArrayList<>();
+    private List<PNKPXKInventoryItemDataSetIDto> buildDataSetItems(List<WarehouseTransaction.InventoryItemTicket> inventoryItems) {
+        List<PNKPXKInventoryItemDataSetIDto> rs = new ArrayList<>();
 
         for (int i = 0; i < inventoryItems.size(); i++) {
-            WarehouseTransaction.InventoryItemTicket item = inventoryItems.get(i);
 
-            PXKDCNBInventoryItemDatasetIDto dto = new PXKDCNBInventoryItemDatasetIDto();
+            WarehouseTransaction.InventoryItemTicket item = inventoryItems.get(i);
+            InventoryType type = InventoryType.fromId(item.getInventoryType());
+            PNKPXKInventoryItemDataSetIDto dto = new PNKPXKInventoryItemDataSetIDto();
             dto.setIndex(i + 1); // STT
-            dto.setSerialNumber(item.getSerialNumber());
+            if (type == InventoryType.VEHICLE || type == InventoryType.ACCESSORY) {
+                dto.setCode(item.getProductCode());
+            } else {
+                dto.setCode(item.getCommodityCode());
+            }
 
             // Set Unit theo inventoryType
-            InventoryType type = InventoryType.fromId(item.getInventoryType());
             if (type == InventoryType.VEHICLE) {
                 dto.setUnit("Chiếc");
             } else {
@@ -100,7 +88,7 @@ public class PXKDCNBGenerateReport implements GenerateReportStrategy {
             }
 
             dto.setQuantity(item.getQuantity());
-            dto.setNote(item.getNotes());
+            dto.setRealQuantity(item.getQuantity());
 
             // Build Name theo rule
             dto.setName(buildName(item));
@@ -192,5 +180,14 @@ public class PXKDCNBGenerateReport implements GenerateReportStrategy {
         return value == null ? "" : value;
     }
 
+
+    private String buildDayString(LocalDateTime createdAt) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("'Ngày' dd, 'Tháng' MM, 'Năm' yyyy");
+        LocalDate tranDate = LocalDate.now();
+        if (createdAt != null) {
+            tranDate = createdAt.toLocalDate();
+        }
+        return tranDate.format(formatter);
+    }
 
 }
