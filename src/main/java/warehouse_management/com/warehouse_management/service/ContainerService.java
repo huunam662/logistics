@@ -258,6 +258,7 @@ public class ContainerService {
             List<ObjectId> itemIds = container.getInventoryItems().stream().map(Container.InventoryItemContainer::getId).toList();
             inventoryItemRepository.updateStatusAndUnRefContainer(itemIds, InventoryItemStatus.IN_STOCK.getId());
             container.setCompletionDate(LocalDateTime.now());
+            // TODO: Phiếu xuất/nhập
         }
         else if(containerStatus.equals(ContainerStatus.REJECTED)){
             containerCompletedAndRejectedLogic(container, container.getFromWareHouseId());
