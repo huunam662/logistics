@@ -1,0 +1,50 @@
+stages:
+  - build
+  - release
+variables:
+  dist_output_path: dist
+
+build:
+  stage: build
+  before_script:
+    - export root=$(pwd)
+    - export cicd_path=$root/.ci
+    - source $cicd_path/env-param.sh
+    - tag=$(echo $CI_COMMIT_MESSAGE | sed -r 's/.*(\[tag\])//')
+    - export tag=$tag
+    - check=$(echo $CI_COMMIT_MESSAGE | sed -r 's/^.*(\[tag\]).*/\1/')
+  script:
+    - |
+      if [ "$check" == "[tag]" ]; then
+          bash $cicd_path/build.sh
+      fi
+  only:
+    - release
+  tags:
+    - runner-builder
+
+release:
+  stage: release
+  before_script:
+    - export cicd_path="$CI_PROJECT_DIR/.ci"
+    - check=$(echo "$CI_COMMIT_MESSAGE" | sed -r 's/^.*(\[tag\]).*/\1/')
+  script:
+    - |
+      if [ "$check" = "[tag]" ]; then
+        set -euo pipefail
+        git clone "https://oauth2:${GITLAB_TOKEN}@gitlab.meu-solutions.com/dangdoan/meu-logistic-core.git"
+        cd meu-logistic-core
+        git fetch --all --prune
+        git checkout deploy
+        cp "$cicd_path/meu-logistic-core/meu-logistic-core-values.yaml" ".ci/meu-logistic-core/meu-logistic-core-values.yaml"
+        sed -i -E '/^image:/,/^[^[:space:]]/ s|^([[:space:]]*tag:[[:space:]]*).*|\1"'"${CI_PIPELINE_ID}"'"|' .ci/meu-logistic-core/meu-logistic-core-values.yaml
+        git add .ci/meu-logistic-core/meu-logistic-core-values.yaml
+        git commit -m "CI deploy staging ${CI_PIPELINE_ID}" || echo "No changes to commit"
+        git push origin deploy
+      fi
+
+  only:
+    - release
+  tags:
+    - runner-builder
+

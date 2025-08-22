@@ -51,6 +51,7 @@ public class InventoryItemService {
         InventoryItem item = inventoryItemMapper.toInventoryItemSparePart(req);
         item.setWarehouseId(warehouse.getId());
         item.setInventoryType(InventoryType.SPARE_PART.getId());
+        item.setStatus(InventoryItemStatus.IN_STOCK);
         if(item.getLogistics() == null) item.setLogistics(new InventoryItem.Logistics());
         try{
             item.getLogistics().setOrderDate(LocalDate.parse(req.getOrderDate()).atStartOfDay());
@@ -93,6 +94,7 @@ public class InventoryItemService {
         InventoryItem item = mapper.toInventoryItemModel(req);
         item.setWarehouseId(warehouse.getId());
         item.setQuantity(1); // Xe hoặc Phụ kiện mặc định là 1
+        item.setStatus(InventoryItemStatus.IN_STOCK);
         if(item.getLogistics() == null) item.setLogistics(new InventoryItem.Logistics());
         try{
             item.getLogistics().setOrderDate(LocalDate.parse(req.getLogistics().getOrderDate()).atStartOfDay());
@@ -252,6 +254,15 @@ public class InventoryItemService {
         List<ObjectId> itemIdToTransfer = itemIdQualityMap.keySet().stream().map(ObjectId::new).toList();
         // Lấy toàn bộ sản phẩm (theo mã sản phẩm) trong Kho chờ sản xuất có PO được chọn
         List<InventoryItem> itemsToTransfer = inventoryItemRepository.findByIdIn(itemIdToTransfer);
+        List<InventoryItem> itemsSparePartInTransitContainer = List.of();
+        if(container != null) {
+            List<String> commodityCodes = itemsToTransfer.stream()
+                    .filter(i -> i.getInventoryType().equals(InventoryType.SPARE_PART.getId()) && i.getCommodityCode() != null)
+                    .map(InventoryItem::getCommodityCode)
+                    .toList();
+            // Lấy các phụ tùng đang tồn tại trong container (nếu có)
+            itemsSparePartInTransitContainer = inventoryItemRepository.findSparePartByCommodityCodeIn(commodityCodes, container.getId());
+        }
         List<InventoryItem> itemsSparePartToNew = new ArrayList<>();
         List<InventoryItem> itemsResults = new ArrayList<>();
         for(var item : itemsToTransfer){
@@ -259,19 +270,31 @@ public class InventoryItemService {
                 int quantityToTransfer = itemIdQualityMap.get(item.getId().toString());
                 if(item.getQuantity() == 0)
                     throw LogicErrException.of("Hàng phụ tùng " + item.getProductCode() + " hiện hết hàng.");
-                else if(item.getQuantity() < quantityToTransfer)
+                if(item.getQuantity() < quantityToTransfer)
                     throw LogicErrException.of("Số lượng phụ tùng " + item.getProductCode() + " cần nhập vượt quá số lượng trong kho.");
-                else if(item.getQuantity() > quantityToTransfer){
+                if(item.getQuantity() > quantityToTransfer){
+                    item.setQuantity(item.getQuantity() - quantityToTransfer);
                     InventoryItem sparePartToDeparture = inventoryItemMapper.cloneEntity(item);
+                    if(container != null){
+                        boolean isExistsInContainer = false;
+                        for(var sp : itemsSparePartInTransitContainer){
+                            // Nếu phụ tùng có mã hàng hóa tương ứng đã tồn tại trong container thì cập nhật số lượng
+                            if(sp.getCommodityCode().equals(item.getCommodityCode())){
+                                sp.setQuantity(sp.getQuantity() + quantityToTransfer);
+                                isExistsInContainer = true;
+                                break;
+                            }
+                        }
+                        // Duyệt qua item tiếp theo
+                        if(isExistsInContainer) continue;
+                        sparePartToDeparture.setContainerId(container.getId());
+                        sparePartToDeparture.getLogistics().setDepartureDate(container.getDepartureDate());
+                    }
                     sparePartToDeparture.setId(null);
                     sparePartToDeparture.setQuantity(quantityToTransfer);
                     // Kho hiện tại → “Kho khác”
                     sparePartToDeparture.setWarehouseId(toWarehouseId);
                     sparePartToDeparture.setStatus(itemStatus.getId());
-                    if(container != null){
-                        sparePartToDeparture.setContainerId(container.getId());
-                        sparePartToDeparture.getLogistics().setDepartureDate(container.getDepartureDate());
-                    }
                     if(arrivalDate != null){
                         // Ngày giao hàng = ngày đã chọn theo PO
                         sparePartToDeparture.getLogistics().setArrivalDate(arrivalDate);
@@ -280,18 +303,30 @@ public class InventoryItemService {
                         sparePartToDeparture.getLogistics().setConsignmentDate(consignmentDate);
                     }
                     itemsSparePartToNew.add(sparePartToDeparture);
-                    item.setQuantity(item.getQuantity() - quantityToTransfer);
                     continue;
                 }
             }
 
-            // Kho hiện tại → “Kho khác”
-            item.setWarehouseId(toWarehouseId);
-            item.setStatus(itemStatus.getId());
             if(container != null){
+                boolean isExistsInContainer = false;
+                for(var sp : itemsSparePartInTransitContainer){
+                    // Nếu phụ tùng có mã hàng hóa tương ứng đã tồn tại trong container thì cập nhật số lượng
+                    if(sp.getCommodityCode().equals(item.getCommodityCode())){
+                        sp.setQuantity(sp.getQuantity() + item.getQuantity());
+                        item.setQuantity(0);
+                        isExistsInContainer = true;
+                        break;
+                    }
+                }
+                // Duyệt qua item tiếp theo
+                if(isExistsInContainer) continue;
+
                 item.setContainerId(container.getId());
                 item.getLogistics().setDepartureDate(container.getDepartureDate());
             }
+            // Kho hiện tại → “Kho khác”
+            item.setWarehouseId(toWarehouseId);
+            item.setStatus(itemStatus.getId());
             if(arrivalDate != null){
                 // Ngày giao hàng = ngày đã chọn theo PO
                 item.getLogistics().setArrivalDate(arrivalDate);
@@ -302,9 +337,13 @@ public class InventoryItemService {
             itemsResults.add(item);
         }
 
+        List<ObjectId> itemsQuantityZeroToDel = itemsToTransfer.stream().filter(i -> i.getQuantity() == 0).map(InventoryItem::getId).toList();
+        inventoryItemRepository.bulkHardDelete(itemsQuantityZeroToDel);
         inventoryItemRepository.insertAll(itemsSparePartToNew);
         inventoryItemRepository.bulkUpdateTransfer(itemsToTransfer);
+        inventoryItemRepository.bulkUpdateTransfer(itemsSparePartInTransitContainer);
         itemsResults.addAll(itemsSparePartToNew);
+        itemsResults.addAll(itemsSparePartInTransitContainer);
         return itemsResults;
     }
 
