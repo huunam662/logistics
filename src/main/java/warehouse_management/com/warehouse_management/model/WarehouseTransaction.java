@@ -9,6 +9,7 @@ import org.springframework.data.annotation.*;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.mapping.FieldType;
+import warehouse_management.com.warehouse_management.enumerate.WarehouseSubTranType;
 import warehouse_management.com.warehouse_management.enumerate.WarehouseTranType;
 import warehouse_management.com.warehouse_management.enumerate.WarehouseTransactionStatus;
 
@@ -29,6 +30,7 @@ public class WarehouseTransaction {
     private String reason;  // Lý do tạo phiếu
     private String ticketCode;      // Số phiếu điều chuyển (không bắt buộc)
     private WarehouseTranType tranType;
+    private WarehouseSubTranType subTranType;
     private String status; // PENDING, APPROVED, REJECTED
 
     private ObjectId originWarehouseId;     // Kho nguồn
