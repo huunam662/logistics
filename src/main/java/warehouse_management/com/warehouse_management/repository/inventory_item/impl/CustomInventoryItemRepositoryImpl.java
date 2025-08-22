@@ -435,6 +435,8 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                     Updates.set("quantity", item.getQuantity()),
                     Updates.set("warehouseId", item.getWarehouseId()),
                     Updates.set("status", item.getStatus().getId()),
+                    Updates.set("containerId", item.getContainerId()),
+                    Updates.set("logistics.departureDate", item.getLogistics().getDepartureDate()),
                     Updates.set("logistics.arrivalDate", item.getLogistics().getArrivalDate()),
                     Updates.set("logistics.consignmentDate", item.getLogistics().getConsignmentDate())
             );
