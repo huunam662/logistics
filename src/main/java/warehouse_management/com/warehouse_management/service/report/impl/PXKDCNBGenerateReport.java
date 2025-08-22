@@ -59,6 +59,8 @@ public class PXKDCNBGenerateReport implements GenerateReportStrategy {
 
         result.put("dataset", buildDataSetItems(transaction.getInventoryItems()));
 
+        result.put("tranCode", transaction.getTicketCode());
+
 
         return result;
     }
