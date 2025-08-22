@@ -197,7 +197,7 @@ public class InventoryItemController {
     //     Bulk insert kho production - phụ tùng (import Excel)
     @PostMapping("/production/spare-parts/import")
     public ResponseEntity<ApiResponse<?>> bulkCreateProductionSpareParts(
-            @Valid @RequestBody List<ExcelImportProductionSparePartDto> dtos) {
+             @RequestBody List<ExcelImportProductionSparePartDto> dtos) {
         List<InventoryItem> created = inventoryItemService.bulkImport(
                 dtos,
                 mapper::toInventoryItem,
@@ -211,7 +211,7 @@ public class InventoryItemController {
     // Bulk insert kho destination - xe phụ kiện (import Excel)
     @PostMapping("/destination/products/import")
     public ResponseEntity<ApiResponse<?>> bulkCreateDestinationProducts(
-            @Valid @RequestBody List<ExcelImportDestinationProductDto> dtos) {
+             @RequestBody List<ExcelImportDestinationProductDto> dtos) {
         List<InventoryItem> created = inventoryItemService.bulkImport(
                 dtos,
                 mapper::toInventoryItem,
@@ -225,7 +225,7 @@ public class InventoryItemController {
     // Bulk insert kho destination - phụ tùng (import Excel)
     @PostMapping("/destination/spare-parts/import")
     public ResponseEntity<ApiResponse<?>> bulkCreateDestinationSpareParts(
-            @Valid @RequestBody List<ExcelImportDestinationSparePartDto> dtos) {
+            @RequestBody List<ExcelImportDestinationSparePartDto> dtos) {
         List<InventoryItem> created = inventoryItemService.bulkImport(
                 dtos,
                 mapper::toInventoryItem,
