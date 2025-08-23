@@ -55,7 +55,7 @@ public class WarehouseTransactionController {
         return ApiResponse.success(new PageInfoDto<>(pageWarehouseTransferTicketDto));
     }
 
-    @GetMapping("/page/local_transfer")
+    @GetMapping("/page/dest_to_dest_transfer")
     @Operation(
             summary = "GET Lấy giao dịch điều chuyển nội bộ (Phân trang).",
             description = "Dùng cho giao dịch DEST_TO_DEST_TRANSFER"
