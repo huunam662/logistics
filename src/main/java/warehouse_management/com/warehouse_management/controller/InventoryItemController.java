@@ -79,7 +79,7 @@ public class InventoryItemController {
     )
     public ResponseEntity<ApiResponse<?>> updateInventoryItem(
             @PathVariable("id") String id,
-            @Valid @RequestBody CreateInventoryProductDto dto
+            @Valid @RequestBody UpdateInventoryProductDto dto
     ){
         InventoryItem item = inventoryItemService.updateInventoryProduct(id, dto);
         ApiResponse<?> apiResponse = ApiResponse.success(Map.of("inventoryId", item.getId()));
@@ -106,7 +106,7 @@ public class InventoryItemController {
     )
     public ResponseEntity<?> updateInventorySparePart(
             @PathVariable("id") String id,
-            @Valid @RequestBody CreateInventorySparePartDto req
+            @Valid @RequestBody UpdateInventorySparePartDto req
     ){
         InventoryItem savedItem = inventoryItemService.updateInventorySparePart(id, req);
         return ResponseEntity.ok(ApiResponse.success(Map.of("inventoryItemId", savedItem.getId())));

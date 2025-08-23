@@ -102,9 +102,10 @@ public class InventoryItemService {
     }
 
     @Transactional
-    public InventoryItem updateInventorySparePart(String id, CreateInventorySparePartDto req){
+    public InventoryItem updateInventorySparePart(String id, UpdateInventorySparePartDto req){
         InventoryItem item = getItemToId(new ObjectId(id));
-        inventoryItemMapper.mapToUpdateInventorySparePart(item, req);
+        item.setPoNumber(req.getPoNumber());
+        item.setCommodityCode(req.getCommodityCode());
         return inventoryItemRepository.save(item);
     }
 
@@ -270,9 +271,10 @@ public class InventoryItemService {
 
 
     @Transactional
-    public InventoryItem updateInventoryProduct(String id, CreateInventoryProductDto dto){
+    public InventoryItem updateInventoryProduct(String id, UpdateInventoryProductDto dto){
         InventoryItem inventoryItem = getItemToId(new ObjectId(id));
-        mapper.mapToUpdateInventoryProduct(inventoryItem, dto);
+        inventoryItem.setPoNumber(dto.getPoNumber());
+        inventoryItem.setProductCode(dto.getProductCode());
         return inventoryItemRepository.save(inventoryItem);
     }
 
