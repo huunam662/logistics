@@ -8,33 +8,32 @@ public enum WarehouseSubTranType {
     // ===== Nhập Excel vào kho chờ sản xuất (VN) =====
     EXCEL_TO_PRODUCTION_PRODUCT(
             "EXCEL_TO_PRODUCTION_PRODUCT",
-            "Import Excel: Xe/Phụ kiện vào kho chờ sản xuất"
+            "Nhập excel xe/phụ kiện"
     ),
     EXCEL_TO_PRODUCTION_SPARE_PART(
             "EXCEL_TO_PRODUCTION_SPARE_PART",
-            "Import Excel: Phụ tùng vào kho chờ sản xuất"
+            "Nhập excel phụ tùng"
     ),
 
     // ===== Nhập Form UI vào kho chờ sản xuất (VN) =====
     FORM_TO_PRODUCTION_PRODUCT(
             "FORM_TO_PRODUCTION_PRODUCT",
-            "Nhập Form: Xe/Phụ kiện vào kho chờ sản xuất"
+            "Nhập form xe/phụ kiện"
     ),
     FORM_TO_PRODUCTION_SPARE_PART(
             "FORM_TO_PRODUCTION_SPARE_PART",
-            "Nhập Form: Phụ tùng vào kho chờ sản xuất"
+            "Nhập form phụ tùng"
     ),
 
     // ===== Nhập Form UI vào kho đến (VN) =====
     FORM_TO_DEST_PRODUCT(
             "FORM_TO_DEST_PRODUCT",
-            "Nhập Form: Xe/Phụ kiện vào kho đến"
+            "Nhập form xe/phụ kiện"
     ),
     FORM_TO_DEST_SPARE_PART(
             "FORM_TO_DEST_SPARE_PART",
-            "Nhập Form: Phụ tùng vào kho đến"
+            "Nhập form phụ tùng"
     );
-
     private final String id;
     private final String title;
 
