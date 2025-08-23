@@ -107,6 +107,7 @@ public class InventoryItemService {
         item.setPoNumber(req.getPoNumber());
         item.setCommodityCode(req.getCommodityCode());
         return inventoryItemRepository.save(item);
+
     }
 
     @Transactional
@@ -276,6 +277,7 @@ public class InventoryItemService {
         inventoryItem.setPoNumber(dto.getPoNumber());
         inventoryItem.setProductCode(dto.getProductCode());
         return inventoryItemRepository.save(inventoryItem);
+
     }
 
     @Transactional
