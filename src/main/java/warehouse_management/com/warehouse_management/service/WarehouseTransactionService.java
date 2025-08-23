@@ -49,11 +49,11 @@ public class WarehouseTransactionService {
         Warehouse originWarehouse = warehouseService.getWarehouseToId(new ObjectId(dto.getOriginWarehouseId()));
         Warehouse destinationWarehouse = warehouseService.getWarehouseToId(new ObjectId(dto.getDestinationWarehouseId()));
         ticket.setOriginWarehouseId(originWarehouse.getId());
-        ticket.setTicketCode(GeneralResource.generateTranTicketCode(WarehouseTranType.DEST_TO_DEST_TRANSFER, null));
-        ticket.setTranType(WarehouseTranType.DEST_TO_DEST_TRANSFER);
+        WarehouseTranType tranType = WarehouseTranType.DEST_TO_DEST_TRANSFER;
+        ticket.setTicketCode(GeneralResource.generateTranTicketCode(tranType, null));
+        ticket.setTranType(tranType);
         ticket.setDestinationWarehouseId(destinationWarehouse.getId());
-        ticket.setTitle("Chuyển hàng từ kho \"" + originWarehouse.getName() + "\" đến kho \"" + destinationWarehouse.getName() + "\"" +
-                "");
+        ticket.setTitle(GeneralResource.generateTranTitle(tranType, null, originWarehouse, destinationWarehouse));
         ticket.setReason("Điều chuyển kho");
         ticket.setRequesterId(null);
         ticket.setApproverId(null);

@@ -28,7 +28,7 @@ public class DoNotUseInventoryItem {
     private String type;              // XePK // REQUIRED
     private String category;          // XePK // REQUIRED
     private String serialNumber;      // XePK // REQUIRED
-    private String initialCondition;  // XePK
+    private Boolean initialCondition;  // XePK
 
     private Specifications specifications;  // XePK
     @Data
