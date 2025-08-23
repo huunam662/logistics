@@ -25,8 +25,6 @@ public class InventoryCentralWarehouseSparePartDto {
     private BigDecimal salePriceR1;         // Giá bán đề xuất R1
     private BigDecimal actualSalePrice; // Giá bán thực tế
     private String agent;                   // Đại lý (nếu có)
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime arrivalDate;      // Ngày giao hàng
     private String warehouseName;           // Tên kho
     private String warehouseCode;           // Mã kho
 }

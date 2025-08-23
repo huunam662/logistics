@@ -24,6 +24,7 @@ public class CreateInventoryProductDto {
     private String notes; // Ghi chú  26
     private String warehouseId; // Mã kho
     private String warehouseType; // Loại kho
+    private Integer manufacturingYear; // Năm sản xuất – Không bắt buộc
     private Specifications specifications;
     private Pricing pricing;
     private Logistics logistics;

@@ -8,7 +8,6 @@ import org.springframework.data.annotation.*;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.mapping.FieldType;
-import warehouse_management.com.warehouse_management.enumerate.DeliveryOrderStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -35,7 +34,7 @@ public class DeliveryOrder {
 
     private LocalDateTime holdingDeadline;  // Hạn giữ hàng
 
-    private DeliveryOrderStatus status; // Trạng thái đơn giao hàng
+    private String status; // Trạng thái đơn giao hàng
 
     private List<InventoryItemDelivery> inventoryItems; // Các mặt hàng đã giao
 
