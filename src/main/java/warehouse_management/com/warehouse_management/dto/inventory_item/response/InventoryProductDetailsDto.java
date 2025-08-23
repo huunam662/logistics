@@ -20,6 +20,7 @@ public class InventoryProductDetailsDto {
     private String inventoryType;   // Loại hàng tồn (VD: phụ kiện, ...) - Bắt buộc
     private Boolean initialCondition;       // Mô tả nguyên trạng khi nhập kho – Không bắt buộc
     private String notes;                  // Ghi chú chung – Không bắt buộc
+    private ObjectId warehouseId; // Mã kho
     private Specifications specifications;
     private Pricing pricing;
     private Logistics logistics;

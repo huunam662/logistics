@@ -7,9 +7,11 @@ import java.util.Arrays;
 @Getter
 public enum DeliveryOrderStatus {
 
+    // Cho thêm hàng
     UN_DELIVERED("UN_DELIVERED"),   // Chưa giao
     DELIVERING("DELIVERING"),   // Đang giao
     HOLDING("HOLD"),    // Giữ hàng
+    // Không cho thêm hàng
     COMPLETED("COMPLETED"), // Hoàn tất
     REJECTED("REJECTED");   // Đã hủy
 

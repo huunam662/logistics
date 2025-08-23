@@ -337,7 +337,6 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .and("pricing.salePriceR1").as("salePriceR1")   //
                         .and("pricing.actualSalePrice").as("actualSalePrice")   //
                         .and("pricing.agent").as("agent")   //
-                        .and("logistics.arrivalDate").as("arrivalDate") //
                         .and("warehouse.name").as("warehouseName")
                         .and("warehouse.code").as("warehouseCode")
         );
@@ -363,7 +362,6 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .and("pricing.salePriceR1").as("salePriceR1")   //
                         .and("pricing.actualSalePrice").as("actualSalePrice")   //
                         .and("pricing.agent").as("agent")   //
-                        .and("logistics.arrivalDate").as("arrivalDate") //
                         .and("warehouse.name").as("warehouseName")
                         .and("warehouse.code").as("warehouseCode")
         );
