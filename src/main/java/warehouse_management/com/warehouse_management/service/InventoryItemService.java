@@ -123,6 +123,7 @@ public class InventoryItemService {
         InventoryItem item = mapper.toInventoryItemModel(req);
         item.setWarehouseId(warehouse.getId());
         item.setQuantity(1); // Xe hoặc Phụ kiện mặc định là 1
+        item.setInitialCondition(true);
         item.setStatus(InventoryItemStatus.IN_STOCK);
         if(item.getLogistics() == null) item.setLogistics(new InventoryItem.Logistics());
         try{
