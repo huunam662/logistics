@@ -107,7 +107,7 @@ public class WarehouseTransaction {
         private Integer quantity;   // Số lượng hàng hóa
         private String contractNumber; // Số hợp đồng
         private String warehouseType;  // Loại kho (kho bảo quản dành cho hàng hóa)
-        private String initialCondition;       // Mô tả nguyên trạng khi nhập kho – Không bắt buộc
+        private Boolean initialCondition;       // Mô tả nguyên trạng khi nhập kho – Không bắt buộc
         private String notes;                  // Ghi chú chung – Không bắt buộc
         private String description;         // Mô tả
         private Specifications specifications;

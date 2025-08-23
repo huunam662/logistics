@@ -204,7 +204,7 @@ public class TestDataController {
                 // Gán warehouse/container ngẫu nhiên
                 item.setWarehouseId(warehouse.getId());
 
-                item.setInitialCondition("Mới");
+                item.setInitialCondition(true);
                 String[] ghiChuMau = {
                         "Hàng mới về, chưa kiểm tra",
                         "Cần kiểm tra thông số bình",

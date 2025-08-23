@@ -25,7 +25,7 @@ import java.io.ByteArrayInputStream;
 import java.util.Map;
 
 @RestController
-@Tag(name = "Warehouse Transfer Ticket", description = "FOR ADMIN / VP")
+@Tag(name = "Warehouse Transaction", description = "FOR ADMIN / VP")
 @RequestMapping("/v1/warehouse-transaction")
 @RequiredArgsConstructor
 public class WarehouseTransactionController {

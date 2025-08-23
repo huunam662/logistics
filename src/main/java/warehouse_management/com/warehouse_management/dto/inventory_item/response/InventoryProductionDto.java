@@ -31,7 +31,7 @@ public class InventoryProductionDto {
     private String warehouseType;           // Loại kho
     private Integer valveCount;             // Số lượng van
     private String otherDetails;            // Chi tiết khác
-    private String initialCondition;       // Nguyên trạng
+    private Boolean initialCondition;       // Nguyên trạng
     private String notes;                  // Ghi chú
     private BigDecimal purchasePrice;       // Giá mua
     private BigDecimal salePriceR0;         // Giá R0

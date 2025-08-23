@@ -20,9 +20,10 @@ public class CreateInventoryProductDto {
     private String model; // Model kỹ thuật 5
     private String category; // Ví dụ: Reach Truck, Pallet Truck...7
     private String serialNumber; // Số series nhà máy 8
-    private String initialCondition; // Nguyên trạng 11
+    private Boolean initialCondition; // Nguyên trạng 11
     private String notes; // Ghi chú  26
-    private String warehouseId;
+    private String warehouseId; // Mã kho
+    private String warehouseType; // Loại kho
     private Specifications specifications;
     private Pricing pricing;
     private Logistics logistics;

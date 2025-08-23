@@ -20,7 +20,7 @@ public class InventoryCentralWarehouseProductDto {
     private String inventoryType;   // Loại hàng tồn (VD: phụ kiện, ...) - Bắt buộc
     private Integer manufacturingYear; // Năm sản xuất – Không bắt buộc
     private String warehouseType;   // Loại kho
-    private String initialCondition;       // Mô tả nguyên trạng khi nhập kho – Không bắt buộc
+    private Boolean initialCondition;       // Mô tả nguyên trạng khi nhập kho – Không bắt buộc
     private String notes;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime arrivalDate;      // Ngày giao hàng

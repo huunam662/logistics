@@ -20,9 +20,9 @@ public class InventoryDepartureDto {
     private String containerStatus;     // Trạng Thái Container
     private String containerCode;       // Mã Cont
     private String containerToWarehouse;    // Kho đến
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDateTime containerDepartureDate;  //  Ngày đi
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDateTime containerArrivalDate;    // Ngày đến
     private String model;          // Model
     private String inventoryType;           // Loại
@@ -40,7 +40,7 @@ public class InventoryDepartureDto {
     private String warehouseType;           // Loại kho
     private Integer valveCount;             // Số lượng van
     private String otherDetails;            // Chi tiết khác
-    private String initialCondition;       // Nguyên trạng
+    private Boolean initialCondition;       // Nguyên trạng
     private String notes;                  // Ghi chú
     private BigDecimal purchasePrice;       // Giá mua
     private BigDecimal salePriceR0;         // Giá R0

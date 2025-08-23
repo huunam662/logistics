@@ -39,7 +39,7 @@ public class InventoryItem {
     private Pricing pricing;               // Giá cả – Không bắt buộc
     private Logistics logistics;           // Thông tin vận chuyển – Không bắt buộc
 
-    private String initialCondition;       // Mô tả nguyên trạng khi nhập kho – Không bắt buộc
+    private Boolean initialCondition;       // Mô tả nguyên trạng khi nhập kho – Không bắt buộc
     private String notes;                  // Ghi chú chung – Không bắt buộc
     private String description;         // Mô tả
 
