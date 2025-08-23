@@ -3,6 +3,7 @@ package warehouse_management.com.warehouse_management.service;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
@@ -21,10 +22,12 @@ import warehouse_management.com.warehouse_management.exceptions.LogicErrExceptio
 import warehouse_management.com.warehouse_management.mapper.InventoryItemMapper;
 import warehouse_management.com.warehouse_management.model.Container;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
+import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.model.WarehouseTransaction;
 import warehouse_management.com.warehouse_management.repository.container.ContainerRepository;
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
 import warehouse_management.com.warehouse_management.repository.warehouse_transaction.WarehouseTransactionRepository;
+import warehouse_management.com.warehouse_management.utils.GeneralResource;
 import warehouse_management.com.warehouse_management.utils.MongoRsqlUtils;
 
 import java.math.BigDecimal;
@@ -41,6 +44,7 @@ public class ContainerService {
     private final InventoryItemService inventoryItemService;
     private final InventoryItemMapper inventoryItemMapper;
     private final WarehouseTransactionRepository warehouseTransferTicketRepository;
+    private final MongoTemplate mongoTemplate;
 
     public Page<ContainerResponseDto> getContainers(PageOptionsDto req) {
         MatchOperation matchStage = Aggregation.match(new Criteria().andOperator(
@@ -199,7 +203,9 @@ public class ContainerService {
                 container.getInventoryItems().add(inventoryItemMapper.toInventoryItemContainer(itemPush));
             }
             containerRepository.save(container);
-            createDepToDesTran(itemsPushToCont, WarehouseTranType.DEPARTURE_TO_DEST_TRANSFER);
+            Warehouse wh1 = GeneralResource.getWarehouseById(mongoTemplate, container.getFromWareHouseId());
+            Warehouse wh2 = GeneralResource.getWarehouseById(mongoTemplate, container.getFromWareHouseId());
+            warehouseTransferTicketRepository.save(buildDepToDesTran(wh1, wh2, itemsPushToCont));
             // TODO: Ghi nhận log giao dịch
 
             return Map.of("containerId", container.getId());
@@ -289,15 +295,16 @@ public class ContainerService {
         }
     }
 
-    private void createDepToDesTran(List<InventoryItem> dtos, WarehouseTranType tranType) {
+    private WarehouseTransaction buildDepToDesTran(Warehouse wh1, Warehouse wh2, List<InventoryItem> dtos) {
+        WarehouseTranType tranType = WarehouseTranType.DEPARTURE_TO_DEST_TRANSFER;
         WarehouseTransaction ticket = new WarehouseTransaction();
-        ticket.setTitle(tranType.getTitle());
+        ticket.setTitle(GeneralResource.generateTranTitle(tranType, null, wh1, wh2));
         List<WarehouseTransaction.InventoryItemTicket> itemsToTran = dtos.stream()
                 .map(mapper::toInventoryItemTicket)
                 .collect(Collectors.toList());
         ticket.setInventoryItems(itemsToTran);
-        ticket.setTranType(WarehouseTranType.DEPARTURE_TO_DEST_TRANSFER);
+        ticket.setTranType(tranType);
         ticket.setStatus(WarehouseTransactionStatus.APPROVED.getId());
-        warehouseTransferTicketRepository.save(ticket);
+        return ticket;
     }
 }
