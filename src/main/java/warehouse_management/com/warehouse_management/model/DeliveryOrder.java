@@ -1,7 +1,6 @@
 package warehouse_management.com.warehouse_management.model;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bson.types.ObjectId;
@@ -9,37 +8,35 @@ import org.springframework.data.annotation.*;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.mapping.FieldType;
-import warehouse_management.com.warehouse_management.enumerate.WarehouseSubTranType;
-import warehouse_management.com.warehouse_management.enumerate.WarehouseTranType;
-import warehouse_management.com.warehouse_management.enumerate.WarehouseTransactionStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "warehouse_transaction")
-public class WarehouseTransaction {
+@Document(collection = "delivery_order")
+public class DeliveryOrder {
 
     @Id
-    private ObjectId id; // _id – Khóa chính
-    private String title;   // Tiêu đề
-    private String reason;  // Lý do tạo phiếu
-    private String ticketCode;      // Số phiếu điều chuyển (không bắt buộc)
-    private WarehouseTranType tranType;
-    private WarehouseSubTranType subTranType;
-    private String status; // PENDING, APPROVED, REJECTED
+    private ObjectId id; // _id Khóa chính
 
-    private ObjectId originWarehouseId;     // Kho nguồn
-    private ObjectId destinationWarehouseId; // Kho đích
+    private String deliveryOrderCode;   // Mã đơn giao hàng (tự sinh hoặc nhập tay).
 
-    private ObjectId requesterId;               // Người tạo yêu cầu
-    private ObjectId approverId;                // Người duyệt hoặc từ chối
+    private ObjectId customerId;    // Mã khách hàng (chọn từ danh sách tài khoản).
 
-    private List<InventoryItemTicket> inventoryItems;    // Các mặt hàng có trong phiếu
+    private LocalDateTime deliveryDate;  // Ngày giao hàng (hỗ trợ chọn quá khứ).
+
+    private Integer overdueDays;    // Số ngày quá hạn
+
+    private Integer holdingDays;    // Số ngày giữ hàng (số nguyên dương).
+
+    private LocalDateTime holdingDeadline;  // Hạn giữ hàng
+
+    private String status; // Trạng thái đơn giao hàng
+
+    private List<InventoryItemDelivery> inventoryItems; // Các mặt hàng đã giao
 
     @CreatedBy
     private ObjectId createdBy;
@@ -52,48 +49,11 @@ public class WarehouseTransaction {
     @LastModifiedDate
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;
-    private String jsonPrint;
-
-    private LocalDateTime approvedAt;   // Ngày duyệt
-
-    private Department stockInDepartment;   // Bộ phận nhập kho
-    private Department stockOutDepartment;  // Bộ phận xuất kho
-    private ShipUnitInfo shipUnitInfo;  //  Thông tin vận chuyển
-
-    public WarehouseTransactionStatus getStatusEnum() {
-        return status == null ? null : WarehouseTransactionStatus.fromId(status);
-    }
-
-    public void setStatusEnum(WarehouseTransactionStatus status) {
-        this.status = status == null ? null : status.getId();
-    }
 
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class ShipUnitInfo{
-        private String fullName;    // Họ tên
-        private String licensePlate;    // Biển số xe
-        private String phone;   // Số điện thoại
-        private String identityCode;    // Căn cước công dân
-        private String reason;  //  Lý do điều chuyển
-        private String shipMethod;  // Phương thưc vận chuyển
-    }
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class Department{
-        private String name; // Tên bộ phận
-        private String address; // Địa chỉ
-        private String phone;   // Số điện thoại
-        private String position;    // Chức vụ / vị trí công tác
-    }
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class InventoryItemTicket{
+    public static class InventoryItemDelivery{
         private ObjectId id; // _id – Khóa chính
         private String poNumber;       // Số của Đơn đặt hàng (Purchase Order) – Bắt buộc
         private String productCode;    // Mã định danh của sản phẩm (đối với sản phẩm xe & phụ kiện, phụ tùng thuộc sản phẩm này) – Bắt buộc
@@ -110,9 +70,10 @@ public class WarehouseTransaction {
         private Boolean initialCondition;       // Mô tả nguyên trạng khi nhập kho – Không bắt buộc
         private String notes;                  // Ghi chú chung – Không bắt buộc
         private String description;         // Mô tả
-        private Specifications specifications;
-        private Pricing pricing;
-        private Logistics logistics;
+        private InventoryItemDelivery.Specifications specifications;
+        private InventoryItemDelivery.Pricing pricing;
+        private InventoryItemDelivery.Logistics logistics;
+
 
         @Data
         @NoArgsConstructor
@@ -137,6 +98,12 @@ public class WarehouseTransaction {
         public static class Pricing {
             @Field(targetType = FieldType.DECIMAL128)
             private BigDecimal purchasePrice;       // Giá mua vào
+            @Field(targetType = FieldType.DECIMAL128)
+            private BigDecimal salePriceR0;         // Giá bán đề xuất R0
+            @Field(targetType = FieldType.DECIMAL128)
+            private BigDecimal salePriceR1;         // Giá bán đề xuất R1
+            @Field(targetType = FieldType.DECIMAL128)
+            private BigDecimal actualSalePrice;     // Giá bán thực tế
             private String agent;                   // Đại lý (nếu có)
         }
 
@@ -147,6 +114,7 @@ public class WarehouseTransaction {
             private LocalDateTime orderDate;        // Ngày đặt hàng
             private LocalDateTime departureDate;    // Ngày khởi hành
             private LocalDateTime arrivalDate;      // Ngày đến
+            private LocalDateTime estimateCompletionDate; // Ngày dự kiến sản xuất xong
         }
     }
 }

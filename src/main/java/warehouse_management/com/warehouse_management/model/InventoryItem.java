@@ -9,7 +9,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.mapping.FieldType;
 import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -40,7 +39,7 @@ public class InventoryItem {
     private Pricing pricing;               // Giá cả – Không bắt buộc
     private Logistics logistics;           // Thông tin vận chuyển – Không bắt buộc
 
-    private String initialCondition;       // Mô tả nguyên trạng khi nhập kho – Không bắt buộc
+    private Boolean initialCondition;       // Mô tả nguyên trạng khi nhập kho – Không bắt buộc
     private String notes;                  // Ghi chú chung – Không bắt buộc
     private String description;         // Mô tả
 

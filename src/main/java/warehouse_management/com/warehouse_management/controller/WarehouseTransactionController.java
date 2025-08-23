@@ -25,7 +25,7 @@ import java.io.ByteArrayInputStream;
 import java.util.Map;
 
 @RestController
-@Tag(name = "Warehouse Transfer Ticket", description = "FOR ADMIN / VP")
+@Tag(name = "Warehouse Transaction", description = "FOR ADMIN / VP")
 @RequestMapping("/v1/warehouse-transaction")
 @RequiredArgsConstructor
 public class WarehouseTransactionController {
@@ -55,7 +55,7 @@ public class WarehouseTransactionController {
         return ApiResponse.success(new PageInfoDto<>(pageWarehouseTransferTicketDto));
     }
 
-    @GetMapping("/page/local_transfer")
+    @GetMapping("/page/dest_to_dest_transfer")
     @Operation(
             summary = "GET Lấy giao dịch điều chuyển nội bộ (Phân trang).",
             description = "Dùng cho giao dịch DEST_TO_DEST_TRANSFER"

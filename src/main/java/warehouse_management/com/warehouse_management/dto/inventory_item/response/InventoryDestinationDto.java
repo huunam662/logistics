@@ -29,11 +29,12 @@ public class InventoryDestinationDto {
     private String warehouseType;           // Loại kho
     private Integer valveCount;             // Số lượng van
     private String otherDetails;            // Chi tiết khác
-    private String initialCondition;       // Nguyên trạng
+    private Boolean initialCondition;       // Nguyên trạng
     private String notes;                  // Ghi chú
     private BigDecimal purchasePrice;       // Giá mua
     private BigDecimal salePriceR0;         // Giá R0
     private BigDecimal salePriceR1;         // Giá R1
+    private String agent;       // Đại lý
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime arrivalDate;    // Ngày giao hàng
     private BigDecimal actualSalePrice;     // Giá bán thực tế

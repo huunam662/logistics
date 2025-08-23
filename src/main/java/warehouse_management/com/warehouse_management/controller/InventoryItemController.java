@@ -37,7 +37,6 @@ import java.util.Map;
 public class InventoryItemController {
     private final InventoryItemMapper mapper;
     private final InventoryItemService inventoryItemService;
-    private final WarehouseTransactionService warehouseTransactionService;
 
     @GetMapping("/{id}/product")
     @Operation(
@@ -80,7 +79,7 @@ public class InventoryItemController {
     )
     public ResponseEntity<ApiResponse<?>> updateInventoryItem(
             @PathVariable("id") String id,
-            @Valid @RequestBody CreateInventoryProductDto dto
+            @Valid @RequestBody UpdateInventoryProductDto dto
     ){
         InventoryItem item = inventoryItemService.updateInventoryProduct(id, dto);
         ApiResponse<?> apiResponse = ApiResponse.success(Map.of("inventoryId", item.getId()));
@@ -107,7 +106,7 @@ public class InventoryItemController {
     )
     public ResponseEntity<?> updateInventorySparePart(
             @PathVariable("id") String id,
-            @Valid @RequestBody CreateInventorySparePartDto req
+            @Valid @RequestBody UpdateInventorySparePartDto req
     ){
         InventoryItem savedItem = inventoryItemService.updateInventorySparePart(id, req);
         return ResponseEntity.ok(ApiResponse.success(Map.of("inventoryItemId", savedItem.getId())));
@@ -121,6 +120,7 @@ public class InventoryItemController {
     public ApiResponse<?> getInventoryInStockPoNumbers(
             @Parameter(description = "[VEHICLE, ACCESSORY, SPARE_PART]")
             @RequestParam("inventoryType") List<String> inventoryTypes,
+            @Parameter(description = "Tìm kiếm theo mã Po number (Nếu cần).")
             @RequestParam(value = "poNumber", required = false, defaultValue = "") String poNumber,
             @RequestParam(value = "warehouseId", required = false) String warehouseId,
             @RequestParam(value = "warehouseType", required = false) String warehouseType
@@ -181,29 +181,19 @@ public class InventoryItemController {
 
     // Bulk insert kho production -  xe phụ kiện (import Excel)
 // Bulk insert kho production - xe phụ kiện (import Excel)
-    @PostMapping("/production/products/import")
+    @PostMapping("/production/{warehouseId}/products-import")
     public ResponseEntity<ApiResponse<?>> bulkCreateProductionProducts(
-            @RequestBody List<ExcelImportProductionProductDto> dtos) {
-        List<InventoryItem> created = inventoryItemService.bulkImport(
-                dtos,
-                mapper::toInventoryItem,
-                mapper::toInventoryItemTicket,
-                WarehouseSubTranType.EXCEL_TO_PRODUCTION_PRODUCT
-        );
+            @PathVariable("warehouseId") String warehouseId,  @RequestBody List<ExcelImportProductionProductDto> dtos) {
+        List<InventoryItem> created = inventoryItemService.bulkCreateProductionProducts(warehouseId, dtos);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(Map.of("createdCount", created.size())));
     }
 
     //     Bulk insert kho production - phụ tùng (import Excel)
-    @PostMapping("/production/spare-parts/import")
+    @PostMapping("/production/{warehouseId}/spare-parts-import")
     public ResponseEntity<ApiResponse<?>> bulkCreateProductionSpareParts(
-             @RequestBody List<ExcelImportProductionSparePartDto> dtos) {
-        List<InventoryItem> created = inventoryItemService.bulkImport(
-                dtos,
-                mapper::toInventoryItem,
-                mapper::toInventoryItemTicket,
-                WarehouseSubTranType.EXCEL_TO_PRODUCTION_SPARE_PART
-        );
+            @PathVariable("warehouseId") String warehouseId, @RequestBody List<ExcelImportProductionSparePartDto> dtos) {
+        List<InventoryItem> created = inventoryItemService.bulkCreateProductionSpareParts(warehouseId, dtos);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(Map.of("createdCount", created.size())));
     }
@@ -251,4 +241,40 @@ public class InventoryItemController {
         return ResponseEntity.ok().body(ApiResponse.success(response));
     }
 
+    @GetMapping("/po-models")
+    @Operation(
+            summary = "GET Lấy mã Models thuộc Po number.",
+            description = "GET Lấy mã Models thuộc Po number."
+    )
+    public ResponseEntity<?> getModelsToPoNumbers(
+            @RequestParam("poNumber") String poNumber,
+            @Parameter(description = "[VEHICLE, ACCESSORY, SPARE_PART]")
+            @RequestParam("inventoryTypes") List<String> inventoryTypes,
+            @Parameter(description = "[PRODUCTION, DEPARTURE, DESTINATION, CONSIGNMENT]")
+            @RequestParam("warehouseType") String warehouseType,
+            @Parameter(description = "Tìm kiếm theo mã Model (Nếu cần).")
+            @RequestParam(value = "model", required = false, defaultValue = "") String model
+    ){
+        List<String> models = inventoryItemService.getAllModelsToPoNumber(poNumber, inventoryTypes, warehouseType, model);
+        return ResponseEntity.ok().body(ApiResponse.success(models));
+    }
+
+    @GetMapping("/po-model-itemCodes")
+    @Operation(
+            summary = "GET Lấy mã Mặt Hàng thuộc Po number và mã Model.",
+            description = "GET Lấy mã Mặt Hàng thuộc Po number và mã Model."
+    )
+    public ResponseEntity<?> getItemsCodeToPoAndModel(
+            @RequestParam("poNumber") String poNumber,
+            @RequestParam("model") String model,
+            @Parameter(description = "[VEHICLE_ACCESSORY, SPARE_PART]<br>* Nếu lấy code theo Xe & Phụ kiện thì VEHICLE_ACCESSORY, còn Phụ tùng thì SPARE_PART")
+            @RequestParam("codeOfType") String codeOfType,
+            @Parameter(description = "[PRODUCTION, DEPARTURE, DESTINATION, CONSIGNMENT]")
+            @RequestParam("warehouseType") String warehouseType,
+            @Parameter(description = "Tìm kiếm theo mã Mặt Hàng (Nếu cần).")
+            @RequestParam(value = "code", required = false, defaultValue = "") String code
+    ){
+        List<String> codes = inventoryItemService.getAllItemCodesToPoAndModel(poNumber, model, codeOfType, warehouseType, code);
+        return ResponseEntity.ok().body(ApiResponse.success(codes));
+    }
 }

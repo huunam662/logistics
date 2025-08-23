@@ -27,16 +27,6 @@ public interface InventoryItemMapper {
 
     InventoryItem cloneEntity(InventoryItem inventoryItem);
 
-    InventoryItemPoNumberDto toInventoryItemPoNumberDto(InventoryItem inventoryItem);
-
-    @Mapping(target = "warehouseId", ignore = true)
-    @Mapping(target = "logistics.orderDate", ignore = true)
-    @Mapping(target = "logistics.estimateCompletionDate", ignore = true)
-    void mapToUpdateInventoryProduct(@MappingTarget InventoryItem inventoryItem, CreateInventoryProductDto dto);
-
-    @Mapping(target = "warehouseId", ignore = true)
-    void mapToUpdateInventorySparePart(@MappingTarget InventoryItem inventoryItem, CreateInventorySparePartDto dto);
-
     InventoryProductDetailsDto toInventoryProductDetailsDto(InventoryItem inventoryItem);
 
     @Mapping(target = "orderDate", source = "logistics.orderDate")

@@ -3,6 +3,7 @@ package warehouse_management.com.warehouse_management.service;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
@@ -21,10 +22,12 @@ import warehouse_management.com.warehouse_management.exceptions.LogicErrExceptio
 import warehouse_management.com.warehouse_management.mapper.InventoryItemMapper;
 import warehouse_management.com.warehouse_management.model.Container;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
+import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.model.WarehouseTransaction;
 import warehouse_management.com.warehouse_management.repository.container.ContainerRepository;
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
 import warehouse_management.com.warehouse_management.repository.warehouse_transaction.WarehouseTransactionRepository;
+import warehouse_management.com.warehouse_management.utils.GeneralResource;
 import warehouse_management.com.warehouse_management.utils.MongoRsqlUtils;
 
 import java.math.BigDecimal;
@@ -41,6 +44,7 @@ public class ContainerService {
     private final InventoryItemService inventoryItemService;
     private final InventoryItemMapper inventoryItemMapper;
     private final WarehouseTransactionRepository warehouseTransferTicketRepository;
+    private final MongoTemplate mongoTemplate;
 
     public Page<ContainerResponseDto> getContainers(PageOptionsDto req) {
         MatchOperation matchStage = Aggregation.match(new Criteria().andOperator(
@@ -177,8 +181,8 @@ public class ContainerService {
         if(!container.getContainerStatus().equals(ContainerStatus.PENDING))
             throw LogicErrException.of("Chỉ được phép thêm hàng hóa khi đang chờ xác nhận.");
         try{
-            List<InventoryItem> itemsPushToCont = inventoryItemService.transferItems(req.getInventoryItems(), container.getToWarehouseId(), container, container.getArrivalDate(), null, InventoryItemStatus.IN_TRANSIT);
-                container.setContainerStatus(ContainerStatus.PENDING);
+            List<InventoryItem> itemsPushToCont = inventoryItemService.transferItems(req.getInventoryItems(), container.getFromWareHouseId(), container, container.getArrivalDate(), null, InventoryItemStatus.OTHER);
+            container.setContainerStatus(ContainerStatus.PENDING);
             if(container.getInventoryItems() == null) container.setInventoryItems(new ArrayList<>());
             final int itemsContSize = container.getInventoryItems().size();
             for(var itemPush : itemsPushToCont){
@@ -199,7 +203,9 @@ public class ContainerService {
                 container.getInventoryItems().add(inventoryItemMapper.toInventoryItemContainer(itemPush));
             }
             containerRepository.save(container);
-            createDepToDesTran(itemsPushToCont, WarehouseTranType.DEPARTURE_TO_DEST_TRANSFER);
+            Warehouse wh1 = GeneralResource.getWarehouseById(mongoTemplate, container.getFromWareHouseId());
+            Warehouse wh2 = GeneralResource.getWarehouseById(mongoTemplate, container.getFromWareHouseId());
+            warehouseTransferTicketRepository.save(buildDepToDesTran(wh1, wh2, itemsPushToCont));
             // TODO: Ghi nhận log giao dịch
 
             return Map.of("containerId", container.getId());
@@ -250,23 +256,15 @@ public class ContainerService {
         Container container = getContainerToId(new ObjectId(containerId));
         if(container.getContainerStatus().equals(ContainerStatus.COMPLETED))
             throw LogicErrException.of("Cont hàng đã được hoàn tất trước đó.");
-        if(container.getContainerStatus().equals(ContainerStatus.REJECTED))
-            throw LogicErrException.of("Cont hàng đã được hủy trước đó.");
         ContainerStatus containerStatus = ContainerStatus.fromId(status);
         if(containerStatus == null) throw LogicErrException.of("Trạng thái không hợp lệ.");
         // update container
         if(containerStatus.equals(ContainerStatus.COMPLETED)){
             containerCompletedAndRejectedLogic(container, container.getToWarehouseId());
             List<ObjectId> itemIds = container.getInventoryItems().stream().map(Container.InventoryItemContainer::getId).toList();
-            inventoryItemRepository.updateStatusAndUnRefContainer(itemIds, InventoryItemStatus.IN_STOCK.getId());
+            inventoryItemRepository.updateStatusAndWarehouseAndUnRefContainer(itemIds, container.getToWarehouseId(), InventoryItemStatus.IN_STOCK.getId());
             container.setCompletionDate(LocalDateTime.now());
-        }
-        else if(containerStatus.equals(ContainerStatus.REJECTED)){
-            containerCompletedAndRejectedLogic(container, container.getFromWareHouseId());
-            List<ObjectId> itemIds = container.getInventoryItems().stream().map(Container.InventoryItemContainer::getId).toList();
-            // Cập nhật hàng hóa quay lại kho cũ
-            inventoryItemRepository.updateStatusAndWarehouseAndUnRefContainer(itemIds, container.getFromWareHouseId(), InventoryItemStatus.IN_STOCK.getId());
-            container.setCompletionDate(LocalDateTime.now());
+            // TODO: Phiếu xuất/nhập
         }
         container.setContainerStatus(containerStatus);
         containerRepository.save(container);
@@ -297,15 +295,16 @@ public class ContainerService {
         }
     }
 
-    private void createDepToDesTran(List<InventoryItem> dtos, WarehouseTranType tranType) {
+    private WarehouseTransaction buildDepToDesTran(Warehouse wh1, Warehouse wh2, List<InventoryItem> dtos) {
+        WarehouseTranType tranType = WarehouseTranType.DEPARTURE_TO_DEST_TRANSFER;
         WarehouseTransaction ticket = new WarehouseTransaction();
-        ticket.setTitle(tranType.getTitle());
+        ticket.setTitle(GeneralResource.generateTranTitle(tranType, null, wh1, wh2));
         List<WarehouseTransaction.InventoryItemTicket> itemsToTran = dtos.stream()
                 .map(mapper::toInventoryItemTicket)
                 .collect(Collectors.toList());
         ticket.setInventoryItems(itemsToTran);
-        ticket.setTranType(WarehouseTranType.DEPARTURE_TO_DEST_TRANSFER);
+        ticket.setTranType(tranType);
         ticket.setStatus(WarehouseTransactionStatus.APPROVED.getId());
-        warehouseTransferTicketRepository.save(ticket);
+        return ticket;
     }
 }

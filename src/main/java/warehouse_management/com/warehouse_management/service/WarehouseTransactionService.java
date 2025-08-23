@@ -24,7 +24,9 @@ import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.model.WarehouseTransaction;
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
 import warehouse_management.com.warehouse_management.repository.warehouse_transaction.WarehouseTransactionRepository;
+import warehouse_management.com.warehouse_management.utils.GeneralResource;
 import warehouse_management.com.warehouse_management.utils.JsonUtils;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -47,10 +49,11 @@ public class WarehouseTransactionService {
         Warehouse originWarehouse = warehouseService.getWarehouseToId(new ObjectId(dto.getOriginWarehouseId()));
         Warehouse destinationWarehouse = warehouseService.getWarehouseToId(new ObjectId(dto.getDestinationWarehouseId()));
         ticket.setOriginWarehouseId(originWarehouse.getId());
-        ticket.setTranType(WarehouseTranType.DEST_TO_DEST_TRANSFER);
+        WarehouseTranType tranType = WarehouseTranType.DEST_TO_DEST_TRANSFER;
+        ticket.setTicketCode(GeneralResource.generateTranTicketCode(tranType, null));
+        ticket.setTranType(tranType);
         ticket.setDestinationWarehouseId(destinationWarehouse.getId());
-        ticket.setTitle("Chuyển hàng từ kho \"" + originWarehouse.getName() + "\" đến kho \"" + destinationWarehouse.getName() + "\"" +
-                "");
+        ticket.setTitle(GeneralResource.generateTranTitle(tranType, null, originWarehouse, destinationWarehouse));
         ticket.setReason("Điều chuyển kho");
         ticket.setRequesterId(null);
         ticket.setApproverId(null);

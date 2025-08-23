@@ -28,6 +28,7 @@ public class InventoryConsignmentDto {
     private String batterySpecification;    // Thông số bình điện
     private String chargerSpecification;    // Thông số bộ sạc
     private String forkDimensions;          // Thông số càng
+    private String warehouseName;           // Tên kho
     private String warehouseType;           // Loại kho
     private Integer valveCount;             // Số lượng van
     private String otherDetails;            // Chi tiết khác
@@ -36,6 +37,7 @@ public class InventoryConsignmentDto {
     private BigDecimal salePriceR0;         // Giá R0
     private BigDecimal salePriceR1;         // Giá R1
     private BigDecimal actualSalePrice;     // Giá bán thực tế
+    private String agent;       // Đại lý
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime arrivalDate;    // Ngày giao hàng
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
