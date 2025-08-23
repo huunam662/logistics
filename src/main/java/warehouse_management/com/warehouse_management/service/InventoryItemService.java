@@ -104,16 +104,7 @@ public class InventoryItemService {
     @Transactional
     public InventoryItem updateInventorySparePart(String id, CreateInventorySparePartDto req){
         InventoryItem item = getItemToId(new ObjectId(id));
-        Warehouse warehouse = warehouseService.getWarehouseToId(new ObjectId(req.getWarehouseId()));
         inventoryItemMapper.mapToUpdateInventorySparePart(item, req);
-        item.setWarehouseId(warehouse.getId());
-        if(item.getLogistics() == null) item.setLogistics(new InventoryItem.Logistics());
-        try{
-            item.getLogistics().setOrderDate(LocalDate.parse(req.getOrderDate()).atStartOfDay());
-        }
-        catch (Exception e){
-            throw LogicErrException.of("Ngày đặt hàng phải đúng định dạng 'yyyy-MM-dd'");
-        }
         return inventoryItemRepository.save(item);
     }
 
@@ -281,21 +272,7 @@ public class InventoryItemService {
     @Transactional
     public InventoryItem updateInventoryProduct(String id, CreateInventoryProductDto dto){
         InventoryItem inventoryItem = getItemToId(new ObjectId(id));
-        Warehouse warehouse = warehouseService.getWarehouseToId(new ObjectId(dto.getWarehouseId()));
         mapper.mapToUpdateInventoryProduct(inventoryItem, dto);
-        inventoryItem.setWarehouseId(warehouse.getId());
-        try{
-            inventoryItem.getLogistics().setOrderDate(LocalDate.parse(dto.getLogistics().getOrderDate()).atStartOfDay());
-        }
-        catch (Exception e){
-            throw LogicErrException.of("Ngày đặt hàng phải đúng định dạng 'yyyy-MM-dd'");
-        }
-        try{
-            inventoryItem.getLogistics().setEstimateCompletionDate(LocalDate.parse(dto.getLogistics().getEstimateCompletionDate()).atStartOfDay());
-        }
-        catch (Exception e){
-            throw LogicErrException.of("Ngày dự kiến SX xong phải đúng định dạng 'yyyy-MM-dd'");
-        }
         return inventoryItemRepository.save(inventoryItem);
     }
 
