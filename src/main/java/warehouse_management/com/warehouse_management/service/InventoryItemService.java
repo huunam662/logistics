@@ -431,6 +431,21 @@ public class InventoryItemService {
         return itemsToInsert;
     }
 
+    public List<InventoryItem> bulkCreateProductionProducts(List<ExcelImportProductionProductDto> dtos) {
+        return bulkImport(
+                dtos,
+                mapper::toInventoryItem,
+                mapper::toInventoryItemTicket,
+                WarehouseSubTranType.EXCEL_TO_PRODUCTION_PRODUCT);
+    }
+    public List<InventoryItem> bulkCreateProductionSpareParts(List<ExcelImportProductionSparePartDto> dtos) {
+        return bulkImport(
+                dtos,
+                mapper::toInventoryItem,
+                mapper::toInventoryItemTicket,
+                WarehouseSubTranType.EXCEL_TO_PRODUCTION_SPARE_PART);
+    }
+
     @AuditAction(action = "testMethod")
     public void approve(Integer approved) {
         if (approved > 0) {

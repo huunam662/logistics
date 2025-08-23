@@ -26,7 +26,7 @@ public class CustomWarehouseTransactionRepositoryImpl implements CustomWarehouse
                 Aggregation.lookup("user", "createdBy", "_id", "user"),
                 Aggregation.unwind("user", true),
                 Aggregation.match(Criteria.where("deletedAt").isNull()),
-                Aggregation.project("title", "ticketCode", "reason", "status", "createdAt", "approvedAt")
+                Aggregation.project("title", "ticketCode", "tranType", "reason", "status", "createdAt", "approvedAt")
                         .and("_id").as("id")
                         .and("user.username").as("requesterName")
         );

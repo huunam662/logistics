@@ -12,6 +12,7 @@ public class WarehouseTransactionPageDto {
     private String title;
     private String reason;
     private String status;
+    private String tranType;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
