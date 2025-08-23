@@ -180,29 +180,19 @@ public class InventoryItemController {
 
     // Bulk insert kho production -  xe phụ kiện (import Excel)
 // Bulk insert kho production - xe phụ kiện (import Excel)
-    @PostMapping("/production/products/import")
+    @PostMapping("/production/{warehouseId}/products-import")
     public ResponseEntity<ApiResponse<?>> bulkCreateProductionProducts(
             @RequestBody List<ExcelImportProductionProductDto> dtos) {
-        List<InventoryItem> created = inventoryItemService.bulkImport(
-                dtos,
-                mapper::toInventoryItem,
-                mapper::toInventoryItemTicket,
-                WarehouseSubTranType.EXCEL_TO_PRODUCTION_PRODUCT
-        );
+        List<InventoryItem> created = inventoryItemService.bulkCreateProductionProducts(dtos);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(Map.of("createdCount", created.size())));
     }
 
     //     Bulk insert kho production - phụ tùng (import Excel)
-    @PostMapping("/production/spare-parts/import")
+    @PostMapping("/production/{warehouseId}/spare-parts-import")
     public ResponseEntity<ApiResponse<?>> bulkCreateProductionSpareParts(
-             @RequestBody List<ExcelImportProductionSparePartDto> dtos) {
-        List<InventoryItem> created = inventoryItemService.bulkImport(
-                dtos,
-                mapper::toInventoryItem,
-                mapper::toInventoryItemTicket,
-                WarehouseSubTranType.EXCEL_TO_PRODUCTION_SPARE_PART
-        );
+            @RequestBody List<ExcelImportProductionSparePartDto> dtos) {
+        List<InventoryItem> created = inventoryItemService.bulkCreateProductionSpareParts(dtos);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(Map.of("createdCount", created.size())));
     }
