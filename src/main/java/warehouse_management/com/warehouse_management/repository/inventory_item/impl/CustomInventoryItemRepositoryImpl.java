@@ -532,12 +532,11 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     }
 
     @Override
-    public List<String> findAllModelsByPoNumber(String poNumber, List<String> inventoryTypes, String warehouseType, String model) {
+    public List<String> findAllModels(List<String> inventoryTypes, String warehouseType, String model) {
         List<AggregationOperation> pipelines = List.of(
                 Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
                 Aggregation.unwind("warehouse"),
                 Aggregation.match(new Criteria().andOperator(
-                        Criteria.where("poNumber").is(poNumber),
                         Criteria.where("inventoryType").in(inventoryTypes),
                         Criteria.where("model").regex(model, "i"),
                         Criteria.where("warehouse.type").is(warehouseType)
@@ -551,10 +550,8 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     }
 
     @Override
-    public List<String> findAllItemCodesByPoAndModel(String poNumber, String model, String codeOfType, String warehouseType, String code) {
+    public List<InventoryItemCodeQuantityDto> findAllItemCodesByPoAndModel(String codeOfType, String warehouseType, String code) {
         List<Criteria> filters = new ArrayList<>(List.of(
-                Criteria.where("poNumber").is(poNumber),
-                Criteria.where("model").is(model),
                 Criteria.where("warehouse.type").is(warehouseType)
         ));
         String fieldGet;
@@ -564,17 +561,18 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         }
         else if(InventoryType.SPARE_PART.getId().equals(codeOfType)) {
             fieldGet = "commodityCode";
-            filters.add(Criteria.where("commodityCode").regex(code, "i"));
+            filters.add(Criteria.where(fieldGet).regex(code, "i"));
         }
         else throw LogicErrException.of("Param codeOfType must be VEHICLE_ACCESSORY or SPARE_PART");
         List<AggregationOperation> pipelines = List.of(
                 Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
                 Aggregation.unwind("warehouse"),
                 Aggregation.match(new Criteria().andOperator(filters)),
-                Aggregation.project(fieldGet)
+                Aggregation.project("quantity", "poNumber", "model")
+                        .and(fieldGet).as("code")
         );
         Aggregation aggregation = Aggregation.newAggregation(pipelines);
-        AggregationResults<Document> aggResults = mongoTemplate.aggregate(aggregation, InventoryItem.class, Document.class);
-        return aggResults.getMappedResults().stream().map(doc -> doc.get(fieldGet).toString()).toList();
+        AggregationResults<InventoryItemCodeQuantityDto> aggResults = mongoTemplate.aggregate(aggregation, InventoryItem.class, InventoryItemCodeQuantityDto.class);
+        return aggResults.getMappedResults();
     }
 }

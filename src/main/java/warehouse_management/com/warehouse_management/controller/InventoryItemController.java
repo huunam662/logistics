@@ -123,6 +123,7 @@ public class InventoryItemController {
             @Parameter(description = "Tìm kiếm theo mã Po number (Nếu cần).")
             @RequestParam(value = "poNumber", required = false, defaultValue = "") String poNumber,
             @RequestParam(value = "warehouseId", required = false) String warehouseId,
+            @Parameter(description = "[PRODUCTION, DEPARTURE, DESTINATION, CONSIGNMENT]")
             @RequestParam(value = "warehouseType", required = false) String warehouseType
     ){
         List<InventoryPoWarehouseDto> poNumbers = inventoryItemService.getInventoryInStockPoNumbers(inventoryTypes, poNumber, warehouseId, warehouseType);
@@ -241,13 +242,12 @@ public class InventoryItemController {
         return ResponseEntity.ok().body(ApiResponse.success(response));
     }
 
-    @GetMapping("/po-models")
+    @GetMapping("/models")
     @Operation(
-            summary = "GET Lấy mã Models thuộc Po number.",
-            description = "GET Lấy mã Models thuộc Po number."
+            summary = "GET Lấy mã Models.",
+            description = "GET Lấy mã Models."
     )
-    public ResponseEntity<?> getModelsToPoNumbers(
-            @RequestParam("poNumber") String poNumber,
+    public ResponseEntity<?> getModels(
             @Parameter(description = "[VEHICLE, ACCESSORY, SPARE_PART]")
             @RequestParam("inventoryTypes") List<String> inventoryTypes,
             @Parameter(description = "[PRODUCTION, DEPARTURE, DESTINATION, CONSIGNMENT]")
@@ -255,7 +255,7 @@ public class InventoryItemController {
             @Parameter(description = "Tìm kiếm theo mã Model (Nếu cần).")
             @RequestParam(value = "model", required = false, defaultValue = "") String model
     ){
-        List<String> models = inventoryItemService.getAllModelsToPoNumber(poNumber, inventoryTypes, warehouseType, model);
+        List<String> models = inventoryItemService.getAllModels(inventoryTypes, warehouseType, model);
         return ResponseEntity.ok().body(ApiResponse.success(models));
     }
 
@@ -265,8 +265,6 @@ public class InventoryItemController {
             description = "GET Lấy mã Mặt Hàng thuộc Po number và mã Model."
     )
     public ResponseEntity<?> getItemsCodeToPoAndModel(
-            @RequestParam("poNumber") String poNumber,
-            @RequestParam("model") String model,
             @Parameter(description = "[VEHICLE_ACCESSORY, SPARE_PART]<br>* Nếu lấy code theo Xe & Phụ kiện thì VEHICLE_ACCESSORY, còn Phụ tùng thì SPARE_PART")
             @RequestParam("codeOfType") String codeOfType,
             @Parameter(description = "[PRODUCTION, DEPARTURE, DESTINATION, CONSIGNMENT]")
@@ -274,7 +272,7 @@ public class InventoryItemController {
             @Parameter(description = "Tìm kiếm theo mã Mặt Hàng (Nếu cần).")
             @RequestParam(value = "code", required = false, defaultValue = "") String code
     ){
-        List<String> codes = inventoryItemService.getAllItemCodesToPoAndModel(poNumber, model, codeOfType, warehouseType, code);
+        List<InventoryItemCodeQuantityDto> codes = inventoryItemService.getAllItemCodesToPoAndModel(codeOfType, warehouseType, code);
         return ResponseEntity.ok().body(ApiResponse.success(codes));
     }
 }

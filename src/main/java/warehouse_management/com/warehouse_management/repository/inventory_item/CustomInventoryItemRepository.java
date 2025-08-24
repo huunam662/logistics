@@ -59,7 +59,7 @@ public interface CustomInventoryItemRepository {
 
     List<InventorySparePartDetailsDto> findInventorySparePartDetailsInIds(ObjectId ids);
 
-    List<String> findAllModelsByPoNumber(String poNumber, List<String> inventoryTypes, String warehouseType, String model);
+    List<String> findAllModels(List<String> inventoryTypes, String warehouseType, String model);
 
-    List<String> findAllItemCodesByPoAndModel(String poNumber, String model, String codeOfType, String warehouseType, String code);
+    List<InventoryItemCodeQuantityDto> findAllItemCodesByPoAndModel(String codeOfType, String warehouseType, String code);
 }

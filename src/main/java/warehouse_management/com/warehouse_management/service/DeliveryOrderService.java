@@ -2,10 +2,13 @@ package warehouse_management.com.warehouse_management.service;
 
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import warehouse_management.com.warehouse_management.dto.delivery_order.request.CreateDeliveryOrderDto;
 import warehouse_management.com.warehouse_management.dto.delivery_order.request.UpdateDeliveryOrderDto;
+import warehouse_management.com.warehouse_management.dto.delivery_order.response.DeliveryOrderPageDto;
+import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.enumerate.DeliveryOrderStatus;
 import warehouse_management.com.warehouse_management.exceptions.LogicErrException;
 import warehouse_management.com.warehouse_management.mapper.DeliveryOrderMapper;
@@ -33,7 +36,7 @@ public class DeliveryOrderService {
         //TODO: Tìm khách hàng từ bảng user và gán id vào customerId
 
         deliveryOrder = deliveryOrderMapper.toCreateDeliveryOrder(dto);
-        deliveryOrder.setHoldingDeadline(LocalDateTime.now().plusDays(deliveryOrder.getHoldingDays()));
+        deliveryOrder.setHoldingDeadlineDate(LocalDateTime.now().plusDays(deliveryOrder.getHoldingDays()));
         deliveryOrder.setStatus(DeliveryOrderStatus.UN_DELIVERED.getValue());
         return deliveryOrderRepository.save(deliveryOrder);
     }
@@ -54,9 +57,12 @@ public class DeliveryOrderService {
         if(DeliveryOrderStatus.fromValue(dto.getStatus()) == null)
             throw LogicErrException.of("Trạng thái đơn giao hàng không hợp lệ.");
         deliveryOrderMapper.mapToUpdateDeliveryOrder(deliveryOrder, dto);
-        deliveryOrder.setHoldingDeadline(deliveryOrder.getCreatedAt().plusDays(deliveryOrder.getHoldingDays()));
+        deliveryOrder.setHoldingDeadlineDate(deliveryOrder.getCreatedAt().plusDays(deliveryOrder.getHoldingDays()));
         return deliveryOrderRepository.save(deliveryOrder);
     }
 
+    public Page<DeliveryOrderPageDto> getPageDeliveryOrder(PageOptionsDto optionsDto){
+        return deliveryOrderRepository.findPageDeliveryOrder(optionsDto);
+    }
 
 }

@@ -7,7 +7,7 @@ import warehouse_management.com.warehouse_management.model.DeliveryOrder;
 
 import java.util.Optional;
 
-public interface DeliveryOrderRepository extends MongoRepository<DeliveryOrder, ObjectId> {
+public interface DeliveryOrderRepository extends MongoRepository<DeliveryOrder, ObjectId>, CustomDeliveryOrderRepository {
 
     @Query("{'deliveryOrderCode': ?0}")
     Optional<DeliveryOrder> findByCode(String deliveryOrderCode);

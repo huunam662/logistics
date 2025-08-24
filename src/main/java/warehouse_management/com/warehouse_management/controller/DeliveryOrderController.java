@@ -5,11 +5,15 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
 import warehouse_management.com.warehouse_management.dto.delivery_order.request.CreateDeliveryOrderDto;
 import warehouse_management.com.warehouse_management.dto.delivery_order.request.UpdateDeliveryOrderDto;
+import warehouse_management.com.warehouse_management.dto.delivery_order.response.DeliveryOrderPageDto;
+import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
+import warehouse_management.com.warehouse_management.dto.pagination.response.PageInfoDto;
 import warehouse_management.com.warehouse_management.model.DeliveryOrder;
 import warehouse_management.com.warehouse_management.service.DeliveryOrderService;
 
@@ -47,4 +51,13 @@ public class DeliveryOrderController {
         return ResponseEntity.ok(ApiResponse.success(Map.of("deliveryOrderId", updated.getId())));
     }
 
+    @Operation(
+            summary = "GET đơn giao hàng (Phân trang).",
+            description = "GET đơn giao hàng (Phân trang)."
+    )
+    @GetMapping("/page")
+    public ResponseEntity<?> getPageDeliveryOrder(@ModelAttribute PageOptionsDto optionsDto){
+        Page<DeliveryOrderPageDto> pageDto = deliveryOrderService.getPageDeliveryOrder(optionsDto);
+        return ResponseEntity.ok(ApiResponse.success(new PageInfoDto<>(pageDto)));
+    }
 }

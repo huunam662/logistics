@@ -452,11 +452,11 @@ public class InventoryItemService {
         }
     }
 
-    public List<String> getAllModelsToPoNumber(String poNumber, List<String> inventoryTypes, String warehouseType, String model){
-        return inventoryItemRepository.findAllModelsByPoNumber(poNumber, inventoryTypes, warehouseType, model);
+    public List<String> getAllModels(List<String> inventoryTypes, String warehouseType, String model){
+        return inventoryItemRepository.findAllModels(inventoryTypes, warehouseType, model);
     }
 
-    public List<String> getAllItemCodesToPoAndModel(String poNumber, String model, String codeOfType, String warehouseType, String code){
-        return inventoryItemRepository.findAllItemCodesByPoAndModel(poNumber, model, codeOfType, warehouseType, code);
+    public List<InventoryItemCodeQuantityDto> getAllItemCodesToPoAndModel(String codeOfType, String warehouseType, String code){
+        return inventoryItemRepository.findAllItemCodesByPoAndModel(codeOfType, warehouseType, code);
     }
 }
