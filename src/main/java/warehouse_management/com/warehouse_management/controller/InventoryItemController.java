@@ -122,11 +122,12 @@ public class InventoryItemController {
             @RequestParam("inventoryType") List<String> inventoryTypes,
             @Parameter(description = "Tìm kiếm theo mã Po number (Nếu cần).")
             @RequestParam(value = "poNumber", required = false, defaultValue = "") String poNumber,
+            @RequestParam(value = "model", required = false, defaultValue = "") String model,
             @RequestParam(value = "warehouseId", required = false) String warehouseId,
             @Parameter(description = "[PRODUCTION, DEPARTURE, DESTINATION, CONSIGNMENT]")
             @RequestParam(value = "warehouseType", required = false) String warehouseType
     ){
-        List<InventoryPoWarehouseDto> poNumbers = inventoryItemService.getInventoryInStockPoNumbers(inventoryTypes, poNumber, warehouseId, warehouseType);
+        List<InventoryPoWarehouseDto> poNumbers = inventoryItemService.getInventoryInStockPoNumbers(inventoryTypes, poNumber, model, warehouseId, warehouseType);
         return ApiResponse.success(poNumbers);
     }
 
@@ -265,6 +266,8 @@ public class InventoryItemController {
             description = "GET Lấy mã Mặt Hàng thuộc Po number và mã Model."
     )
     public ResponseEntity<?> getItemsCodeToPoAndModel(
+            @RequestParam("poNumber") String poNumber,
+            @RequestParam("model") String model,
             @Parameter(description = "[VEHICLE_ACCESSORY, SPARE_PART]<br>* Nếu lấy code theo Xe & Phụ kiện thì VEHICLE_ACCESSORY, còn Phụ tùng thì SPARE_PART")
             @RequestParam("codeOfType") String codeOfType,
             @Parameter(description = "[PRODUCTION, DEPARTURE, DESTINATION, CONSIGNMENT]")
@@ -272,7 +275,7 @@ public class InventoryItemController {
             @Parameter(description = "Tìm kiếm theo mã Mặt Hàng (Nếu cần).")
             @RequestParam(value = "code", required = false, defaultValue = "") String code
     ){
-        List<InventoryItemCodeQuantityDto> codes = inventoryItemService.getAllItemCodesToPoAndModel(codeOfType, warehouseType, code);
+        List<InventoryItemCodeQuantityDto> codes = inventoryItemService.getAllItemCodesToPoAndModel(codeOfType, warehouseType, model, poNumber, code);
         return ResponseEntity.ok().body(ApiResponse.success(codes));
     }
 }

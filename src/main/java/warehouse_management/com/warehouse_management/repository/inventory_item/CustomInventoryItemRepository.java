@@ -33,7 +33,7 @@ public interface CustomInventoryItemRepository {
 
     Page<InventoryCentralWarehouseSparePartDto> findPageInventoryCentralWarehouseSparePart(PageOptionsDto optionsReq);
 
-    List<InventoryPoWarehouseDto> findPoNumbersOfInventoryInStock(String warehouseType, List<String> inventoryTypes, String poNumber, String warehouseId);
+    List<InventoryPoWarehouseDto> findPoNumbersOfInventoryInStock(String warehouseType, List<String> inventoryTypes, String poNumber, String model, String warehouseId);
 
     List<InventoryItemPoNumberDto> findInventoryInStockByPoNumber(String warehouseType, String warehouseId, String poNumber, String filter);
 
@@ -61,5 +61,5 @@ public interface CustomInventoryItemRepository {
 
     List<String> findAllModels(List<String> inventoryTypes, String warehouseType, String model);
 
-    List<InventoryItemCodeQuantityDto> findAllItemCodesByPoAndModel(String codeOfType, String warehouseType, String code);
+    List<InventoryItemCodeQuantityDto> findAllItemCodesByPoAndModel(String codeOfType, String model, String poNumber, String warehouseType, String code);
 }

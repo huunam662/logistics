@@ -370,13 +370,14 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     }
 
     @Override
-    public List<InventoryPoWarehouseDto> findPoNumbersOfInventoryInStock(String warehouseType, List<String> inventoryTypes, String poNumber, String warehouseId){
+    public List<InventoryPoWarehouseDto> findPoNumbersOfInventoryInStock(String warehouseType, List<String> inventoryTypes, String poNumber, String model, String warehouseId){
         List<Criteria> filters = new ArrayList<>(List.of(
                 Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
                 Criteria.where("deletedAt").isNull(),
                 Criteria.where("inventoryType").in(inventoryTypes),
                 Criteria.where("poNumber").regex(poNumber, "i") // giống like '%%'
         ));
+        if(model != null) filters.add(Criteria.where("model").is(model));
         if(warehouseId != null) filters.add(Criteria.where("warehouseId").is(new ObjectId(warehouseId)));
         if(warehouseType != null) filters.add(Criteria.where("warehouse.type").is(warehouseType));
         List<AggregationOperation> aggOps = List.of(
@@ -550,9 +551,11 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     }
 
     @Override
-    public List<InventoryItemCodeQuantityDto> findAllItemCodesByPoAndModel(String codeOfType, String warehouseType, String code) {
+    public List<InventoryItemCodeQuantityDto> findAllItemCodesByPoAndModel(String codeOfType, String model, String poNumber, String warehouseType, String code) {
         List<Criteria> filters = new ArrayList<>(List.of(
-                Criteria.where("warehouse.type").is(warehouseType)
+                Criteria.where("warehouse.type").is(warehouseType),
+                Criteria.where("poNumber").is(poNumber),
+                Criteria.where("model").is(model)
         ));
         String fieldGet;
         if(InventoryType.VEHICLE_ACCESSORY.getId().equals(codeOfType)){
@@ -568,8 +571,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
                 Aggregation.unwind("warehouse"),
                 Aggregation.match(new Criteria().andOperator(filters)),
-                Aggregation.project("quantity", "poNumber", "model")
-                        .and(fieldGet).as("code")
+                Aggregation.project("quantity", "poNumber", "model", fieldGet)
         );
         Aggregation aggregation = Aggregation.newAggregation(pipelines);
         AggregationResults<InventoryItemCodeQuantityDto> aggResults = mongoTemplate.aggregate(aggregation, InventoryItem.class, InventoryItemCodeQuantityDto.class);

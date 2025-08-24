@@ -4,8 +4,7 @@ import lombok.Data;
 
 @Data
 public class InventoryItemCodeQuantityDto {
-    private String poNumber;
-    private String model;
-    private String code;
+    private String productCode;
+    private String commodityCode;
     private Integer quantity;
 }

@@ -59,6 +59,7 @@ public class DeliveryOrder {
     @AllArgsConstructor
     public static class OutstandingModel{
         private String model;
+        private String inventoryType;   // Loại hàng tồn (VD: phụ kiện, ...) - Bắt buộc
         private Integer quantity;
     }
 
