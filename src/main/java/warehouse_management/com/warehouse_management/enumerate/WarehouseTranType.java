@@ -12,19 +12,19 @@ public enum WarehouseTranType {
     // Điều chuyển nội bộ (kho VN → kho VN)
     DEST_TO_DEST_TRANSFER(
             "DEST_TO_DEST_TRANSFER",
-            "Điều chuyển nội bộ"
+            "DCNB"
     ),
 
     // Xuất từ kho đi (TQ) → kho đến (VN)
     DEPARTURE_TO_DEST_TRANSFER(
             "DEPARTURE_TO_DEST_TRANSFER",
-            "Xuất kho TQ sang kho VN"
+            "TQ sang VN"
     ),
 
     // Nhập sản phẩm vào kho có nhiều cách nhập (excel, form)
     DATA_ENTRY(
             "DATA_ENTRY",
-            "Nhập liệu sản phẩm"
+            "Nhập liệu"
     ),
 
     // Chuyển quyền bán hàng

@@ -50,7 +50,6 @@ public class WarehouseTransactionService {
         Warehouse destinationWarehouse = warehouseService.getWarehouseToId(new ObjectId(dto.getDestinationWarehouseId()));
         ticket.setOriginWarehouseId(originWarehouse.getId());
         WarehouseTranType tranType = WarehouseTranType.DEST_TO_DEST_TRANSFER;
-        ticket.setTicketCode(GeneralResource.generateTranTicketCode(tranType, null));
         ticket.setTranType(tranType);
         ticket.setDestinationWarehouseId(destinationWarehouse.getId());
         ticket.setTitle(GeneralResource.generateTranTitle(tranType, null, originWarehouse, destinationWarehouse));
