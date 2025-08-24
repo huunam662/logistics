@@ -122,7 +122,7 @@ public class InventoryItemController {
             @RequestParam("inventoryType") List<String> inventoryTypes,
             @Parameter(description = "Tìm kiếm theo mã Po number (Nếu cần).")
             @RequestParam(value = "poNumber", required = false, defaultValue = "") String poNumber,
-            @RequestParam(value = "model", required = false, defaultValue = "") String model,
+            @RequestParam(value = "model", required = false) String model,
             @RequestParam(value = "warehouseId", required = false) String warehouseId,
             @Parameter(description = "[PRODUCTION, DEPARTURE, DESTINATION, CONSIGNMENT]")
             @RequestParam(value = "warehouseType", required = false) String warehouseType
