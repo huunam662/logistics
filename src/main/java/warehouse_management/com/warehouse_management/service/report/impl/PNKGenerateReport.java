@@ -3,9 +3,11 @@ package warehouse_management.com.warehouse_management.service.report.impl;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.bson.types.ObjectId;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
 import warehouse_management.com.warehouse_management.dto.report.PNKPXKInventoryItemDataSetIDto;
 import warehouse_management.com.warehouse_management.enumerate.InventoryType;
+import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.model.WarehouseTransaction;
 import warehouse_management.com.warehouse_management.repository.warehouse_transaction.WarehouseTransactionRepository;
 import warehouse_management.com.warehouse_management.service.report.GenerateReportStrategy;
@@ -20,9 +22,11 @@ import java.util.*;
 @Component
 public class PNKGenerateReport implements GenerateReportStrategy {
     private final WarehouseTransactionRepository warehouseTransferTicketRepository;
+    private final MongoTemplate mongoTemplate;
 
-    public PNKGenerateReport(WarehouseTransactionRepository warehouseTransferTicketRepository) {
+    public PNKGenerateReport(WarehouseTransactionRepository warehouseTransferTicketRepository, MongoTemplate mongoTemplate) {
         this.warehouseTransferTicketRepository = warehouseTransferTicketRepository;
+        this.mongoTemplate = mongoTemplate;
     }
 
     @Override
@@ -45,6 +49,16 @@ public class PNKGenerateReport implements GenerateReportStrategy {
         result.put("total1", totalQuantity);
         result.put("total2", totalQuantity);
         result.put("dayString", buildDayString(transaction.getCreatedAt()));
+
+// In Dept
+        WarehouseTransaction.Department inDept = transaction.getStockInDepartment();
+        if (inDept != null) {
+            result.put("inDeptName", inDept.getName());
+            result.put("inDeptAddress", inDept.getAddress());
+            result.put("inDeptPosition", inDept.getPosition());
+        }
+
+        result.put("reason", transaction.getReason());
 
         return result;
     }
