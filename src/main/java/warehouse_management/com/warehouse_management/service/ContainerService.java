@@ -204,8 +204,8 @@ public class ContainerService {
             }
             containerRepository.save(container);
             Warehouse wh1 = GeneralResource.getWarehouseById(mongoTemplate, container.getFromWareHouseId());
-            Warehouse wh2 = GeneralResource.getWarehouseById(mongoTemplate, container.getFromWareHouseId());
-            warehouseTransferTicketRepository.save(buildDepToDesTran(wh1, wh2, itemsPushToCont));
+            Warehouse wh2 = GeneralResource.getWarehouseById(mongoTemplate, container.getToWarehouseId());
+            warehouseTransferTicketRepository.save(buildDepToDesTran(wh1, wh2, container, itemsPushToCont));
             // TODO: Ghi nhận log giao dịch
 
             return Map.of("containerId", container.getId());
@@ -295,10 +295,10 @@ public class ContainerService {
         }
     }
 
-    private WarehouseTransaction buildDepToDesTran(Warehouse wh1, Warehouse wh2, List<InventoryItem> dtos) {
+    private WarehouseTransaction buildDepToDesTran(Warehouse wh1, Warehouse wh2, Container container, List<InventoryItem> dtos) {
         WarehouseTranType tranType = WarehouseTranType.DEPARTURE_TO_DEST_TRANSFER;
         WarehouseTransaction ticket = new WarehouseTransaction();
-        ticket.setTitle(GeneralResource.generateTranTitle(tranType, null, wh1, wh2));
+        ticket.setTitle(GeneralResource.generateTranTitle(tranType, null, wh1, wh2, container));
         List<WarehouseTransaction.InventoryItemTicket> itemsToTran = dtos.stream()
                 .map(mapper::toInventoryItemTicket)
                 .collect(Collectors.toList());
