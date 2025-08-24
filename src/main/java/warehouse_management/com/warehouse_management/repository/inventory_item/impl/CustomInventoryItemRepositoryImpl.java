@@ -375,9 +375,9 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
                 Criteria.where("deletedAt").isNull(),
                 Criteria.where("inventoryType").in(inventoryTypes),
-                Criteria.where("poNumber").regex(poNumber, "i") // giống like '%%'
+                Criteria.where("poNumber").regex(poNumber, "i"), // giống like '%%'
+                Criteria.where("model").regex(model, "i")
         ));
-        if(model != null) filters.add(Criteria.where("model").is(model));
         if(warehouseId != null) filters.add(Criteria.where("warehouseId").is(new ObjectId(warehouseId)));
         if(warehouseType != null) filters.add(Criteria.where("warehouse.type").is(warehouseType));
         List<AggregationOperation> aggOps = List.of(
