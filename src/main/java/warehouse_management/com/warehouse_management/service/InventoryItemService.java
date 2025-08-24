@@ -79,6 +79,11 @@ public class InventoryItemService {
             tran.setSubTranType(subTranType);
             tran.setTitle(GeneralResource.generateTranTitle(tranType, subTranType, warehouse, null));
         }
+        // In dept từ wh2
+        WarehouseTransaction.Department inDept = new WarehouseTransaction.Department();
+        inDept.setName(warehouse.getName());
+        inDept.setAddress(warehouse.getAddress());
+        tran.setStockInDepartment(inDept);
 
         tran.setStatusEnum(WarehouseTransactionStatus.APPROVED); // Tự động duyệt
         tran.setApprovedAt(LocalDateTime.now());
@@ -147,6 +152,10 @@ public class InventoryItemService {
             tran.setSubTranType(subTranType);
             tran.setTitle(GeneralResource.generateTranTitle(tranType, subTranType, warehouse, null));
         }
+        WarehouseTransaction.Department inDept = new WarehouseTransaction.Department();
+        inDept.setName(warehouse.getName());
+        inDept.setAddress(warehouse.getAddress());
+        tran.setStockInDepartment(inDept);
 
         tran.setStatusEnum(WarehouseTransactionStatus.APPROVED); // Tự động duyệt
         tran.setApprovedAt(LocalDateTime.now());
@@ -382,14 +391,19 @@ public class InventoryItemService {
 
     private void createImportTransaction(String warehouseId, List<WarehouseTransaction.InventoryItemTicket> dtos, WarehouseSubTranType importType) {
         Warehouse wh = GeneralResource.getWarehouseById(mongoTemplate, new ObjectId(warehouseId));
-        WarehouseTransaction ticket = new WarehouseTransaction();
+        WarehouseTransaction tran = new WarehouseTransaction();
         WarehouseTranType tranType = WarehouseTranType.DATA_ENTRY;
-        ticket.setTitle(GeneralResource.generateTranTitle(tranType, importType, wh, null));
-        ticket.setInventoryItems(dtos);
-        ticket.setTranType(tranType);
-        ticket.setSubTranType(importType);
-        ticket.setStatus(WarehouseTransactionStatus.APPROVED.getId());
-        warehouseTransferTicketRepository.save(ticket);
+        tran.setTitle(GeneralResource.generateTranTitle(tranType, importType, wh, null));
+        tran.setInventoryItems(dtos);
+        tran.setTranType(tranType);
+        tran.setReason("Nhập kho theo lô");
+        tran.setSubTranType(importType);
+        WarehouseTransaction.Department inDept = new WarehouseTransaction.Department();
+        inDept.setName(wh.getName());
+        inDept.setAddress(wh.getAddress());
+        tran.setStockInDepartment(inDept);
+        tran.setStatus(WarehouseTransactionStatus.APPROVED.getId());
+        warehouseTransferTicketRepository.save(tran);
     }
 
     public <T> List<InventoryItem> bulkImport(

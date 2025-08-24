@@ -3,10 +3,12 @@ package warehouse_management.com.warehouse_management.service.report.impl;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.bson.types.ObjectId;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
 import warehouse_management.com.warehouse_management.dto.report.PNKPXKInventoryItemDataSetIDto;
 import warehouse_management.com.warehouse_management.enumerate.InventoryType;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
+import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.model.WarehouseTransaction;
 import warehouse_management.com.warehouse_management.repository.warehouse_transaction.WarehouseTransactionRepository;
 import warehouse_management.com.warehouse_management.service.report.GenerateReportStrategy;
@@ -20,9 +22,11 @@ import java.util.*;
 
 @Component
 public class PXKGenerateReport implements GenerateReportStrategy {
+    private final MongoTemplate mongoTemplate;
     private final WarehouseTransactionRepository warehouseTransferTicketRepository;
 
-    public PXKGenerateReport(WarehouseTransactionRepository warehouseTransferTicketRepository) {
+    public PXKGenerateReport(MongoTemplate mongoTemplate, WarehouseTransactionRepository warehouseTransferTicketRepository) {
+        this.mongoTemplate = mongoTemplate;
         this.warehouseTransferTicketRepository = warehouseTransferTicketRepository;
     }
 
@@ -46,6 +50,14 @@ public class PXKGenerateReport implements GenerateReportStrategy {
         result.put("total1", totalQuantity);
         result.put("total2", totalQuantity);
         result.put("dayString", buildDayString(transaction.getCreatedAt()));
+
+        WarehouseTransaction.Department outDept = transaction.getStockOutDepartment();
+        if (outDept != null) {
+            result.put("outDeptName", outDept.getName());
+            result.put("outDeptAddress", outDept.getAddress());
+            result.put("outDeptPosition", outDept.getPosition());
+        }
+        result.put("reason", transaction.getReason());
 
         return result;
     }
