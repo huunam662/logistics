@@ -68,7 +68,6 @@ public class InventoryItemService {
         WarehouseTransaction tran = new WarehouseTransaction();
         tran.setReason("Nhập kho hàng hóa " + item.getCommodityCode() + " theo PO " + item.getPoNumber());
         WarehouseTranType tranType = WarehouseTranType.DATA_ENTRY;
-        tran.setTicketCode(GeneralResource.generateTranTicketCode(tranType, null)); // Tạo mã phiếu nhập kho
         tran.setTranType(tranType);
         WarehouseSubTranType subTranType;
         if (warehouse.getType() == WarehouseType.DESTINATION) {
@@ -137,7 +136,6 @@ public class InventoryItemService {
         WarehouseTransaction tran = new WarehouseTransaction();
         tran.setReason("Nhập kho hàng hóa " + item.getProductCode() + " theo PO " + item.getPoNumber());
         WarehouseTranType tranType = WarehouseTranType.DATA_ENTRY;
-        tran.setTicketCode(GeneralResource.generateTranTicketCode(tranType, null)); // Tạo mã phiếu nhập kho
         tran.setTranType(tranType);
         WarehouseSubTranType subTranType;
         if (warehouse.getType() == WarehouseType.DESTINATION) {
