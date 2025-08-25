@@ -177,8 +177,7 @@ public class InventoryItemService {
         Page<InventoryItemProductionVehicleTypeDto> itemsPageObject = inventoryItemRepository.getItemsFromVehicleWarehouse(
                 new ObjectId(warehouseId),
                 optionsReq);
-        PageInfoDto<InventoryItemProductionVehicleTypeDto> response = new PageInfoDto<>(itemsPageObject);
-        return response;
+        return new PageInfoDto<>(itemsPageObject);
     }
 
     public List<InventoryPoWarehouseDto> getInventoryInStockPoNumbers(List<String> inventoryTypes, String poNumber, String model, String warehouseId, String warehouseType) {
@@ -290,12 +289,11 @@ public class InventoryItemService {
     @Transactional
     public List<InventoryItem> transferItems(List<InventoryItemTransferDto> items, ObjectId toWarehouseId, Container container, LocalDateTime arrivalDate, LocalDateTime consignmentDate, InventoryItemStatus itemStatus){
         // Hệ thống bắt đầu một giao dịch (transaction)
-        Map<String, Integer> itemIdQualityMap = items.stream().collect(
-                Collectors.toMap(InventoryItemTransferDto::getId, InventoryItemTransferDto::getQuantity)
+        Map<ObjectId, Integer> itemIdQualityMap = items.stream().collect(
+                Collectors.toMap(e -> new ObjectId(e.getId()), InventoryItemTransferDto::getQuantity)
         );
-        List<ObjectId> itemIdToTransfer = itemIdQualityMap.keySet().stream().map(ObjectId::new).toList();
         // Lấy toàn bộ sản phẩm (theo mã sản phẩm) trong Kho chờ sản xuất có PO được chọn
-        List<InventoryItem> itemsToTransfer = inventoryItemRepository.findByIdIn(itemIdToTransfer);
+        List<InventoryItem> itemsToTransfer = inventoryItemRepository.findByIdIn(itemIdQualityMap.keySet());
         List<InventoryItem> itemsSparePartInTransitContainer = List.of();
         if(container != null) {
             List<String> commodityCodes = itemsToTransfer.stream()
@@ -309,11 +307,11 @@ public class InventoryItemService {
         List<InventoryItem> itemsResults = new ArrayList<>();
         for(var item : itemsToTransfer){
             if(item.getInventoryType().equals(InventoryType.SPARE_PART.getId())){
-                int quantityToTransfer = itemIdQualityMap.get(item.getId().toString());
+                int quantityToTransfer = itemIdQualityMap.get(item.getId());
                 if(item.getQuantity() == 0)
-                    throw LogicErrException.of("Hàng phụ tùng " + item.getProductCode() + " hiện hết hàng.");
+                    throw LogicErrException.of("Hàng phụ tùng " + item.getCommodityCode() + " hiện hết hàng.");
                 if(item.getQuantity() < quantityToTransfer)
-                    throw LogicErrException.of("Số lượng phụ tùng " + item.getProductCode() + " cần nhập vượt quá số lượng trong kho.");
+                    throw LogicErrException.of("Số lượng phụ tùng " + item.getCommodityCode() + " cần nhập vượt quá số lượng trong kho.");
                 if(item.getQuantity() > quantityToTransfer){
                     item.setQuantity(item.getQuantity() - quantityToTransfer);
                     InventoryItem sparePartToDeparture = inventoryItemMapper.cloneEntity(item);

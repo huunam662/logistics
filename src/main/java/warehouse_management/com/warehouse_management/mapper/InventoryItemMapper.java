@@ -4,6 +4,8 @@ import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import warehouse_management.com.warehouse_management.dto.delivery_order.response.DeliveryProductTickDto;
+import warehouse_management.com.warehouse_management.dto.delivery_order.response.DeliverySparePartTickDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.*;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportDestinationProductDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportDestinationSparePartDto;
@@ -11,6 +13,7 @@ import warehouse_management.com.warehouse_management.dto.inventory_item.request.
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportProductionSparePartDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
 import warehouse_management.com.warehouse_management.model.Container;
+import warehouse_management.com.warehouse_management.model.DeliveryOrder;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.model.WarehouseTransaction;
 
@@ -55,4 +58,5 @@ public interface InventoryItemMapper {
     WarehouseTransaction.InventoryItemTicket toInventoryItemTicket(ExcelImportProductionSparePartDto dto);
 
     WarehouseTransaction.InventoryItemTicket toInventoryItemTicket(ExcelImportDestinationSparePartDto dto);
+
 }

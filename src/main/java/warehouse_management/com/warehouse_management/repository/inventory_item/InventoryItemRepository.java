@@ -26,10 +26,13 @@ public interface InventoryItemRepository extends MongoRepository<InventoryItem, 
     long countByContainerId(ObjectId containerId);
 
     @Query("{'_id': {'$in': ?0}}")
-    List<InventoryItem> findByIdIn(List<ObjectId> ids);
+    List<InventoryItem> findByIdIn(Collection<ObjectId> ids);
 
     @Query("{'commodityCode': {'$in': ?0}, 'warehouseId': ?1, 'status': ?2}")
     List<InventoryItem> findSparePartByCommodityCodeIn(Collection<String> commodityCodes, ObjectId warehouseId, String inventoryStatus);
+
+    @Query("{'_id': {'$in': ?0}, 'status': ?2}")
+    List<InventoryItem> findSparePartByCommodityCodeIn(Collection<ObjectId> commodityCodes, String inventoryStatus);
 
     @Query("{'commodityCode': {'$in': ?0}, 'containerId': ?1}")
     List<InventoryItem> findSparePartByCommodityCodeIn(Collection<String> commodityCodes, ObjectId containerId);

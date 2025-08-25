@@ -63,8 +63,6 @@ public class WarehouseTransactionService {
         return warehouseTransferTicketRepository.save(ticket);
     }
 
-
-
     public WarehouseTransaction getWarehouseTransactionToId(ObjectId ticketId) {
         WarehouseTransaction ticket = warehouseTransferTicketRepository.findById(ticketId).orElse(null);
         if(ticket == null || ticket.getDeletedAt() != null)
@@ -145,10 +143,5 @@ public class WarehouseTransactionService {
     ) {
         return warehouseTransferTicketRepository.findPageWarehouseTransferTicket(optionsDto, tranType);
     }
-
-
-
-
-
 
 }
