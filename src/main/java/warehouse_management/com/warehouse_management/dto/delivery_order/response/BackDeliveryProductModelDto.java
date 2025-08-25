@@ -3,10 +3,8 @@ package warehouse_management.com.warehouse_management.dto.delivery_order.respons
 import lombok.Data;
 
 @Data
-public class DeliverySparePartTickDto {
-    private String poNumber;
+public class BackDeliveryProductModelDto {
     private String model;
-    private String commodityCode;
-    private Boolean isDelivered;
+    private String inventoryType;   // Loại hàng tồn (VD: phụ kiện, ...) - Bắt buộc
     private Integer quantity;
 }
