@@ -32,11 +32,15 @@ public class DeliveryOrder {
 
     private Integer holdingDays;    // Số ngày giữ hàng (số nguyên dương).
 
-    private LocalDateTime holdingDeadline;  // Hạn giữ hàng
+    private Integer totalItemsToDelivery; // Tổng sản phẩm cần giao
+
+    private LocalDateTime holdingDeadlineDate;  // Hạn giữ hàng
 
     private String status; // Trạng thái đơn giao hàng
 
     private List<InventoryItemDelivery> inventoryItems; // Các mặt hàng đã giao
+
+    private List<OutstandingModel> outstandingModels;  // Các Model còn nợ
 
     @CreatedBy
     private ObjectId createdBy;
@@ -53,6 +57,15 @@ public class DeliveryOrder {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
+    public static class OutstandingModel{
+        private String model;
+        private String inventoryType;   // Loại hàng tồn (VD: phụ kiện, ...) - Bắt buộc
+        private Integer quantity;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class InventoryItemDelivery{
         private ObjectId id; // _id – Khóa chính
         private String poNumber;       // Số của Đơn đặt hàng (Purchase Order) – Bắt buộc
@@ -60,7 +73,6 @@ public class DeliveryOrder {
         private String commodityCode;  // Mã hàng hóa (đôi với phụ tùng)
         private String serialNumber;   // Số seri – Có cho xe/phụ kiện
         private String model;          // Model sản phẩm – Bắt buộc
-        private String type;           // Loại sản phẩm (VD: Xe nâng điện) – Bắt buộc
         private String category;       // Chủng loại sản phẩm (VD: Ngồi lái) – Bắt buộc
         private String inventoryType;   // Loại hàng tồn (VD: phụ kiện, ...) - Bắt buộc
         private Integer manufacturingYear; // Năm sản xuất – Không bắt buộc
@@ -70,6 +82,7 @@ public class DeliveryOrder {
         private Boolean initialCondition;       // Mô tả nguyên trạng khi nhập kho – Không bắt buộc
         private String notes;                  // Ghi chú chung – Không bắt buộc
         private String description;         // Mô tả
+        private String status;
         private InventoryItemDelivery.Specifications specifications;
         private InventoryItemDelivery.Pricing pricing;
         private InventoryItemDelivery.Logistics logistics;
@@ -114,6 +127,8 @@ public class DeliveryOrder {
             private LocalDateTime orderDate;        // Ngày đặt hàng
             private LocalDateTime departureDate;    // Ngày khởi hành
             private LocalDateTime arrivalDate;      // Ngày đến
+            private LocalDateTime consignmentDate;  // Ngày ký gửi (nếu có)
+            private LocalDateTime plannedProductionDate; // Ngày dự kiến sản xuất
             private LocalDateTime estimateCompletionDate; // Ngày dự kiến sản xuất xong
         }
     }

@@ -68,7 +68,6 @@ public class InventoryItemService {
         WarehouseTransaction tran = new WarehouseTransaction();
         tran.setReason("Nhập kho hàng hóa " + item.getCommodityCode() + " theo PO " + item.getPoNumber());
         WarehouseTranType tranType = WarehouseTranType.DATA_ENTRY;
-        tran.setTicketCode(GeneralResource.generateTranTicketCode(tranType, null)); // Tạo mã phiếu nhập kho
         tran.setTranType(tranType);
         WarehouseSubTranType subTranType;
         if (warehouse.getType() == WarehouseType.DESTINATION) {
@@ -80,6 +79,11 @@ public class InventoryItemService {
             tran.setSubTranType(subTranType);
             tran.setTitle(GeneralResource.generateTranTitle(tranType, subTranType, warehouse, null));
         }
+        // In dept từ wh2
+        WarehouseTransaction.Department inDept = new WarehouseTransaction.Department();
+        inDept.setName(warehouse.getName());
+        inDept.setAddress(warehouse.getAddress());
+        tran.setStockInDepartment(inDept);
 
         tran.setStatusEnum(WarehouseTransactionStatus.APPROVED); // Tự động duyệt
         tran.setApprovedAt(LocalDateTime.now());
@@ -137,7 +141,6 @@ public class InventoryItemService {
         WarehouseTransaction tran = new WarehouseTransaction();
         tran.setReason("Nhập kho hàng hóa " + item.getProductCode() + " theo PO " + item.getPoNumber());
         WarehouseTranType tranType = WarehouseTranType.DATA_ENTRY;
-        tran.setTicketCode(GeneralResource.generateTranTicketCode(tranType, null)); // Tạo mã phiếu nhập kho
         tran.setTranType(tranType);
         WarehouseSubTranType subTranType;
         if (warehouse.getType() == WarehouseType.DESTINATION) {
@@ -149,6 +152,10 @@ public class InventoryItemService {
             tran.setSubTranType(subTranType);
             tran.setTitle(GeneralResource.generateTranTitle(tranType, subTranType, warehouse, null));
         }
+        WarehouseTransaction.Department inDept = new WarehouseTransaction.Department();
+        inDept.setName(warehouse.getName());
+        inDept.setAddress(warehouse.getAddress());
+        tran.setStockInDepartment(inDept);
 
         tran.setStatusEnum(WarehouseTransactionStatus.APPROVED); // Tự động duyệt
         tran.setApprovedAt(LocalDateTime.now());
@@ -174,8 +181,8 @@ public class InventoryItemService {
         return response;
     }
 
-    public List<InventoryPoWarehouseDto> getInventoryInStockPoNumbers(List<String> inventoryTypes, String poNumber, String warehouseId, String warehouseType) {
-        return inventoryItemRepository.findPoNumbersOfInventoryInStock(warehouseType, inventoryTypes, poNumber, warehouseId);
+    public List<InventoryPoWarehouseDto> getInventoryInStockPoNumbers(List<String> inventoryTypes, String poNumber, String model, String warehouseId, String warehouseType) {
+        return inventoryItemRepository.findPoNumbersOfInventoryInStock(warehouseType, inventoryTypes, poNumber, model, warehouseId);
     }
 
     public List<InventoryItemPoNumberDto> getInventoryInStockByPoNumber(String warehouseType, String warehouseId, String poNumber, String filter){
@@ -384,14 +391,19 @@ public class InventoryItemService {
 
     private void createImportTransaction(String warehouseId, List<WarehouseTransaction.InventoryItemTicket> dtos, WarehouseSubTranType importType) {
         Warehouse wh = GeneralResource.getWarehouseById(mongoTemplate, new ObjectId(warehouseId));
-        WarehouseTransaction ticket = new WarehouseTransaction();
+        WarehouseTransaction tran = new WarehouseTransaction();
         WarehouseTranType tranType = WarehouseTranType.DATA_ENTRY;
-        ticket.setTitle(GeneralResource.generateTranTitle(tranType, importType, wh, null));
-        ticket.setInventoryItems(dtos);
-        ticket.setTranType(tranType);
-        ticket.setSubTranType(importType);
-        ticket.setStatus(WarehouseTransactionStatus.APPROVED.getId());
-        warehouseTransferTicketRepository.save(ticket);
+        tran.setTitle(GeneralResource.generateTranTitle(tranType, importType, wh, null));
+        tran.setInventoryItems(dtos);
+        tran.setTranType(tranType);
+        tran.setReason("Nhập kho theo lô");
+        tran.setSubTranType(importType);
+        WarehouseTransaction.Department inDept = new WarehouseTransaction.Department();
+        inDept.setName(wh.getName());
+        inDept.setAddress(wh.getAddress());
+        tran.setStockInDepartment(inDept);
+        tran.setStatus(WarehouseTransactionStatus.APPROVED.getId());
+        warehouseTransferTicketRepository.save(tran);
     }
 
     public <T> List<InventoryItem> bulkImport(
@@ -452,11 +464,11 @@ public class InventoryItemService {
         }
     }
 
-    public List<String> getAllModelsToPoNumber(String poNumber, List<String> inventoryTypes, String warehouseType, String model){
-        return inventoryItemRepository.findAllModelsByPoNumber(poNumber, inventoryTypes, warehouseType, model);
+    public List<String> getAllModels(List<String> inventoryTypes, String warehouseType, String model){
+        return inventoryItemRepository.findAllModels(inventoryTypes, warehouseType, model);
     }
 
-    public List<String> getAllItemCodesToPoAndModel(String poNumber, String model, String codeOfType, String warehouseType, String code){
-        return inventoryItemRepository.findAllItemCodesByPoAndModel(poNumber, model, codeOfType, warehouseType, code);
+    public List<InventoryItemCodeQuantityDto> getAllItemCodesToPoAndModel(String codeOfType, String warehouseType, String model, String poNumber, String code){
+        return inventoryItemRepository.findAllItemCodesByPoAndModel(codeOfType, model, poNumber, warehouseType, code);
     }
 }
