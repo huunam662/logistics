@@ -41,6 +41,8 @@ public interface CustomInventoryItemRepository {
 
     void bulkUpdateTransfer(Collection<InventoryItem> inventoryItems);
 
+    void bulkUpdateStatusAndQuantity(Collection<InventoryItem> inventoryItems);
+
     void updateStatusAndUnRefContainer(Collection<ObjectId> ids, String status);
 
     void updateStatusAndWarehouseAndUnRefContainer(Collection<ObjectId> ids, ObjectId warehouseId, String status);

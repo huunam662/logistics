@@ -40,7 +40,7 @@ public class DeliveryOrder {
 
     private List<InventoryItemDelivery> inventoryItems; // Các mặt hàng đã giao
 
-    private List<OutstandingModel> outstandingModels;  // Các Model còn nợ
+    private List<BackDeliveryModel> backDeliveryModels;  // Các Model còn nợ
 
     @CreatedBy
     private ObjectId createdBy;
@@ -57,10 +57,11 @@ public class DeliveryOrder {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class OutstandingModel{
+    public static class BackDeliveryModel{
         private String model;
         private String inventoryType;   // Loại hàng tồn (VD: phụ kiện, ...) - Bắt buộc
         private Integer quantity;
+        private String description;
     }
 
     @Data
@@ -82,7 +83,7 @@ public class DeliveryOrder {
         private Boolean initialCondition;       // Mô tả nguyên trạng khi nhập kho – Không bắt buộc
         private String notes;                  // Ghi chú chung – Không bắt buộc
         private String description;         // Mô tả
-        private String status;
+        private Boolean isDelivered;    // Đã hoặc chưa giao
         private InventoryItemDelivery.Specifications specifications;
         private InventoryItemDelivery.Pricing pricing;
         private InventoryItemDelivery.Logistics logistics;

@@ -82,7 +82,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         List<AggregationOperation> pipelines = List.of(
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("warehouseId").is(warehouseId),
-                        Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
+                        Criteria.where("status").in(InventoryItemStatus.IN_STOCK.getId(), InventoryItemStatus.HOLD.getId()),
                         Criteria.where("deletedAt").isNull(),
                         Criteria.where("inventoryType").in(InventoryType.VEHICLE.getId(), InventoryType.ACCESSORY.getId())
                 )),
@@ -447,6 +447,23 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
 
     @Transactional
     @Override
+    public void bulkUpdateStatusAndQuantity(Collection<InventoryItem> inventoryItems) {
+        if(inventoryItems.isEmpty()) return;
+        MongoCollection<Document> coll = mongoTemplate.getCollection(mongoTemplate.getCollectionName(InventoryItem.class));
+        List<WriteModel<Document>> writeModels = new ArrayList<>();
+        for(var item : inventoryItems){
+            Bson filter = Filters.eq("_id", item.getId());
+            Bson update = Updates.combine(
+                    Updates.set("quantity", item.getQuantity()),
+                    Updates.set("status", item.getStatus().getId())
+            );
+            writeModels.add(new UpdateOneModel<>(filter, update));
+        }
+        coll.bulkWrite(writeModels);
+    }
+
+    @Transactional
+    @Override
     public void updateStatusAndUnRefContainer(Collection<ObjectId> ids, String status) {
         Query query = new Query(Criteria.where("_id").in(ids));
         Update update = new Update().set("status", status).set("containerId", null);
@@ -539,6 +556,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 Aggregation.unwind("warehouse"),
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("inventoryType").in(inventoryTypes),
+                        Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
                         Criteria.where("model").regex(model, "i"),
                         Criteria.where("warehouse.type").is(warehouseType)
                 )),
@@ -554,6 +572,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     public List<InventoryItemCodeQuantityDto> findAllItemCodesByPoAndModel(String codeOfType, String model, String poNumber, String warehouseType, String code) {
         List<Criteria> filters = new ArrayList<>(List.of(
                 Criteria.where("warehouse.type").is(warehouseType),
+                Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
                 Criteria.where("poNumber").is(poNumber),
                 Criteria.where("model").is(model)
         ));
@@ -572,6 +591,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 Aggregation.unwind("warehouse"),
                 Aggregation.match(new Criteria().andOperator(filters)),
                 Aggregation.project("quantity", "poNumber", "model", fieldGet)
+                        .and("_id").as("id")
         );
         Aggregation aggregation = Aggregation.newAggregation(pipelines);
         AggregationResults<InventoryItemCodeQuantityDto> aggResults = mongoTemplate.aggregate(aggregation, InventoryItem.class, InventoryItemCodeQuantityDto.class);

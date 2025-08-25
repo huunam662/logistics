@@ -7,5 +7,6 @@ public class DeliveryProductTickDto {
     private String poNumber;
     private String model;
     private String productCode;
+    private Boolean isDelivered;
     private Integer quantity;
 }
