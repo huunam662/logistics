@@ -67,7 +67,7 @@ public class ContainerService {
                 .and("fromWarehouseInfo").as("fromWarehouse")
                 .and("toWarehouseInfo").as("toWarehouse")
                 .and(
-                        ArrayOperators.Reduce.arrayOf("inventoryItems")
+                        ArrayOperators.Reduce.arrayOf("$inventoryItems")
                                 .withInitialValue(0)
                                 .reduce(
                                         ArithmeticOperators.Add.valueOf("$$value")

@@ -3,10 +3,7 @@ package warehouse_management.com.warehouse_management.repository.delivery_order.
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.aggregation.Aggregation;
-import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
-import org.springframework.data.mongodb.core.aggregation.ArithmeticOperators;
-import org.springframework.data.mongodb.core.aggregation.ArrayOperators;
+import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Repository;
 import warehouse_management.com.warehouse_management.dto.delivery_order.response.DeliveryOrderPageDto;
@@ -15,7 +12,9 @@ import warehouse_management.com.warehouse_management.model.DeliveryOrder;
 import warehouse_management.com.warehouse_management.repository.delivery_order.CustomDeliveryOrderRepository;
 import warehouse_management.com.warehouse_management.utils.MongoRsqlUtils;
 
+import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Repository
 @RequiredArgsConstructor
@@ -29,9 +28,16 @@ public class CustomDeliveryOrderRepositoryImpl implements CustomDeliveryOrderRep
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("deletedAt").isNull()
                 )),
-                Aggregation.project("deliveryOrderCode", "createdAt", "deliveryDate", "holdingDays", "holdingDeadlineDate", "status")
+                Aggregation.project("deliveryOrderCode", "createdAt", "deliveryDate", "holdingDays", "status")
                         .and("user.fullName").as("customerName")
-                        .and(ArrayOperators.Reduce.arrayOf("inventoryItems")
+                        .and(
+                                ArithmeticOperators.Add.valueOf("$createdAt")
+                                        .add(
+                                                ArithmeticOperators.Multiply.valueOf("$holdingDays")
+                                                        .multiplyBy(TimeUnit.DAYS.toMillis(1))
+                                        )
+                        ).as("holdingDeadlineDate")
+                        .and(ArrayOperators.Reduce.arrayOf("$inventoryItems")
                                 .withInitialValue(0)
                                 .reduce(
                                         ArithmeticOperators.Add.valueOf("$$value")
@@ -41,7 +47,7 @@ public class CustomDeliveryOrderRepositoryImpl implements CustomDeliveryOrderRep
                                                 )
 
                         )).as("totalPurchasePrice")
-                        .and(ArrayOperators.Reduce.arrayOf("inventoryItems")
+                        .and(ArrayOperators.Reduce.arrayOf("$inventoryItems")
                                 .withInitialValue(0)
                                 .reduce(
                                         ArithmeticOperators.Add.valueOf("$$value")
