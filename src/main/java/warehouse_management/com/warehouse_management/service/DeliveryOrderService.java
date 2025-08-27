@@ -114,8 +114,7 @@ public class DeliveryOrderService {
     public DeliveryOrder addItemsToDeliveryOrder(PushItemsDeliveryDto dto){
         DeliveryOrder deliveryOrder = getDeliveryOrderToId(new ObjectId(dto.getDeliveryOrderId()));
         List<PushItemToDeliveryDto> itemsToDeliveryDto = dto.getInventoryItemsDelivery();
-        if(itemsToDeliveryDto == null)
-            throw LogicErrException.of("Sản phẩm cần thêm vào đơn hàng hiện đang rỗng.");
+        if(itemsToDeliveryDto == null) throw LogicErrException.of("Sản phẩm cần thêm vào đơn hàng hiện đang rỗng.");
         pushItemsToDeliveryOrderLogic(itemsToDeliveryDto, deliveryOrder);
         return deliveryOrderRepository.save(deliveryOrder);
     }
@@ -132,14 +131,15 @@ public class DeliveryOrderService {
         List<InventoryItem> sparePartToNew = new ArrayList<>();
         for(var itemToPush : itemsToDeliveryDto){
             InventoryItem item = itemsToDeliveryMap.getOrDefault(new ObjectId(itemToPush.getId()), null);
-            if(item == null) throw LogicErrException.of("Mặt hàng có Model " + itemToPush.getModel() + " không tồn tại.");
+            if(item == null) throw LogicErrException.of("Mặt hàng cần thêm vào đơn hiện không tồn tại.");
+            if(item.getContainerId() != null && itemToPush.getIsDelivered())
+                throw LogicErrException.of("Hàng "+item.getCommodityCode()+" hiện đang đi đường nên không cho phép chọn đã giao.");
             if(item.getInventoryType().equals(InventoryType.SPARE_PART.getId())){
                 int quantityToDelivery = itemToPush.getQuantity();
                 if(item.getQuantity() == 0)
                     throw LogicErrException.of("Hàng phụ tùng " + item.getCommodityCode() + " hiện hết hàng.");
                 if(item.getQuantity() < quantityToDelivery)
                     throw LogicErrException.of("Số lượng phụ tùng " + item.getCommodityCode() + " cần giao vượt quá số lượng trong kho.");
-
                 item.setQuantity(item.getQuantity() - quantityToDelivery);
                 if(!itemToPush.getIsDelivered()) {
                     InventoryItem itemHolding = itemsHoldingInWarehouseMap.getOrDefault(new ObjectId(itemToPush.getId()), null);
@@ -149,7 +149,9 @@ public class DeliveryOrderService {
                         sparePartClone.setStatus(InventoryItemStatus.HOLD.getId());
                         sparePartClone.setQuantity(quantityToDelivery);
                         sparePartToNew.add(sparePartClone);
-                        deliveryOrder.getInventoryItems().add(deliveryOrderMapper.toInventoryItemDelivery(sparePartClone));
+                        DeliveryOrder.InventoryItemDelivery itemDelivery = deliveryOrderMapper.toInventoryItemDelivery(sparePartClone);
+                        itemDelivery.setIsDelivered(itemToPush.getIsDelivered());
+                        deliveryOrder.getInventoryItems().add(itemDelivery);
                     }
                     else {
                         itemHolding.setQuantity(itemHolding.getQuantity() + quantityToDelivery);
@@ -163,7 +165,7 @@ public class DeliveryOrderService {
                 }
                 else{
                     Optional<DeliveryOrder.InventoryItemDelivery> sparePartInOrderOp = deliveryOrder.getInventoryItems().stream().filter(
-                            s -> s.getCommodityCode().equals(item.getCommodityCode()) && s.getIsDelivered()
+                            s -> s.getInventoryType().equals(InventoryType.SPARE_PART.getId()) && s.getCommodityCode().equals(item.getCommodityCode()) && s.getIsDelivered()
                     ).findFirst();
                     if(sparePartInOrderOp.isEmpty()){
                         DeliveryOrder.InventoryItemDelivery sparePartDelivery = deliveryOrderMapper.toInventoryItemDelivery(item);
@@ -179,40 +181,64 @@ public class DeliveryOrderService {
             }
             else{
                 if(!itemToPush.getIsDelivered()) item.setStatus(InventoryItemStatus.HOLD.getId());
-                else item.setQuantity(0);
+                else item.setStatus(InventoryItemStatus.SOLD.getId());
                 DeliveryOrder.InventoryItemDelivery itemDelivery = deliveryOrderMapper.toInventoryItemDelivery(item);
-                itemDelivery.setQuantity(1);
+                itemDelivery.setIsDelivered(itemToPush.getIsDelivered());
                 deliveryOrder.getInventoryItems().add(itemDelivery);
             }
-            Optional<DeliveryOrder.BackDeliveryModel> backDeliveryModelOp = deliveryOrder.getBackDeliveryModels().stream().filter(b -> b.getModel().equals(item.getModel())).findFirst();
-            if(backDeliveryModelOp.isPresent() && itemToPush.getIsDelivered()){
-                DeliveryOrder.BackDeliveryModel backDeliveryModel = backDeliveryModelOp.get();
-                if(backDeliveryModel.getQuantity() > itemToPush.getQuantity())
-                    backDeliveryModel.setQuantity(backDeliveryModel.getQuantity() - itemToPush.getQuantity());
-                else deliveryOrder.getBackDeliveryModels().remove(backDeliveryModel);
-            }
         }
-        List<ObjectId> itemsQuantityZeroToDel = itemsToDelivery.stream().filter(e -> e.getQuantity() == 0).map(InventoryItem::getId).toList();
+        List<ObjectId> itemsQuantityZeroToDel = itemsToDelivery.stream()
+                .filter(e -> e.getQuantity() == 0 && e.getInventoryType().equals(InventoryType.SPARE_PART.getId()))
+                .map(InventoryItem::getId).toList();
         inventoryItemRepository.bulkHardDelete(itemsQuantityZeroToDel);
-        inventoryItemRepository.insertAll(sparePartToNew);
+        inventoryItemRepository.bulkInsert(sparePartToNew);
         List<InventoryItem> itemsToUpdateStatusAndQuantity = Stream.concat(itemsToDelivery.stream(), itemsHoldingInWarehouse.stream()).toList();
         inventoryItemRepository.bulkUpdateStatusAndQuantity(itemsToUpdateStatusAndQuantity);
     }
 
     @Transactional
-    public void deleteItem(ObjectId deliveryOrderId, ObjectId id){
-        DeliveryOrder deliveryOrder = getDeliveryOrderToId(deliveryOrderId);
-        if(deliveryOrder == null) return;
-        Optional<DeliveryOrder.InventoryItemDelivery> itemOp = deliveryOrder.getInventoryItems().stream().filter(o -> o.getId().equals(id)).findFirst();
-        if(itemOp.isEmpty()) throw LogicErrException.of("Hàng hóa trong đơn không tồn tại.");
-        DeliveryOrder.InventoryItemDelivery item = itemOp.get();
-        if(!item.getInventoryType().equals(InventoryType.SPARE_PART.getId())){
-            InventoryItem sparePartInStock = inventoryItemRepository.findByCommodityCode(item.getCommodityCode()).orElse(null);
-            if(sparePartInStock != null){
-                sparePartInStock.setQuantity(sparePartInStock.getQuantity() + item.getQuantity());
-                inventoryItemRepository.save(sparePartInStock);
+    public DeliveryOrder removeItem(DeleteItemsOrderDto dto){
+        DeliveryOrder deliveryOrder = getDeliveryOrderToId(new ObjectId(dto.getDeliveryOrderId()));
+        if(deliveryOrder.getInventoryItems() == null)
+            throw LogicErrException.of("Đơn hàng hiện không có mặt hàng nào");
+        List<ObjectId> idsInventoryItem = dto.getItemIds().stream().map(ObjectId::new).toList();
+        List<DeliveryOrder.InventoryItemDelivery> items = deliveryOrder.getInventoryItems().stream().filter(o -> idsInventoryItem.contains(o.getId())).toList();
+        if(items.isEmpty()) throw LogicErrException.of("Hàng hóa trong đơn không tồn tại.");
+        List<InventoryItem> inventoryItems = inventoryItemRepository.findByIdIn(idsInventoryItem).stream().filter(e -> !e.getInventoryType().equals(InventoryType.SPARE_PART.getId())).toList();
+        Map<ObjectId, InventoryItem> inventoryItemsMap = inventoryItems.stream().collect(Collectors.toMap(InventoryItem::getId, e -> e));
+        List<InventoryItem> itemsToNew = new ArrayList<>();
+        List<InventoryItem> itemsToUpdate = new ArrayList<>();
+        List<ObjectId> itemIdsToDel = new ArrayList<>();
+        for(var item : items){
+            if(item.getInventoryType().equals(InventoryType.SPARE_PART.getId())){
+                List<InventoryItem> spareParts = inventoryItemRepository.findByCommodityCodeAndWarehouseIdList(item.getCommodityCode(), item.getWarehouseId());
+                InventoryItem sparePartInStock = spareParts.stream().filter(e -> e.getStatus().equals(InventoryItemStatus.IN_STOCK)).findFirst().orElse(null);
+                if(sparePartInStock != null) {
+                    sparePartInStock.setQuantity(sparePartInStock.getQuantity() + item.getQuantity());
+                    itemsToUpdate.add(sparePartInStock);
+                    spareParts.stream().filter(e -> e.getId().equals(item.getId()) && e.getStatus().equals(InventoryItemStatus.HOLD)).findFirst()
+                            .ifPresent(sparePartHolding -> itemIdsToDel.add(sparePartHolding.getId()));
+                }
+                else {
+                    sparePartInStock = deliveryOrderMapper.toInventoryItem(item);
+                    sparePartInStock.setStatus(InventoryItemStatus.IN_STOCK.getId());
+                    itemsToNew.add(sparePartInStock);
+                }
             }
+            else {
+                InventoryItem product = inventoryItemsMap.getOrDefault(item.getId(), null);
+                if(product != null) itemsToUpdate.add(product);
+                else {
+                    product = deliveryOrderMapper.toInventoryItem(item);
+                    itemsToNew.add(product);
+                }
+                product.setStatus(InventoryItemStatus.IN_STOCK.getId());
+            }
+            deliveryOrder.getInventoryItems().remove(item);
         }
-
+        inventoryItemRepository.bulkHardDelete(itemIdsToDel);
+        inventoryItemRepository.bulkInsert(itemsToNew);
+        inventoryItemRepository.bulkUpdateStatusAndQuantity(itemsToUpdate);
+        return deliveryOrderRepository.save(deliveryOrder);
     }
 }

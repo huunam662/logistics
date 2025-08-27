@@ -32,4 +32,6 @@ public interface DeliveryOrderMapper {
 
     DeliveryOrder.InventoryItemDelivery toInventoryItemDelivery(InventoryItem inventoryItem);
 
+    InventoryItem toInventoryItem(DeliveryOrder.InventoryItemDelivery item);
+
 }

@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
 import warehouse_management.com.warehouse_management.dto.delivery_order.request.CreateDeliveryOrderDto;
+import warehouse_management.com.warehouse_management.dto.delivery_order.request.DeleteItemsOrderDto;
 import warehouse_management.com.warehouse_management.dto.delivery_order.request.PushItemsDeliveryDto;
 import warehouse_management.com.warehouse_management.dto.delivery_order.request.UpdateDeliveryOrderDto;
 import warehouse_management.com.warehouse_management.dto.delivery_order.response.DeliveryOrderPageDto;
@@ -91,6 +92,16 @@ public class DeliveryOrderController {
     @PostMapping("/add-items")
     public ResponseEntity<?> addItemsToDeliveryOrder(@Valid @RequestBody PushItemsDeliveryDto dto){
         DeliveryOrder deliveryOrder = deliveryOrderService.addItemsToDeliveryOrder(dto);
+        return ResponseEntity.ok(ApiResponse.success(Map.of("deliveryOrderId", deliveryOrder.getId())));
+    }
+
+    @Operation(
+            summary = "DELETE Xóa hàng trong đơn giao.",
+            description = "DELETE Xóa hàng trong đơn giao."
+    )
+    @DeleteMapping("/items")
+    public ResponseEntity<?> deleteItemsFromDeliveryOrder(@RequestBody @Valid DeleteItemsOrderDto dto){
+        DeliveryOrder deliveryOrder = deliveryOrderService.removeItem(dto);
         return ResponseEntity.ok(ApiResponse.success(Map.of("deliveryOrderId", deliveryOrder.getId())));
     }
 }
