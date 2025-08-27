@@ -40,5 +40,8 @@ public interface InventoryItemRepository extends MongoRepository<InventoryItem, 
     @Query("{'containerId': ?0}")
     List<InventoryItem> findByContainerId(ObjectId containerId);
 
+    @Query("{'commodityCode': ?0}")
+    Optional<InventoryItem> findByCommodityCode(String commodityCode);
+
 
 }

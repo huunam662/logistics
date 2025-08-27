@@ -550,51 +550,19 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     }
 
     @Override
-    public List<String> findAllModels(List<String> inventoryTypes, String warehouseType, String model) {
+    public List<InventoryItemModelDto> findAllModelsAndItems(List<String> inventoryTypes, List<ObjectId> warehouseIds, String model) {
         List<AggregationOperation> pipelines = List.of(
-                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
-                Aggregation.unwind("warehouse"),
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("inventoryType").in(inventoryTypes),
-                        Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
+                        Criteria.where("status").in(InventoryItemStatus.IN_STOCK.getId(), InventoryItemStatus.OTHER.getId()),
                         Criteria.where("model").regex(model, "i"),
-                        Criteria.where("warehouse.type").is(warehouseType)
+                        Criteria.where("warehouseId").in(warehouseIds)
                 )),
-                Aggregation.group("model"),
-                Aggregation.project("_id")
+                Aggregation.project("warehouseId", "model", "productCode", "commodityCode", "quantity", "specifications")
+                        .and("_id").as("inventoryItemId")
         );
         Aggregation aggregation = Aggregation.newAggregation(pipelines);
-        AggregationResults<Document> aggResults = mongoTemplate.aggregate(aggregation, InventoryItem.class, Document.class);
-        return aggResults.getMappedResults().stream().map(doc -> doc.getString("_id")).toList();
-    }
-
-    @Override
-    public List<InventoryItemCodeQuantityDto> findAllItemCodesByPoAndModel(String codeOfType, String model, String poNumber, String warehouseType, String code) {
-        List<Criteria> filters = new ArrayList<>(List.of(
-                Criteria.where("warehouse.type").is(warehouseType),
-                Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
-                Criteria.where("poNumber").is(poNumber),
-                Criteria.where("model").is(model)
-        ));
-        String fieldGet;
-        if(InventoryType.VEHICLE_ACCESSORY.getId().equals(codeOfType)){
-            fieldGet = "productCode";
-            filters.add(Criteria.where(fieldGet).regex(code, "i"));
-        }
-        else if(InventoryType.SPARE_PART.getId().equals(codeOfType)) {
-            fieldGet = "commodityCode";
-            filters.add(Criteria.where(fieldGet).regex(code, "i"));
-        }
-        else throw LogicErrException.of("Param codeOfType must be VEHICLE_ACCESSORY or SPARE_PART");
-        List<AggregationOperation> pipelines = List.of(
-                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
-                Aggregation.unwind("warehouse"),
-                Aggregation.match(new Criteria().andOperator(filters)),
-                Aggregation.project("quantity", "poNumber", "model", fieldGet)
-                        .and("_id").as("id")
-        );
-        Aggregation aggregation = Aggregation.newAggregation(pipelines);
-        AggregationResults<InventoryItemCodeQuantityDto> aggResults = mongoTemplate.aggregate(aggregation, InventoryItem.class, InventoryItemCodeQuantityDto.class);
+        AggregationResults<InventoryItemModelDto> aggResults = mongoTemplate.aggregate(aggregation, InventoryItem.class, InventoryItemModelDto.class);
         return aggResults.getMappedResults();
     }
 }

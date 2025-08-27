@@ -462,11 +462,8 @@ public class InventoryItemService {
         }
     }
 
-    public List<String> getAllModels(List<String> inventoryTypes, String warehouseType, String model){
-        return inventoryItemRepository.findAllModels(inventoryTypes, warehouseType, model);
-    }
-
-    public List<InventoryItemCodeQuantityDto> getAllItemCodesToPoAndModel(String codeOfType, String warehouseType, String model, String poNumber, String code){
-        return inventoryItemRepository.findAllItemCodesByPoAndModel(codeOfType, model, poNumber, warehouseType, code);
+    public List<InventoryItemModelDto> getAllModels(List<String> inventoryTypes, List<String> warehouseIds, String model){
+        List<ObjectId> ids = warehouseIds.stream().map(ObjectId::new).toList();
+        return inventoryItemRepository.findAllModelsAndItems(inventoryTypes, ids, model);
     }
 }

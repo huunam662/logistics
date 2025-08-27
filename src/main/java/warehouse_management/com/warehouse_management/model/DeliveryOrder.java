@@ -32,13 +32,9 @@ public class DeliveryOrder {
 
     private Integer holdingDays;    // Số ngày giữ hàng (số nguyên dương).
 
-    private Integer totalItemsToDelivery; // Tổng sản phẩm cần giao
-
-    private LocalDateTime holdingDeadlineDate;  // Hạn giữ hàng
-
     private String status; // Trạng thái đơn giao hàng
 
-    private List<InventoryItemDelivery> inventoryItems; // Các mặt hàng đã giao
+    private List<InventoryItemDelivery> inventoryItems; // Các mặt hàng trong đơn giao
 
     private List<BackDeliveryModel> backDeliveryModels;  // Các Model còn nợ
 
@@ -58,9 +54,9 @@ public class DeliveryOrder {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class BackDeliveryModel{
-        private String model;
+        private String model; // Model sản phẩm
         private String inventoryType;   // Loại hàng tồn (VD: phụ kiện, ...) - Bắt buộc
-        private Integer quantity;
+        private Integer quantity; // Số lượng hàng hóa
         private String description;
     }
 
