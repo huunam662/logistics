@@ -80,6 +80,7 @@ public class DeliveryOrder {
         private String notes;                  // Ghi chú chung – Không bắt buộc
         private String description;         // Mô tả
         private Boolean isDelivered;    // Đã hoặc chưa giao
+        private ObjectId warehouseId;  // _id của warehouse – Có nếu đang ở kho
         private InventoryItemDelivery.Specifications specifications;
         private InventoryItemDelivery.Pricing pricing;
         private InventoryItemDelivery.Logistics logistics;

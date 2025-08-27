@@ -379,7 +379,7 @@ public class InventoryItemService {
 
         List<ObjectId> itemsQuantityZeroToDel = itemsToTransfer.stream().filter(i -> i.getQuantity() == 0).map(InventoryItem::getId).toList();
         inventoryItemRepository.bulkHardDelete(itemsQuantityZeroToDel);
-        inventoryItemRepository.insertAll(itemsSparePartToNew);
+        inventoryItemRepository.bulkInsert(itemsSparePartToNew);
         inventoryItemRepository.bulkUpdateTransfer(itemsToTransfer);
         inventoryItemRepository.bulkUpdateTransfer(itemsSparePartInTransitContainer);
         itemsResults.addAll(itemsSparePartToNew);

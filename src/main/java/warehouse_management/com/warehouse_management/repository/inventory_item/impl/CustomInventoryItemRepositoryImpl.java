@@ -418,7 +418,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
 
     @Transactional
     @Override
-    public List<InventoryItem> insertAll(Collection<InventoryItem> inventoryItems){
+    public List<InventoryItem> bulkInsert(Collection<InventoryItem> inventoryItems){
         if(inventoryItems.isEmpty()) return new ArrayList<>();
         return mongoTemplate.insertAll(inventoryItems).stream().toList();
     }

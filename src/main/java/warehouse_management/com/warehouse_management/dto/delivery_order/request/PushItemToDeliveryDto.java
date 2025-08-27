@@ -7,6 +7,4 @@ public class PushItemToDeliveryDto {
     private String id;
     private Boolean isDelivered;
     private Integer quantity;
-    private String model;
-    private Boolean isSparePart;
 }

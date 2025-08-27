@@ -37,7 +37,7 @@ public interface CustomInventoryItemRepository {
 
     List<InventoryItemPoNumberDto> findInventoryInStockByPoNumber(String warehouseType, String warehouseId, String poNumber, String filter);
 
-    List<InventoryItem> insertAll(Collection<InventoryItem> inventoryItems);
+    List<InventoryItem> bulkInsert(Collection<InventoryItem> inventoryItems);
 
     void bulkUpdateTransfer(Collection<InventoryItem> inventoryItems);
 
