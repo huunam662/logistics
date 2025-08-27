@@ -159,9 +159,11 @@ public class ContainerService {
         Container container = getContainerToId(new ObjectId(containerId));
         if(!container.getContainerStatus().equals(ContainerStatus.PENDING))
             throw LogicErrException.of("Chỉ được phép xóa khi đang chờ xác nhận");
-        containerCompletedAndRejectedLogic(container, container.getFromWareHouseId());
-        List<ObjectId> itemIds = container.getInventoryItems().stream().map(Container.InventoryItemContainer::getId).toList();
-        inventoryItemRepository.updateStatusAndWarehouseAndUnRefContainer(itemIds, container.getFromWareHouseId(), InventoryItemStatus.IN_STOCK.getId());
+        if(container.getInventoryItems() != null){
+            containerCompletedAndRejectedLogic(container, container.getFromWareHouseId());
+            List<ObjectId> itemIds = container.getInventoryItems().stream().map(Container.InventoryItemContainer::getId).toList();
+            inventoryItemRepository.updateStatusAndWarehouseAndUnRefContainer(itemIds, container.getFromWareHouseId(), InventoryItemStatus.IN_STOCK.getId());
+        }
         containerRepository.softDeleteById(new ObjectId(containerId), null);
         return true;
     }
@@ -273,6 +275,7 @@ public class ContainerService {
 
     @Transactional
     public void containerCompletedAndRejectedLogic(Container container, ObjectId warehouseId){
+        if(container.getInventoryItems() == null) return;
         // Update items nếu là trạng thái hoàn tất giao hàng
         // Nếu ở kho được chỉ định đã tồn tại phụ tùng với trạng thái đang IN_STOCK thì cập nhập số lượng
         Map<String, Container.InventoryItemContainer> inventoryContainerSparePartMap = container.getInventoryItems().stream()
