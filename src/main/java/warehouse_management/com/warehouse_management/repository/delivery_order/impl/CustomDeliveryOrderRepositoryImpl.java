@@ -23,13 +23,13 @@ public class CustomDeliveryOrderRepositoryImpl implements CustomDeliveryOrderRep
     @Override
     public Page<DeliveryOrderPageDto> findPageDeliveryOrder(PageOptionsDto optionsDto) {
         List<AggregationOperation> pipelines = List.of(
-                Aggregation.lookup("user", "customerId", "_id", "user"),
-                Aggregation.unwind("user", true),
+                Aggregation.lookup("client", "customerId", "_id", "client"),
+                Aggregation.unwind("client", true),
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("deletedAt").isNull()
                 )),
-                Aggregation.project("deliveryOrderCode", "createdAt", "deliveryDate", "holdingDays", "status")
-                        .and("user.fullName").as("customerName")
+                Aggregation.project("deliveryOrderCode", "customerId", "createdAt", "deliveryDate", "holdingDays", "status")
+                        .and("client.name").as("customerName")
                         .and(
                                 ArithmeticOperators.Add.valueOf("$createdAt")
                                         .add(
