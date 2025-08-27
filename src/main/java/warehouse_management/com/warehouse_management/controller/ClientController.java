@@ -7,10 +7,10 @@ import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.web.bind.annotation.*;
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
-import warehouse_management.com.warehouse_management.dto.client.request.CreateClientReq;
-import warehouse_management.com.warehouse_management.dto.client.request.UpdateClientReq;
-import warehouse_management.com.warehouse_management.dto.client.response.ClientRes;
-import warehouse_management.com.warehouse_management.dto.client.response.CreateClientRes;
+import warehouse_management.com.warehouse_management.dto.client.request.CreateClientDto;
+import warehouse_management.com.warehouse_management.dto.client.request.UpdateClientDto;
+import warehouse_management.com.warehouse_management.dto.client.response.ClientDto;
+import warehouse_management.com.warehouse_management.dto.client.response.ClientIdDto;
 import warehouse_management.com.warehouse_management.service.ClientService;
 
 import java.util.List;
@@ -25,28 +25,33 @@ public class ClientController {
 
     @GetMapping
     @Operation(summary = "GET danh sách clients", description = "Lấy toàn bộ danh sách clients")
-    public ApiResponse<List<ClientRes>> getAllClients() {
-        return (ApiResponse.success(clientService.getAllClients()));
+    public ApiResponse<List<ClientDto>> getAllClients(
+            @RequestParam(value = "name", required = false, defaultValue = "")
+            String name,
+            @RequestParam(value = "email", required = false, defaultValue = "")
+            String email
+    ) {
+        return (ApiResponse.success(clientService.getAllClients(name, email)));
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "GET client theo ID", description = "Lấy thông tin chi tiết client theo ID")
-    public ApiResponse<ClientRes> getClientById(@PathVariable String id) {
+    public ApiResponse<ClientDto> getClientById(@PathVariable String id) {
         return ApiResponse.success(clientService.getClientById(new ObjectId(id)));
 
     }
 
     @PostMapping
     @Operation(summary = "POST tạo client mới", description = "Tạo mới một client")
-    public ApiResponse<CreateClientRes> createClient(@Valid @RequestBody CreateClientReq client) {
+    public ApiResponse<ClientIdDto> createClient(@Valid @RequestBody CreateClientDto client) {
         return ApiResponse.success(clientService.createClient(client));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "PUT cập nhật client", description = "Cập nhật thông tin client theo ID")
-    public ApiResponse<CreateClientRes> updateClient(
+    public ApiResponse<ClientIdDto> updateClient(
             @PathVariable("id") String id,
-            @RequestBody UpdateClientReq client) {
+            @RequestBody UpdateClientDto client) {
         return ApiResponse.success(
                 clientService.updateClient(new ObjectId(id), client)
         );
