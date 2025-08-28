@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import warehouse_management.com.warehouse_management.dto.report.PXKDCNBInventoryItemDatasetIDto;
 import warehouse_management.com.warehouse_management.enumerate.InventoryType;
 
+import warehouse_management.com.warehouse_management.enumerate.TransactionModule;
 import warehouse_management.com.warehouse_management.model.WarehouseTransaction;
 import warehouse_management.com.warehouse_management.repository.warehouse_transaction.WarehouseTransactionRepository;
 import warehouse_management.com.warehouse_management.service.report.GenerateReportStrategy;
@@ -36,7 +37,7 @@ public class PXKDCNBGenerateReport implements GenerateReportStrategy {
     }
 
     @Override
-    public Map<String, Object> prepareContext(String ticketId) {
+    public Map<String, Object> prepareContext(TransactionModule transactionModule, String ticketId) {
         Optional<WarehouseTransaction> warehouseTransaction = Optional.of(warehouseTransferTicketRepository.findById(new ObjectId(ticketId))
                 .orElseThrow());
         WarehouseTransaction transaction = warehouseTransaction.get();

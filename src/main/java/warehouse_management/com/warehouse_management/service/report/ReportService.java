@@ -4,6 +4,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
+import warehouse_management.com.warehouse_management.enumerate.TransactionModule;
 import warehouse_management.com.warehouse_management.exceptions.LogicErrException;
 
 import java.io.ByteArrayInputStream;
@@ -11,13 +12,14 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
+
 @Component
 public class ReportService {
-    public byte[] getReport(String ticketId, String type) {
-        GenerateReportStrategy strategy = GenerateReportStrategyFactory.getStrategy(type)
-                .orElseThrow(() -> LogicErrException.of("Loại báo cáo không hợp lệ: " + type));
+    public byte[] getReport(String transactionModule, String ticketId, String docType) {
+        GenerateReportStrategy strategy = GenerateReportStrategyFactory.getStrategy(docType)
+                .orElseThrow(() -> LogicErrException.of("Loại báo cáo không hợp lệ: " + docType));
 
-        Map<String, Object> contextMap = strategy.prepareContext(ticketId);
+        Map<String, Object> contextMap = strategy.prepareContext(TransactionModule.fromId(transactionModule), ticketId);
 
         String templateFileName = strategy.getTemplateFileName();
 
