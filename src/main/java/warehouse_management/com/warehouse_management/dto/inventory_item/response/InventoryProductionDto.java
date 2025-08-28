@@ -11,21 +11,21 @@ import java.time.LocalDateTime;
 @Data
 public class InventoryProductionDto {
     private ObjectId id; // _id – Khóa chính tự động tạo bởi MongoDB
-    private String poNumber;       // PO
+    private String poNumber;       // PO      //*
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime orderDate;        // Ngày đặt hàng
-    private String productCode;    // Mã sản phẩm
-    private String model;          // Model
-    private String category;       // Chủng loại
+    private String productCode;    // Mã sản phẩm       //*
+    private String model;          // Model                 //*
+    private String category;       // Chủng loại            //*
     private Boolean hasSideShift;           // SS (Side Shift)
-    private String serialNumber;   // Số seri
-    private String inventoryType;   // Loại
-    private Integer liftingCapacityKg;      // Sức nâng (kg)
+    private String serialNumber;   // Số seri           //*
+    private String inventoryType;   // Loại         //*
+    private Integer liftingCapacityKg;      // Sức nâng (kg)        //*
     private String chassisType;             // Loại khung nâng
-    private Integer liftingHeightMm;        // Độ cao nâng (mm)
-    private String engineType;              // Loại động cơ
-    private String batteryInfo;             // Bình điện
-    private String batterySpecification;    // Thông số bình điện
+    private Integer liftingHeightMm;        // Độ cao nâng (mm)     //*
+    private String engineType;              // Loại động cơ     //*
+    private String batteryInfo;             // Bình điện        //*
+    private String batterySpecification;    // Thông số bình điện       //*
     private String chargerSpecification;    // Thông số bộ sạc
     private String forkDimensions;          // Thông số càng
     private String warehouseType;           // Loại kho

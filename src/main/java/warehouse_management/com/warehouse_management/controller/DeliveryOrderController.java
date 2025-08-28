@@ -9,18 +9,17 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
-import warehouse_management.com.warehouse_management.dto.delivery_order.request.CreateDeliveryOrderDto;
-import warehouse_management.com.warehouse_management.dto.delivery_order.request.DeleteItemsOrderDto;
-import warehouse_management.com.warehouse_management.dto.delivery_order.request.PushItemsDeliveryDto;
-import warehouse_management.com.warehouse_management.dto.delivery_order.request.UpdateDeliveryOrderDto;
+import warehouse_management.com.warehouse_management.dto.delivery_order.request.*;
+import warehouse_management.com.warehouse_management.dto.delivery_order.response.DeliveryOrderItemsDto;
 import warehouse_management.com.warehouse_management.dto.delivery_order.response.DeliveryOrderPageDto;
-import warehouse_management.com.warehouse_management.dto.delivery_order.response.DeliveryOrderProductTicksDto;
-import warehouse_management.com.warehouse_management.dto.delivery_order.response.DeliveryOrderSparePartTicksDto;
+import warehouse_management.com.warehouse_management.dto.delivery_order.response.DeliveryProductDetailsDto;
+import warehouse_management.com.warehouse_management.dto.delivery_order.response.DeliverySparePartDetailsDto;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.pagination.response.PageInfoDto;
 import warehouse_management.com.warehouse_management.model.DeliveryOrder;
 import warehouse_management.com.warehouse_management.service.DeliveryOrderService;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -69,19 +68,12 @@ public class DeliveryOrderController {
             summary = "GET Sản phẩm thêm vào đơn giao hàng.",
             description = "GET Sản phẩm thêm vào đơn giao hàng."
     )
-    @GetMapping("/{id}/product-ticks")
-    public ResponseEntity<?> getDeliveryOrderProductTicks(@PathVariable("id") String id){
-        DeliveryOrderProductTicksDto dto = deliveryOrderService.getDeliveryOrderProductTicks(new ObjectId(id));
-        return ResponseEntity.ok(ApiResponse.success(dto));
-    }
-
-    @Operation(
-            summary = "GET Hàng hóa thêm vào đơn giao hàng.",
-            description = "GET Hàng hóa thêm vào đơn giao hàng."
-    )
-    @GetMapping("/{id}/spare-part-ticks")
-    public ResponseEntity<?> getDeliveryOrderSparePartTicks(@PathVariable("id") String id){
-        DeliveryOrderSparePartTicksDto dto = deliveryOrderService.getDeliveryOrderSparePartTicks(new ObjectId(id));
+    @GetMapping("/{id}/item-ticks")
+    public ResponseEntity<?> getDeliveryOrderProductTicks(
+            @PathVariable("id") String id,
+            @RequestParam("isSparePart") Boolean isSparePart
+    ){
+        DeliveryOrderItemsDto dto = deliveryOrderService.getDeliveryOrderItemTicks(new ObjectId(id), isSparePart);
         return ResponseEntity.ok(ApiResponse.success(dto));
     }
 
@@ -96,11 +88,51 @@ public class DeliveryOrderController {
     }
 
     @Operation(
+            summary = "POST Thêm ghi chú mặt hàng nợ vào đơn giao hàng.",
+            description = "POST Thêm ghi chú mặt hàng nợ vào đơn giao hàng."
+    )
+    @PostMapping("/add-notes")
+    public ResponseEntity<?> addNotesToDeliveryOrder(@Valid @RequestBody PushNotesOrderDto dto){
+        DeliveryOrder deliveryOrder = deliveryOrderService.addNotesToDeliveryOrder(dto);
+        return ResponseEntity.ok(ApiResponse.success(Map.of("deliveryOrderId", deliveryOrder.getId())));
+    }
+
+    @Operation(
+            summary = "DELETE Xóa ghi chú mặt hàng nợ trong đơn giao.",
+            description = "DELETE Xóa ghi chú mặt hàng nợ trong đơn giao."
+    )
+    @DeleteMapping("/notes")
+    public ResponseEntity<?> removeNotesInDeliveryOrder(@RequestBody @Valid DeleteNotesOrderDto dto){
+        DeliveryOrder deliveryOrder = deliveryOrderService.removeNotesInDeliveryOrder(dto);
+        return ResponseEntity.ok(ApiResponse.success(Map.of("deliveryOrderId", deliveryOrder.getId())));
+    }
+
+    @Operation(
+            summary = "GET Chi tiết sản phẩm trong đơn giao.",
+            description = "GET Chi tiết sản phẩm trong đơn giao."
+    )
+    @GetMapping("/{id}/details/product")
+    public ResponseEntity<?> getProductDetailInDeliveryOrder(@PathVariable("id") String id){
+        List<DeliveryProductDetailsDto> productDetails = deliveryOrderService.getProductDetailInDeliveryOrder(new ObjectId(id));
+        return ResponseEntity.ok(ApiResponse.success(productDetails));
+    }
+
+    @Operation(
+            summary = "GET Chi tiết phụ tùng trong đơn giao.",
+            description = "GET Chi tiết phụ tùng trong đơn giao."
+    )
+    @GetMapping("/{id}/details/spare-part")
+    public ResponseEntity<?> getSparePartDetailInDeliveryOrder(@PathVariable("id") String id){
+        List<DeliverySparePartDetailsDto> sparePartDetails = deliveryOrderService.getSparePartDetailInDeliveryOrder(new ObjectId(id));
+        return ResponseEntity.ok(ApiResponse.success(sparePartDetails));
+    }
+
+    @Operation(
             summary = "DELETE Xóa hàng trong đơn giao.",
             description = "DELETE Xóa hàng trong đơn giao."
     )
     @DeleteMapping("/items")
-    public ResponseEntity<?> deleteItemsFromDeliveryOrder(@RequestBody @Valid DeleteItemsOrderDto dto){
+    public ResponseEntity<?> removeItemsFromDeliveryOrder(@RequestBody @Valid DeleteItemsOrderDto dto){
         DeliveryOrder deliveryOrder = deliveryOrderService.removeItem(dto);
         return ResponseEntity.ok(ApiResponse.success(Map.of("deliveryOrderId", deliveryOrder.getId())));
     }
