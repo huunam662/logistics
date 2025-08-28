@@ -5,6 +5,7 @@ import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.aggregation.MatchOperation;
 import org.springframework.data.mongodb.core.aggregation.ProjectionOperation;
+import warehouse_management.com.warehouse_management.dto.delivery_order.response.WarehouseForOrder;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.warehouse.response.GetDepartureWarehouseForContainerDto;
 import warehouse_management.com.warehouse_management.dto.warehouse.response.WarehouseResponseDto;
@@ -95,6 +96,30 @@ public class CustomWarehouseRepositoryImpl implements CustomWarehouseRepository 
                 aggregation,
                 Warehouse.class, // Lớp entity đầu vào
                 GetDepartureWarehouseForContainerDto.class // Lớp DTO đầu ra
+        );
+
+        return results.getMappedResults();
+    }
+
+    @Override
+    public List<WarehouseForOrder> getWarehousesForOrder() {
+        MatchOperation matchStage = Aggregation.match(
+                new Criteria().andOperator(
+                        Criteria.where("deletedAt").isNull(),
+                        Criteria.where("type").not().in("PRODUCTION", "CONSIGNMENT")
+                )
+        );
+        Aggregation aggregation = Aggregation.newAggregation(
+                matchStage
+        );
+
+        ProjectionOperation projectStage = Aggregation.project( "name")
+                .and("_id").as("id");
+
+        AggregationResults<WarehouseForOrder> results = mongoTemplate.aggregate(
+                aggregation,
+                Warehouse.class, // Lớp entity đầu vào
+                WarehouseForOrder.class // Lớp DTO đầu ra
         );
 
         return results.getMappedResults();

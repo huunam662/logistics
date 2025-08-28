@@ -10,22 +10,6 @@ import java.util.Optional;
 
 public interface WarehouseRepository extends MongoRepository<Warehouse, ObjectId>,
 CustomWarehouseRepository {
-    Optional<Warehouse> findByCode(String code);
-
-    // Tìm kho theo tên gần đúng (không phân biệt hoa thường)
-    List<Warehouse> findByNameRegexIgnoreCase(String namePattern);
-
-    // Tìm tất cả các kho theo trạng thái
-    List<Warehouse> findByStatus(String status);
-
-    // Tìm kho theo loại (PRODUCTION, ARRIVAL, DEPARTURE,...)
-    List<Warehouse> findByType(String type);
-
-    // Tìm các kho do một người quản lý
-    List<Warehouse> findByManagedBy(ObjectId userId);
-
-    boolean existsByCode(String code);
-
     @Query("{ 'deletedAt': null }")
     List<Warehouse> findAll();
 }

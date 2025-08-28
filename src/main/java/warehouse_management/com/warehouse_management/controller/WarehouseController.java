@@ -8,6 +8,7 @@ import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
+import warehouse_management.com.warehouse_management.dto.delivery_order.response.WarehouseForOrder;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.pagination.response.PageInfoDto;
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
@@ -222,6 +223,12 @@ public class WarehouseController {
             @PathVariable("warehouseType") String warehouseType
     ) {
         List<GetDepartureWarehouseForContainerDto> dtos = warehouseService.getDepartureWarehousesForContainer(warehouseType);
+        return ApiResponse.success(dtos);
+    }
+
+    @GetMapping("/warehouse-for-order")
+    public ApiResponse<List<WarehouseForOrder>> getWarehousesForOrder() {
+        List<WarehouseForOrder> dtos = warehouseService.getWarehousesForOrder();
         return ApiResponse.success(dtos);
     }
 
