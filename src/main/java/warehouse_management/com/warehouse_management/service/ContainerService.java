@@ -21,6 +21,7 @@ import warehouse_management.com.warehouse_management.dto.container.response.Cont
 import warehouse_management.com.warehouse_management.enumerate.*;
 import warehouse_management.com.warehouse_management.exceptions.LogicErrException;
 import warehouse_management.com.warehouse_management.mapper.InventoryItemMapper;
+import warehouse_management.com.warehouse_management.mapper.WarehouseTransactionMapper;
 import warehouse_management.com.warehouse_management.model.Container;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.model.Warehouse;
@@ -43,6 +44,9 @@ public class ContainerService {
     private final InventoryItemRepository inventoryItemRepository;
     private final InventoryItemService inventoryItemService;
     private final InventoryItemMapper inventoryItemMapper;
+    private final MongoTemplate mongoTemplate;
+    private final WarehouseTransactionRepository warehouseTransferTicketRepository;
+    private final InventoryItemMapper mapper;
 
     public Page<ContainerResponseDto> getContainers(PageOptionsDto req) {
         MatchOperation matchStage = Aggregation.match(new Criteria().andOperator(
