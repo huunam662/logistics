@@ -376,7 +376,6 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     public List<InventoryPoWarehouseDto> findPoNumbersOfInventoryInStock(String warehouseType, List<String> inventoryTypes, String poNumber, String model, String warehouseId){
         List<Criteria> filters = new ArrayList<>(List.of(
                 Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
-                Criteria.where("deletedAt").isNull(),
                 Criteria.where("inventoryType").in(inventoryTypes),
                 Criteria.where("poNumber").regex(poNumber, "i") // giống like '%%'
         ));
