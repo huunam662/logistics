@@ -308,6 +308,7 @@ public class InventoryItemService {
         for(var item : itemsToTransfer){
             if(item.getInventoryType().equals(InventoryType.SPARE_PART.getId())){
                 int quantityToTransfer = itemIdQualityMap.get(item.getId());
+                if(quantityToTransfer <= 0) throw LogicErrException.of("Số lượng hàng hóa cần chuyển phải lớn hơn 0.");
                 if(item.getQuantity() == 0)
                     throw LogicErrException.of("Hàng phụ tùng " + item.getCommodityCode() + " hiện hết hàng.");
                 if(item.getQuantity() < quantityToTransfer)

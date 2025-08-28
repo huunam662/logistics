@@ -5,6 +5,7 @@ import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import warehouse_management.com.warehouse_management.dto.delivery_order.response.WarehouseForOrder;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
 import warehouse_management.com.warehouse_management.dto.warehouse.response.GetDepartureWarehouseForContainerDto;
@@ -177,6 +178,10 @@ public class WarehouseService {
 
     public List<GetDepartureWarehouseForContainerDto> getDepartureWarehousesForContainer(String warehouseType) {
         return warehouseRepository.getDepartureWarehousesForContainer(warehouseType);
+    }
+
+    public List<WarehouseForOrder> getWarehousesForOrder() {
+        return warehouseRepository.getWarehousesForOrder();
     }
 
 }
