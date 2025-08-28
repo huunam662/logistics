@@ -45,12 +45,29 @@ public class ContainerController {
         return ApiResponse.success(new PageInfoDto<>(responseDtos));
     }
 
+    @GetMapping("/{id}/check-code")
+    @Operation(
+            summary = "GET Kiểm tra container code.",
+            description = "GET Kiểm tra container code."
+    )
+    public ApiResponse<?> getContainerCode(@PathVariable("id") String id, @RequestParam("containerCode") String containerCode){
+        Map<String, Boolean> result = containerService.checkIsExistsContainerCode(new ObjectId(id), containerCode);
+        return ApiResponse.success(result);
+    }
+
     @PostMapping
     public ResponseEntity<ApiResponse<Container>> createContainer(@Valid @RequestBody CreateContainerDto createDto) {
         Container newContainer = containerService.createContainer(createDto);
         ApiResponse<Container> response = ApiResponse.success(newContainer);
 
         return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateContainer(@PathVariable("id") String id, @Valid @RequestBody CreateContainerDto createDto) {
+        Container container = containerService.updateContainer(new ObjectId(id), createDto);
+
+        return ResponseEntity.ok(ApiResponse.success(Map.of("containerId", container.getId())));
     }
 
     @PostMapping("/delete-bulk")

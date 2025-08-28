@@ -4,6 +4,7 @@ import jakarta.validation.ConstraintViolationException;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -67,6 +68,12 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<ApiResponse<List<ValidationErrRes>>> handleHandlerMethodValidationException(HandlerMethodValidationException ex) {
         return ResponseEntity.badRequest().body(ApiResponse.fail("Validation failed"));
+    }
+
+    @ExceptionHandler(DuplicateKeyException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<ApiResponse<List<ValidationErrRes>>> handleHandlerDuplicateKeyException(DuplicateKeyException ex) {
+        return ResponseEntity.badRequest().body(ApiResponse.fail(ApiResponse.DUPLICATE_CODE, ex.getMessage()));
     }
 
     // Xử lý lỗi logic nghiệp vụ (business logic)

@@ -2,6 +2,7 @@ package warehouse_management.com.warehouse_management.service;
 
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.*;
@@ -38,13 +39,10 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class ContainerService {
-    private final InventoryItemMapper mapper;
     private final ContainerRepository containerRepository;
     private final InventoryItemRepository inventoryItemRepository;
     private final InventoryItemService inventoryItemService;
     private final InventoryItemMapper inventoryItemMapper;
-    private final WarehouseTransactionRepository warehouseTransferTicketRepository;
-    private final MongoTemplate mongoTemplate;
 
     public Page<ContainerResponseDto> getContainers(PageOptionsDto req) {
         MatchOperation matchStage = Aggregation.match(new Criteria().andOperator(
@@ -96,11 +94,16 @@ public class ContainerService {
         );
     }
 
+    public Map<String, Boolean> checkIsExistsContainerCode(ObjectId containerId, String containerCode){
+        boolean exists = containerRepository.existsByContainerCode(containerCode, containerId);
+        return Map.of("exists", exists);
+    }
+
     @Transactional
     public Container createContainer(CreateContainerDto createDto) {
-//        if (containerRepository.existsByContainerCode(createDto.getContainerCode())) {
-//            throw new DuplicateResourceException("Container với mã '" + createDto.getContainerCode() + "' đã tồn tại.");
-//        }
+        if (containerRepository.existsByContainerCode(createDto.getContainerCode())) {
+            throw new DuplicateKeyException("Mã '" + createDto.getContainerCode() + "' đã tồn tại.");
+        }
 
         Container container = new Container();
         container.setContainerCode(createDto.getContainerCode());
@@ -116,6 +119,28 @@ public class ContainerService {
         container.setArrivalDate(createDto.getArrivalDate());
         container.setNote(createDto.getNote());
         container.setContainerStatus(ContainerStatus.PENDING);
+
+        return containerRepository.save(container);
+    }
+
+    @Transactional
+    public Container updateContainer(ObjectId containerId, CreateContainerDto createDto){
+        Container container = getContainerToId(containerId);
+        if (containerRepository.existsByContainerCode(createDto.getContainerCode(), container.getId())) {
+            throw new DuplicateKeyException("Mã '" + createDto.getContainerCode() + "' đã tồn tại.");
+        }
+        container.setContainerCode(createDto.getContainerCode());
+
+        if (createDto.getFromWareHouseId() != null && !createDto.getFromWareHouseId().isBlank()) {
+            container.setFromWareHouseId(new ObjectId(createDto.getFromWareHouseId()));
+        }
+        if (createDto.getToWarehouseId() != null && !createDto.getToWarehouseId().isBlank()) {
+            container.setToWarehouseId(new ObjectId(createDto.getToWarehouseId()));
+        }
+
+        container.setDepartureDate(createDto.getDepartureDate());
+        container.setArrivalDate(createDto.getArrivalDate());
+        container.setNote(createDto.getNote());
 
         return containerRepository.save(container);
     }
