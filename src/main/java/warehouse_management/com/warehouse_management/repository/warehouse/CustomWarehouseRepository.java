@@ -2,6 +2,7 @@ package warehouse_management.com.warehouse_management.repository.warehouse;
 
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
+import warehouse_management.com.warehouse_management.dto.delivery_order.response.WarehouseForOrder;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.warehouse.response.GetDepartureWarehouseForContainerDto;
 import warehouse_management.com.warehouse_management.dto.warehouse.response.WarehouseResponseDto;
@@ -13,4 +14,5 @@ public interface CustomWarehouseRepository {
     boolean softDeleteById(ObjectId warehouseId, ObjectId deletedBy, String newStatus);
     Page<WarehouseResponseDto> findPageWarehouse(PageOptionsDto optionsReq);
     List<GetDepartureWarehouseForContainerDto> getDepartureWarehousesForContainer(String warehouseType);
+    List<WarehouseForOrder> getWarehousesForOrder();
 }
