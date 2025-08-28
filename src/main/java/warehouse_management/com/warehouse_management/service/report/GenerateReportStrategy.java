@@ -1,6 +1,7 @@
 package warehouse_management.com.warehouse_management.service.report;
 
 import org.apache.poi.ss.usermodel.Workbook;
+import warehouse_management.com.warehouse_management.enumerate.TransactionModule;
 
 import java.util.Map;
 
@@ -17,7 +18,8 @@ public interface GenerateReportStrategy {
      * @param ticketId ID của phiếu giao dịch.
      * @return Map chứa dữ liệu cho context.
      */
-    Map<String, Object> prepareContext(String ticketId);
+
+    Map<String, Object> prepareContext(TransactionModule transactionModule, String tranId);
 
     /**
      * Lấy tên file template cho loại báo cáo này.

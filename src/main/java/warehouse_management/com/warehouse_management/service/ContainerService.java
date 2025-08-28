@@ -205,9 +205,9 @@ public class ContainerService {
                 container.getInventoryItems().add(inventoryItemMapper.toInventoryItemContainer(itemPush));
             }
             containerRepository.save(container);
-            Warehouse wh1 = GeneralResource.getWarehouseById(mongoTemplate, container.getFromWareHouseId());
-            Warehouse wh2 = GeneralResource.getWarehouseById(mongoTemplate, container.getToWarehouseId());
-            warehouseTransferTicketRepository.save(buildDepToDesTran(wh1, wh2, container, itemsPushToCont));
+//            Warehouse wh1 = GeneralResource.getWarehouseById(mongoTemplate, container.getFromWareHouseId());
+//            Warehouse wh2 = GeneralResource.getWarehouseById(mongoTemplate, container.getToWarehouseId());
+//            warehouseTransferTicketRepository.save(buildDepToDesTran(wh1, wh2, container, itemsPushToCont));
             // TODO: Ghi nhận log giao dịch
 
             return Map.of("containerId", container.getId());
@@ -298,39 +298,5 @@ public class ContainerService {
         }
     }
 
-    private WarehouseTransaction buildDepToDesTran(
-            Warehouse wh1,
-            Warehouse wh2,
-            Container container,
-            List<InventoryItem> dtos
-    ) {
-        WarehouseTranType tranType = WarehouseTranType.DEPARTURE_TO_DEST_TRANSFER;
-        WarehouseTransaction ticket = new WarehouseTransaction();
-        ticket.setTitle(GeneralResource.generateTranTitle(tranType, null, wh1, wh2, container));
-        List<WarehouseTransaction.InventoryItemTicket> itemsToTran = dtos.stream()
-                .map(mapper::toInventoryItemTicket)
-                .collect(Collectors.toList());
-        ticket.setInventoryItems(itemsToTran);
-        ticket.setOriginWarehouseId(wh1.getId());
-        ticket.setDestinationWarehouseId(wh2.getId());
 
-        ticket.setReason("Chuyển hàng từ kho đi sang kho đến");
-
-        // Out dept từ wh1
-        WarehouseTransaction.Department outDept = new WarehouseTransaction.Department();
-        outDept.setName(wh1.getName());
-        outDept.setAddress(wh1.getAddress());
-        ticket.setStockOutDepartment(outDept);
-
-        // In dept từ wh2
-        WarehouseTransaction.Department inDept = new WarehouseTransaction.Department();
-        inDept.setName(wh2.getName());
-        inDept.setAddress(wh2.getAddress());
-        ticket.setStockInDepartment(inDept);
-
-        ticket.setTranType(tranType);
-        ticket.setStatus(WarehouseTransactionStatus.APPROVED.getId());
-
-        return ticket;
-    }
 }
