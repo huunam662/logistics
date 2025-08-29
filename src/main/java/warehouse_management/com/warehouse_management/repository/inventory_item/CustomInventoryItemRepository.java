@@ -4,6 +4,8 @@ import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
+import warehouse_management.com.warehouse_management.dto.report_inventory.request.ReportParamsDto;
+import warehouse_management.com.warehouse_management.dto.report_inventory.response.ReportInventoryDto;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
 
 import java.util.Collection;
@@ -63,4 +65,5 @@ public interface CustomInventoryItemRepository {
 
     List<InventoryItemModelDto> findAllModelsAndItems(List<String> inventoryTypes, List<ObjectId> warehouseIds, String model);
 
+    Page<ReportInventoryDto> findPageReportInventoryToDashBoard(ReportParamsDto params);
 }
