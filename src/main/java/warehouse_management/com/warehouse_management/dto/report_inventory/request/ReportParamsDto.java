@@ -32,6 +32,6 @@ public class ReportParamsDto {
     @Schema(description = "Lọc theo từ khóa trong tìm kiếm chung.")
     private String search;
 
-    @Schema(description = "Kiểu báo cáo [[PRODUCTION (hang chờ sx), CONSIGNMENT (hàng ký gửi)]")
+    @Schema(description = "Kiểu báo cáo [PRODUCTION (hàng chờ sx), CONSIGNMENT (hàng ký gửi), CONTAINER (hàng đang đi đường)]")
     private String typeReport;
 }
