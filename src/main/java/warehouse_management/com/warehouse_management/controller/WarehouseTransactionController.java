@@ -88,6 +88,16 @@ public class WarehouseTransactionController {
         return ApiResponse.success(new PageInfoDto<>(page));
     }
 
+    @GetMapping("/page/prod_to_departure_transfer")
+    @Operation(
+            summary = "GET Lấy giao dịch chuyển hàng vào kho đi (Phân trang).",
+            description = "Dùng cho giao dịch PRODUCTION_TO_DEPARTURE"
+    )
+    public ApiResponse<?> getProdToDepartureTrans(@ModelAttribute PageOptionsDto optionsDto) {
+        Page<WarehouseTransactionPageDto> page =
+                warehouseTransferTicketService.getPageWarehouseTransferTicket(optionsDto, WarehouseTranType.PRODUCTION_TO_DEPARTURE);
+        return ApiResponse.success(new PageInfoDto<>(page));
+    }
 
 
     @PatchMapping("/{ticketId}/approval-status")
