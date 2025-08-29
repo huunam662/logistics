@@ -27,6 +27,7 @@ import warehouse_management.com.warehouse_management.model.WarehouseTransaction;
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
 import warehouse_management.com.warehouse_management.repository.warehouse_transaction.WarehouseTransactionRepository;
 import warehouse_management.com.warehouse_management.utils.GeneralResource;
+import warehouse_management.com.warehouse_management.utils.TranUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -46,6 +47,7 @@ public class InventoryItemService {
     private final InventoryItemMapper inventoryItemMapper;
     private final WarehouseTransactionRepository warehouseTransferTicketRepository;
     private final MongoTemplate mongoTemplate;
+    private final TranUtils tranUtils;
 
 
     @Transactional
@@ -73,11 +75,11 @@ public class InventoryItemService {
         if (warehouse.getType() == WarehouseType.DESTINATION) {
             subTranType = WarehouseSubTranType.FORM_TO_DEST_SPARE_PART;
             tran.setSubTranType(subTranType);
-            tran.setTitle(GeneralResource.generateTranTitle(tranType, subTranType, warehouse, null));
+            tran.setTitle(tranUtils.generateTranTitle(tranType, subTranType, warehouse, null));
         } else if (warehouse.getType() == WarehouseType.PRODUCTION) {
             subTranType = WarehouseSubTranType.FORM_TO_PRODUCTION_SPARE_PART;
             tran.setSubTranType(subTranType);
-            tran.setTitle(GeneralResource.generateTranTitle(tranType, subTranType, warehouse, null));
+            tran.setTitle(tranUtils.generateTranTitle(tranType, subTranType, warehouse, null));
         }
         // In dept từ wh2
         WarehouseTransaction.Department inDept = new WarehouseTransaction.Department();
@@ -146,11 +148,11 @@ public class InventoryItemService {
         if (warehouse.getType() == WarehouseType.DESTINATION) {
             subTranType = WarehouseSubTranType.FORM_TO_DEST_PRODUCT;
             tran.setSubTranType(subTranType);
-            tran.setTitle(GeneralResource.generateTranTitle(tranType, subTranType, warehouse, null));
+            tran.setTitle(tranUtils.generateTranTitle(tranType, subTranType, warehouse, null));
         } else if (warehouse.getType() == WarehouseType.PRODUCTION) {
             subTranType = WarehouseSubTranType.FORM_TO_PRODUCTION_PRODUCT;
             tran.setSubTranType(subTranType);
-            tran.setTitle(GeneralResource.generateTranTitle(tranType, subTranType, warehouse, null));
+            tran.setTitle(tranUtils.generateTranTitle(tranType, subTranType, warehouse, null));
         }
         WarehouseTransaction.Department inDept = new WarehouseTransaction.Department();
         inDept.setName(warehouse.getName());
@@ -196,12 +198,37 @@ public class InventoryItemService {
         if(req.getInventoryItems().isEmpty())
             throw LogicErrException.of("Hàng hóa cần nhập sang kho đi hiện đang rỗng.");
 
-        try{
+        try {
+            ObjectId inputItemId = new ObjectId(req.getInventoryItems().get(0).getId());
+            Warehouse wh1 = GeneralResource.getWarehouseById(mongoTemplate, inventoryItemRepository.findWarehouseIdById(inputItemId).get().getWarehouseId());
+            Warehouse wh2 = GeneralResource.getWarehouseById(mongoTemplate, new ObjectId(req.getDepartureWarehouseId()));
             LocalDateTime arrivalDate = LocalDate.parse(req.getArrivalDate()).atStartOfDay();
-            transferItems(req.getInventoryItems(), warehouseDeparture.getId(), null, arrivalDate, null, InventoryItemStatus.IN_STOCK);
-
+            List<InventoryItem> items = transferItems(req.getInventoryItems(), warehouseDeparture.getId(), null, arrivalDate, null, InventoryItemStatus.IN_STOCK);
             // TODO: Ghi nhận log chuyển kho (người thực hiện, thời gian, PO, số lượng)
+//            BUILD TRAN
+            WarehouseTransaction tran = new WarehouseTransaction();
+            tran.setInventoryItems(items.stream().map(e -> mapper.toInventoryItemTicket(e)).collect(Collectors.toList()));
+            tran.setReason("Nhập hàng từ kho chờ vào kho đi ");
+            WarehouseTranType tranType = WarehouseTranType.PRODUCTION_TO_DEPARTURE;
+            tran.setTitle(tranUtils.generateTranTitle(tranType, null, wh1, wh2));
+            tran.setTranType(tranType);
+            tran.setOriginWarehouseId(wh1.getId());
+            tran.setDestinationWarehouseId(wh2.getId());
 
+            WarehouseTransaction.Department inDept = new WarehouseTransaction.Department();
+            inDept.setName(wh2.getName());
+            inDept.setAddress(wh2.getAddress());
+
+            WarehouseTransaction.Department outDept = new WarehouseTransaction.Department();
+            outDept.setName(wh1.getName());
+            outDept.setAddress(wh1.getAddress());
+
+            tran.setStockInDepartment(inDept);
+            tran.setStockOutDepartment(outDept);
+            tran.setStatusEnum(WarehouseTransactionStatus.APPROVED); // Tự động duyệt
+            tran.setApprovedAt(LocalDateTime.now());
+            warehouseTransferTicketRepository.save(tran);
+//            - BUILD TRAN
             return warehouseDeparture;
         }
         catch (Exception e){
@@ -392,7 +419,7 @@ public class InventoryItemService {
         Warehouse wh = GeneralResource.getWarehouseById(mongoTemplate, new ObjectId(warehouseId));
         WarehouseTransaction tran = new WarehouseTransaction();
         WarehouseTranType tranType = WarehouseTranType.DATA_ENTRY;
-        tran.setTitle(GeneralResource.generateTranTitle(tranType, importType, wh, null));
+        tran.setTitle(tranUtils.generateTranTitle(tranType, importType, wh, null));
         tran.setInventoryItems(dtos);
         tran.setTranType(tranType);
         tran.setReason("Nhập kho theo lô");

@@ -52,4 +52,6 @@ public interface InventoryItemRepository extends MongoRepository<InventoryItem, 
     @Query("{'commodityCode': ?0, 'warehouseId': ?1, 'status': ?2}")
     Optional<InventoryItem> findByCommodityCodeAndWarehouseId(String commodityCode, ObjectId warehouseId, String status);
 
+    @Query(value = "{'_id': ?0}", fields = "{'warehouseId': 1}")
+    Optional<InventoryItem> findWarehouseIdById(ObjectId itemId);
 }
