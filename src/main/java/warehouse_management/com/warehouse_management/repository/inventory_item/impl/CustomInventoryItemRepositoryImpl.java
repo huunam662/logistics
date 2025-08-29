@@ -613,13 +613,20 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         pageOptions.setPage(params.getPage());
         pageOptions.setSize(params.getSize());
 
-        WarehouseType typeReport = WarehouseType.fromId(params.getTypeReport());
-        if(typeReport == null) throw LogicErrException.of("Loại kho hàng cần báo cáo không hợp lệ.");
         List<Criteria> filter = new ArrayList<>(List.of(
                 Criteria.where("warehouse.deletedAt").isNull(),
                 Criteria.where("warehouse.status").is(WarehouseStatus.ACTIVE.getValue()),
-                Criteria.where("warehouse.type").is(typeReport.getId())
+                Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
+                Criteria.where("deletedAt").isNull()
         ));
+        if(params.getTypeReport().equals("CONTAINER")){
+            filter.add(Criteria.where("containerId").ne(null));
+        }
+        else{
+            WarehouseType typeReport = WarehouseType.fromId(params.getTypeReport());
+            if(typeReport == null) throw LogicErrException.of("Loại kho hàng cần báo cáo không hợp lệ.");
+            filter.add(Criteria.where("warehouse.type").is(typeReport.getId()));
+        }
         if(params.getPoNumber() != null) filter.add(Criteria.where("poNumber").regex(params.getPoNumber(), "i"));
         if(params.getModel() != null) filter.add(Criteria.where("model").regex(params.getModel(), "i"));
         if(params.getAgent() != null) filter.add(Criteria.where("pricing.agent").regex(params.getAgent(), "i"));
