@@ -14,7 +14,7 @@ public class Client {
     @Id
     private ObjectId id;
 
-    private String customerId; // Mã khách hàng do user nhập tay
+    private String customerCode; // Mã khách hàng do user nhập tay
 
     private String name; // Tên
     @CreatedBy

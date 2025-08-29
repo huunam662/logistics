@@ -19,6 +19,7 @@ import java.time.LocalDateTime;
 public class ApiResponse<T> {
     public static final String SUCCESS_CODE = "S000";
     public static final String FAILD_CODE = "F000";
+    public static final String DUPLICATE_CODE = "D000";
     public static final String SUCCESS_MESSAGE = "Thành công";
     public static final String FAIL_MESSAGE = "Thất bại";
 

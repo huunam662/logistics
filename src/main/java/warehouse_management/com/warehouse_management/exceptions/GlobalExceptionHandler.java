@@ -4,6 +4,7 @@ import jakarta.validation.ConstraintViolationException;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -42,6 +43,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<ApiResponse<List<ValidationErrRes>>> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
+        ex.printStackTrace();
         // Collect all field error messages from the exception
         List<FieldError> fieldErrors = ex.getBindingResult().getFieldErrors();
 
@@ -69,9 +71,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(ApiResponse.fail("Validation failed"));
     }
 
+    @ExceptionHandler(DuplicateKeyException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<ApiResponse<List<ValidationErrRes>>> handleHandlerDuplicateKeyException(DuplicateKeyException ex) {
+        return ResponseEntity.badRequest().body(ApiResponse.fail(ApiResponse.DUPLICATE_CODE, ex.getMessage()));
+    }
+
     // Xử lý lỗi logic nghiệp vụ (business logic)
     @ExceptionHandler(LogicErrException.class)
     public ResponseEntity<ApiResponse<?>> handleLogicException(LogicErrException ex) {
+        ex.printStackTrace();
         String code = ex.getCode();
         String message = null;
 
@@ -98,6 +107,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<ApiResponse<List<String>>> handleConstraintViolationException(ConstraintViolationException ex) {
+        ex.printStackTrace();
         List<String> errors = ex.getConstraintViolations()
                 .stream()
                 .map(violation -> violation.getMessage())
@@ -113,6 +123,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<ApiResponse<String>> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
+        ex.printStackTrace();
         log.error("Invalid request body: {}", ex.getMessage());
         return ResponseEntity.badRequest().body(ApiResponse.fail("Invalid request body format."));
     }
@@ -123,6 +134,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MissingServletRequestParameterException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<ApiResponse<String>> handleMissingParams(MissingServletRequestParameterException ex) {
+        ex.printStackTrace();
         String error = "Missing required parameter: " + ex.getParameterName();
         log.warn(error);
         return ResponseEntity.badRequest().body(ApiResponse.fail(error));
@@ -134,6 +146,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
     public ResponseEntity<ApiResponse<String>> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
+        ex.printStackTrace();
         log.warn("Method not allowed: {}", ex.getMethod());
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
                 .body(ApiResponse.fail(String.valueOf(HttpStatus.METHOD_NOT_ALLOWED.value()), "HTTP method not supported."));

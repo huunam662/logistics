@@ -77,18 +77,6 @@ public class WarehouseTransactionController {
         return ApiResponse.success(new PageInfoDto<>(page));
     }
 
-
-    @GetMapping("/page/departure_to_dest_transfer")
-    @Operation(
-            summary = "GET Lấy giao dịch chuyển hàng kho đi sang kho đến (Luồng container)(Phân trang).",
-            description = "Dùng cho giao dịch DEPARTURE_TO_DEST_TRANSFER"
-    )
-    public ApiResponse<?> getPageDepartureToDestTransfer(@ModelAttribute PageOptionsDto optionsDto){
-        Page<WarehouseTransactionPageDto> page =
-                warehouseTransferTicketService.getPageWarehouseTransferTicket(optionsDto, WarehouseTranType.DEPARTURE_TO_DEST_TRANSFER);
-        return ApiResponse.success(new PageInfoDto<>(page));
-    }
-
     @GetMapping("/page/sale_right_transfer")
     @Operation(
             summary = "GET Lấy giao dịch điều chuyển quyền bán hàng (Phân trang).",
@@ -100,6 +88,16 @@ public class WarehouseTransactionController {
         return ApiResponse.success(new PageInfoDto<>(page));
     }
 
+    @GetMapping("/page/prod_to_departure_transfer")
+    @Operation(
+            summary = "GET Lấy giao dịch chuyển hàng vào kho đi (Phân trang).",
+            description = "Dùng cho giao dịch PRODUCTION_TO_DEPARTURE"
+    )
+    public ApiResponse<?> getProdToDepartureTrans(@ModelAttribute PageOptionsDto optionsDto) {
+        Page<WarehouseTransactionPageDto> page =
+                warehouseTransferTicketService.getPageWarehouseTransferTicket(optionsDto, WarehouseTranType.PRODUCTION_TO_DEPARTURE);
+        return ApiResponse.success(new PageInfoDto<>(page));
+    }
 
 
     @PatchMapping("/{ticketId}/approval-status")
@@ -128,17 +126,18 @@ public class WarehouseTransactionController {
         return ApiResponse.success(warehouseTransferTicketService.getById(ticketId));
     }
 
-    @GetMapping("/{ticketId}/export-report")
+    @GetMapping("/export-report/{tranModule}/{tranId}")
     @Operation(
             summary = "GET xuất excel DCNB theo ticket id",
             description = "GET xuất excel DCNB theo ticket id"
     )
     public ResponseEntity<InputStreamResource> getExcelReportDCNB(
-            @PathVariable("ticketId") String ticketId,
-            @RequestParam(name = "type", required = false) String type
+            @PathVariable("tranModule") String tranModule,
+            @PathVariable("tranId") String tranId,
+            @RequestParam(name = "docType", required = false) String docType
     ) {
         // type sẽ là "in" nếu không truyền, hoặc "out" nếu truyền ?type=out
-        byte[] excelBytes = reportService.getReport(ticketId, type);
+        byte[] excelBytes = reportService.getReport(tranModule, tranId, docType);
 
         InputStreamResource resource = new InputStreamResource(new ByteArrayInputStream(excelBytes));
 

@@ -4,7 +4,7 @@ import lombok.Data;
 import warehouse_management.com.warehouse_management.annotation.Validation;
 
 @Data
-public class CreateClientReq {
+public class CreateClientDto {
     @Validation(label = "Tên Khách hàng", required = true)
     private String name;
     private String address;

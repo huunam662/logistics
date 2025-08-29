@@ -31,6 +31,11 @@ public enum WarehouseTranType {
     SALE_RIGHT_TRANSFER(
             "SALE_RIGHT_TRANSFER",
             "Chuyển quyền bán hàng"
+    ),
+    // Chuyển quyền bán hàng
+    PRODUCTION_TO_DEPARTURE(
+            "PRODUCTION_TO_DEPARTURE",
+            "Kho chờ vào kho đi"
     );
 
     private final String id;

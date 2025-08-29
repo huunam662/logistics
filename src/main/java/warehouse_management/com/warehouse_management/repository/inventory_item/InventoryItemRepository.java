@@ -31,7 +31,7 @@ public interface InventoryItemRepository extends MongoRepository<InventoryItem, 
     @Query("{'commodityCode': {'$in': ?0}, 'warehouseId': ?1, 'status': ?2}")
     List<InventoryItem> findSparePartByCommodityCodeIn(Collection<String> commodityCodes, ObjectId warehouseId, String inventoryStatus);
 
-    @Query("{'_id': {'$in': ?0}, 'status': ?2}")
+    @Query("{'_id': {'$in': ?0}, 'status': ?1}")
     List<InventoryItem> findSparePartByCommodityCodeIn(Collection<ObjectId> commodityCodes, String inventoryStatus);
 
     @Query("{'commodityCode': {'$in': ?0}, 'containerId': ?1}")
@@ -43,5 +43,15 @@ public interface InventoryItemRepository extends MongoRepository<InventoryItem, 
     @Query("{'commodityCode': ?0}")
     Optional<InventoryItem> findByCommodityCode(String commodityCode);
 
+    @Query("{'commodityCode': ?0, 'warehouseId': ?1}")
+    Optional<InventoryItem> findByCommodityCodeAndWarehouseId(String commodityCode, ObjectId warehouseId);
 
+    @Query("{'commodityCode': ?0, 'warehouseId': ?1}")
+    List<InventoryItem> findByCommodityCodeAndWarehouseIdList(String commodityCode, ObjectId warehouseId);
+
+    @Query("{'commodityCode': ?0, 'warehouseId': ?1, 'status': ?2}")
+    Optional<InventoryItem> findByCommodityCodeAndWarehouseId(String commodityCode, ObjectId warehouseId, String status);
+
+    @Query(value = "{'_id': ?0}", fields = "{'warehouseId': 1}")
+    Optional<InventoryItem> findWarehouseIdById(ObjectId itemId);
 }

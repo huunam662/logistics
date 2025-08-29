@@ -3,9 +3,6 @@ package warehouse_management.com.warehouse_management.mapper;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
-import warehouse_management.com.warehouse_management.dto.delivery_order.response.DeliveryProductTickDto;
-import warehouse_management.com.warehouse_management.dto.delivery_order.response.DeliverySparePartTickDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.*;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportDestinationProductDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportDestinationSparePartDto;
@@ -43,20 +40,17 @@ public interface InventoryItemMapper {
 
     InventorySparePartDetailsDto toInventorySparePartDetailsDto(Container.InventoryItemContainer dto);
 
-
     InventoryItem toInventoryItem(ExcelImportProductionProductDto dto);
+
     InventoryItem toInventoryItem(ExcelImportProductionSparePartDto dto);
-
-    InventoryItem toInventoryItem(ExcelImportDestinationProductDto dto);
-
-    InventoryItem toInventoryItem(ExcelImportDestinationSparePartDto dto);
 
     WarehouseTransaction.InventoryItemTicket toInventoryItemTicket(ExcelImportProductionProductDto dto);
 
-    WarehouseTransaction.InventoryItemTicket toInventoryItemTicket(ExcelImportDestinationProductDto dto);
-
     WarehouseTransaction.InventoryItemTicket toInventoryItemTicket(ExcelImportProductionSparePartDto dto);
 
-    WarehouseTransaction.InventoryItemTicket toInventoryItemTicket(ExcelImportDestinationSparePartDto dto);
+    DeliveryOrder.InventoryItemDelivery toInventoryItemDelivery(InventoryItem inventoryItem);
+
+    InventoryItem toInventoryItem(DeliveryOrder.InventoryItemDelivery item);
+
 
 }

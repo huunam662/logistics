@@ -26,6 +26,7 @@ import warehouse_management.com.warehouse_management.repository.inventory_item.I
 import warehouse_management.com.warehouse_management.repository.warehouse_transaction.WarehouseTransactionRepository;
 import warehouse_management.com.warehouse_management.utils.GeneralResource;
 import warehouse_management.com.warehouse_management.utils.JsonUtils;
+import warehouse_management.com.warehouse_management.utils.TranUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -41,6 +42,7 @@ public class WarehouseTransactionService {
     private final WarehouseTransactionRepository warehouseTransferTicketRepository;
     private final WarehouseTransactionMapper warehouseTransferTicketMapper;
     private final InventoryItemRepository inventoryItemRepository;
+    private final TranUtils tranUtils;
 
     @Transactional
     public WarehouseTransaction createWarehouseTransaction(CreateWarehouseTransactionDto dto){
@@ -52,7 +54,7 @@ public class WarehouseTransactionService {
         WarehouseTranType tranType = WarehouseTranType.DEST_TO_DEST_TRANSFER;
         ticket.setTranType(tranType);
         ticket.setDestinationWarehouseId(destinationWarehouse.getId());
-        ticket.setTitle(GeneralResource.generateTranTitle(tranType, null, originWarehouse, destinationWarehouse));
+        ticket.setTitle(tranUtils.generateTranTitle(tranType, null, originWarehouse, destinationWarehouse));
         ticket.setReason("Điều chuyển kho");
         ticket.setRequesterId(null);
         ticket.setApproverId(null);

@@ -2,6 +2,7 @@ package warehouse_management.com.warehouse_management.service;
 
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.*;
@@ -20,6 +21,7 @@ import warehouse_management.com.warehouse_management.dto.container.response.Cont
 import warehouse_management.com.warehouse_management.enumerate.*;
 import warehouse_management.com.warehouse_management.exceptions.LogicErrException;
 import warehouse_management.com.warehouse_management.mapper.InventoryItemMapper;
+import warehouse_management.com.warehouse_management.mapper.WarehouseTransactionMapper;
 import warehouse_management.com.warehouse_management.model.Container;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.model.Warehouse;
@@ -38,13 +40,13 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class ContainerService {
-    private final InventoryItemMapper mapper;
     private final ContainerRepository containerRepository;
     private final InventoryItemRepository inventoryItemRepository;
     private final InventoryItemService inventoryItemService;
     private final InventoryItemMapper inventoryItemMapper;
-    private final WarehouseTransactionRepository warehouseTransferTicketRepository;
     private final MongoTemplate mongoTemplate;
+    private final WarehouseTransactionRepository warehouseTransferTicketRepository;
+    private final InventoryItemMapper mapper;
 
     public Page<ContainerResponseDto> getContainers(PageOptionsDto req) {
         MatchOperation matchStage = Aggregation.match(new Criteria().andOperator(
@@ -96,11 +98,16 @@ public class ContainerService {
         );
     }
 
+    public Map<String, Boolean> checkIsExistsContainerCode(ObjectId containerId, String containerCode){
+        boolean exists = containerRepository.existsByContainerCode(containerCode, containerId);
+        return Map.of("exists", exists);
+    }
+
     @Transactional
     public Container createContainer(CreateContainerDto createDto) {
-//        if (containerRepository.existsByContainerCode(createDto.getContainerCode())) {
-//            throw new DuplicateResourceException("Container với mã '" + createDto.getContainerCode() + "' đã tồn tại.");
-//        }
+        if (containerRepository.existsByContainerCode(createDto.getContainerCode())) {
+            throw new DuplicateKeyException("Mã '" + createDto.getContainerCode() + "' đã tồn tại.");
+        }
 
         Container container = new Container();
         container.setContainerCode(createDto.getContainerCode());
@@ -116,6 +123,28 @@ public class ContainerService {
         container.setArrivalDate(createDto.getArrivalDate());
         container.setNote(createDto.getNote());
         container.setContainerStatus(ContainerStatus.PENDING);
+
+        return containerRepository.save(container);
+    }
+
+    @Transactional
+    public Container updateContainer(ObjectId containerId, CreateContainerDto createDto){
+        Container container = getContainerToId(containerId);
+        if (containerRepository.existsByContainerCode(createDto.getContainerCode(), container.getId())) {
+            throw new DuplicateKeyException("Mã '" + createDto.getContainerCode() + "' đã tồn tại.");
+        }
+        container.setContainerCode(createDto.getContainerCode());
+
+        if (createDto.getFromWareHouseId() != null && !createDto.getFromWareHouseId().isBlank()) {
+            container.setFromWareHouseId(new ObjectId(createDto.getFromWareHouseId()));
+        }
+        if (createDto.getToWarehouseId() != null && !createDto.getToWarehouseId().isBlank()) {
+            container.setToWarehouseId(new ObjectId(createDto.getToWarehouseId()));
+        }
+
+        container.setDepartureDate(createDto.getDepartureDate());
+        container.setArrivalDate(createDto.getArrivalDate());
+        container.setNote(createDto.getNote());
 
         return containerRepository.save(container);
     }
@@ -205,9 +234,9 @@ public class ContainerService {
                 container.getInventoryItems().add(inventoryItemMapper.toInventoryItemContainer(itemPush));
             }
             containerRepository.save(container);
-            Warehouse wh1 = GeneralResource.getWarehouseById(mongoTemplate, container.getFromWareHouseId());
-            Warehouse wh2 = GeneralResource.getWarehouseById(mongoTemplate, container.getToWarehouseId());
-            warehouseTransferTicketRepository.save(buildDepToDesTran(wh1, wh2, container, itemsPushToCont));
+//            Warehouse wh1 = GeneralResource.getWarehouseById(mongoTemplate, container.getFromWareHouseId());
+//            Warehouse wh2 = GeneralResource.getWarehouseById(mongoTemplate, container.getToWarehouseId());
+//            warehouseTransferTicketRepository.save(buildDepToDesTran(wh1, wh2, container, itemsPushToCont));
             // TODO: Ghi nhận log giao dịch
 
             return Map.of("containerId", container.getId());
@@ -298,39 +327,5 @@ public class ContainerService {
         }
     }
 
-    private WarehouseTransaction buildDepToDesTran(
-            Warehouse wh1,
-            Warehouse wh2,
-            Container container,
-            List<InventoryItem> dtos
-    ) {
-        WarehouseTranType tranType = WarehouseTranType.DEPARTURE_TO_DEST_TRANSFER;
-        WarehouseTransaction ticket = new WarehouseTransaction();
-        ticket.setTitle(GeneralResource.generateTranTitle(tranType, null, wh1, wh2, container));
-        List<WarehouseTransaction.InventoryItemTicket> itemsToTran = dtos.stream()
-                .map(mapper::toInventoryItemTicket)
-                .collect(Collectors.toList());
-        ticket.setInventoryItems(itemsToTran);
-        ticket.setOriginWarehouseId(wh1.getId());
-        ticket.setDestinationWarehouseId(wh2.getId());
 
-        ticket.setReason("Chuyển hàng từ kho đi sang kho đến");
-
-        // Out dept từ wh1
-        WarehouseTransaction.Department outDept = new WarehouseTransaction.Department();
-        outDept.setName(wh1.getName());
-        outDept.setAddress(wh1.getAddress());
-        ticket.setStockOutDepartment(outDept);
-
-        // In dept từ wh2
-        WarehouseTransaction.Department inDept = new WarehouseTransaction.Department();
-        inDept.setName(wh2.getName());
-        inDept.setAddress(wh2.getAddress());
-        ticket.setStockInDepartment(inDept);
-
-        ticket.setTranType(tranType);
-        ticket.setStatus(WarehouseTransactionStatus.APPROVED.getId());
-
-        return ticket;
-    }
 }

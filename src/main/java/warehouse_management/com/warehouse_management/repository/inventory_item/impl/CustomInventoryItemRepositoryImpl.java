@@ -318,6 +318,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("deletedAt").isNull(),
                         Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
                         Criteria.where("warehouse.deletedAt").isNull(),
+                        Criteria.where("warehouse.type").is(WarehouseType.DESTINATION.getId()),
                         Criteria.where("inventoryType").in(InventoryType.VEHICLE.getId(), InventoryType.ACCESSORY.getId())
                 )),
                 Aggregation.project("poNumber", "productCode", "status", "model", "category", "inventoryType", "serialNumber", "manufacturingYear", "initialCondition", "notes", "warehouseType")
@@ -375,7 +376,6 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     public List<InventoryPoWarehouseDto> findPoNumbersOfInventoryInStock(String warehouseType, List<String> inventoryTypes, String poNumber, String model, String warehouseId){
         List<Criteria> filters = new ArrayList<>(List.of(
                 Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
-                Criteria.where("deletedAt").isNull(),
                 Criteria.where("inventoryType").in(inventoryTypes)
         ));
         if(model != null) filters.add(Criteria.where("model").is(model));
@@ -419,7 +419,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
 
     @Transactional
     @Override
-    public List<InventoryItem> insertAll(Collection<InventoryItem> inventoryItems){
+    public List<InventoryItem> bulkInsert(Collection<InventoryItem> inventoryItems){
         if(inventoryItems.isEmpty()) return new ArrayList<>();
         return mongoTemplate.insertAll(inventoryItems).stream().toList();
     }
