@@ -13,7 +13,7 @@ import java.util.Optional;
 @Repository
 public interface ClientRepository extends MongoRepository<Client, ObjectId> {
     // Lấy tất cả clients còn active dưới dạng DTO
-    @Query(value = "{ 'deletedAt': null, 'name': {$regex: ?0, $options: 'i'}, 'email': {$regex: ?1, $options: 'i'} }",
+    @Query(value = "{ 'deletedAt': null }",
             fields = "{ 'id': '$_id', 'name': 1, 'address': 1, 'email': 1, 'customerCode': 1 }")
     List<ClientDto> findAllActiveClientRes(String name, String email);
 
