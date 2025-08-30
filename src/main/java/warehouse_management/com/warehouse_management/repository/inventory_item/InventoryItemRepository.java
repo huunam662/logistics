@@ -32,7 +32,7 @@ public interface InventoryItemRepository extends MongoRepository<InventoryItem, 
     List<InventoryItem> findSparePartByCommodityCodeIn(Collection<String> commodityCodes, ObjectId warehouseId, String inventoryStatus);
 
     @Query("{'_id': {'$in': ?0}, 'status': ?1}")
-    List<InventoryItem> findSparePartByCommodityCodeIn(Collection<ObjectId> commodityCodes, String inventoryStatus);
+    List<InventoryItem> findSparePartByCommodityCodeIn(Collection<String> commodityCodes, String inventoryStatus);
 
     @Query("{'commodityCode': {'$in': ?0}, 'containerId': ?1}")
     List<InventoryItem> findSparePartByCommodityCodeIn(Collection<String> commodityCodes, ObjectId containerId);

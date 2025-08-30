@@ -136,4 +136,17 @@ public class DeliveryOrderController {
         DeliveryOrder deliveryOrder = deliveryOrderService.removeItem(dto);
         return ResponseEntity.ok(ApiResponse.success(Map.of("deliveryOrderId", deliveryOrder.getId())));
     }
+
+    @Operation(
+            summary = "PATCH Cập nhật trạng thái đơn hàng.",
+            description = "PATCH Cập nhật trạng thái đơn hàng."
+    )
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<?> updateDeliveryOrderStatus(
+            @PathVariable("id") String id,
+            @Valid @RequestBody ChangeStatusDeliveryOrderDto dto
+    ){
+        DeliveryOrder deliveryOrder = deliveryOrderService.changeStatusDeliveryOrder(new ObjectId(id), dto);
+        return ResponseEntity.ok(ApiResponse.success(Map.of("deliveryOrderId", deliveryOrder.getId())));
+    }
 }
