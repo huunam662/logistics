@@ -1,0 +1,41 @@
+package warehouse_management.com.warehouse_management.model;
+
+import lombok.Data;
+import org.bson.types.ObjectId;
+import org.springframework.data.annotation.*;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+@Document(collection = "client")
+@Data
+public class Client {
+    @Id
+    private ObjectId id;
+
+    private String customerCode; // Mã khách hàng do user nhập tay
+
+    private String name; // Tên
+    @CreatedBy
+    private ObjectId createdBy;
+
+    private String address; // Địa chỉ
+    @LastModifiedBy
+    private ObjectId updatedBy;
+
+    private String phone; // Điện thoại
+    private ObjectId deletedBy;
+
+    private String email; // Email
+    @CreatedDate
+    private LocalDateTime createdAt;
+
+    private int level; // Cấp
+    private LocalDateTime deletedAt;
+
+    @LastModifiedDate
+    private LocalDateTime updatedAt;
+
+    private BigDecimal revenue; // Doanh thu = tổng giá đơn hàng đã đặt
+}

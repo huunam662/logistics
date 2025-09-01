@@ -182,15 +182,27 @@ public class WarehouseController {
         return ApiResponse.success(new PageInfoDto<>(inventoryItemPage));
     }
 
-    @GetMapping("/page/inventory-central-warehouse")
+    @GetMapping("/page/inventory-central-warehouse/product")
     @Operation(
-            summary = "GET data hàng tồn tại các kho đến. (phân trang)",
-            description = "GET data hàng tồn tại các kho đến. (phân trang)"
+            summary = "GET data sản phẩm tồn tại các kho đến. (phân trang)",
+            description = "GET data sản phẩm tồn tại các kho đến. (phân trang)"
     )
     public ApiResponse<?> getPageInventoryCentralWarehouse(
             @ModelAttribute PageOptionsDto optionsReq
     ) {
-        Page<InventoryCentralWarehouseDto> inventoryItemPage = warehouseService.getPageInventoryCentralWarehouse(optionsReq);
+        Page<InventoryCentralWarehouseProductDto> inventoryItemPage = warehouseService.getPageInventoryCentralWarehouse(optionsReq);
+        return ApiResponse.success(new PageInfoDto<>(inventoryItemPage));
+    }
+
+    @GetMapping("/page/inventory-central-warehouse/spare-part")
+    @Operation(
+            summary = "GET data hàng hóa tồn tại các kho đến. (phân trang)",
+            description = "GET data hàng hóa tồn tại các kho đến. (phân trang)"
+    )
+    public ApiResponse<?> getPageInventoryCentralWarehouseSparePart(
+            @ModelAttribute PageOptionsDto optionsReq
+    ) {
+        Page<InventoryCentralWarehouseSparePartDto> inventoryItemPage = warehouseService.getPageInventoryCentralWarehouseSparePart(optionsReq);
         return ApiResponse.success(new PageInfoDto<>(inventoryItemPage));
     }
 
@@ -207,7 +219,7 @@ public class WarehouseController {
 
     @GetMapping("/warehouse-type/{warehouseType}")
     public ApiResponse<List<GetDepartureWarehouseForContainerDto>> getWarehouseByTypeForContainer(
-            @PathVariable String warehouseType
+            @PathVariable("warehouseType") String warehouseType
     ) {
         List<GetDepartureWarehouseForContainerDto> dtos = warehouseService.getDepartureWarehousesForContainer(warehouseType);
         return ApiResponse.success(dtos);

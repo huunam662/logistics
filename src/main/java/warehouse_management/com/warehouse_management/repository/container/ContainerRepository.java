@@ -14,8 +14,16 @@ CustomContainerRepository{
 
     Container findByContainerCode(String containerCode);
 
+    @Query(value = "{'containerCode': ?0}", exists = true)
     boolean existsByContainerCode(String containerCode);
+
+    @Query(value = "{'containerCode': ?0, '_id': {$ne: ?1}}", exists = true)
+    boolean existsByContainerCode(String containerCode, ObjectId containerId);
 
     @Query("{ 'deletedAt': null }")
     List<Container> findAll();
+
+    @Query("{'_id': {'$in': ?0}}")
+    List<Container> findAllInIds(List<ObjectId> ids);
+
 }

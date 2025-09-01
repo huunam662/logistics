@@ -1,13 +1,12 @@
 package warehouse_management.com.warehouse_management.enumerate;
 
 public enum InventoryItemStatus {
-    PENDING("PENDING"),
-    IN_STOCK("IN_STOCK"),
-    IN_TRANSIT("IN_TRANSIT"),
-    IN_REPAIR("IN_REPAIR"),
-    HOLD("HOLD"),
-    SOLD("SOLD"),
-    OTHER("OTHER");
+    IN_STOCK("IN_STOCK"),   // Sẵn hàng trong kho
+    IN_TRANSIT("IN_TRANSIT"),   // Đang vận chuyển
+    IN_REPAIR("IN_REPAIR"), // Đang sửa  chữa
+    HOLD("HOLD"),   // Giữ hàng
+    SOLD("SOLD"),   // Đã bán
+    OTHER("OTHER"); // Khác
 
     private final String id;
 

@@ -4,6 +4,7 @@ import jakarta.validation.ConstraintViolationException;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -14,11 +15,13 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
 
 import warehouse_management.com.warehouse_management.dto.ValidationErrRes;
 import warehouse_management.com.warehouse_management.utils.Msg;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -59,6 +62,18 @@ public class GlobalExceptionHandler {
         // Return a custom ApiResponse to return a structured error response
         return ResponseEntity.badRequest().body(ApiResponse.fail("Validation failed", validationErrors));
 
+    }
+
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<ApiResponse<List<ValidationErrRes>>> handleHandlerMethodValidationException(HandlerMethodValidationException ex) {
+        return ResponseEntity.badRequest().body(ApiResponse.fail("Validation failed"));
+    }
+
+    @ExceptionHandler(DuplicateKeyException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<ApiResponse<List<ValidationErrRes>>> handleHandlerDuplicateKeyException(DuplicateKeyException ex) {
+        return ResponseEntity.badRequest().body(ApiResponse.fail(ApiResponse.DUPLICATE_CODE, ex.getMessage()));
     }
 
     // Xử lý lỗi logic nghiệp vụ (business logic)
@@ -135,14 +150,14 @@ public class GlobalExceptionHandler {
     /**
      * Bắt tất cả các lỗi chưa được handle.
      */
-    @ExceptionHandler(Exception.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ResponseEntity<ApiResponse<String>> handleAllUncaughtException(Exception ex) {
-        logger.error("Unexpected error", ex);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.fail(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()), "Unexpected server error."));
-    }
+//    @ExceptionHandler(Exception.class)
+//    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+//    public ResponseEntity<ApiResponse<String>> handleAllUncaughtException(Exception ex) {
+//        logger.error("Unexpected error", ex);
+//        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                .body(ApiResponse.fail(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()), "Unexpected server error."));
+//    }
 
-
+//next 1 2 3 four 5
 }
 

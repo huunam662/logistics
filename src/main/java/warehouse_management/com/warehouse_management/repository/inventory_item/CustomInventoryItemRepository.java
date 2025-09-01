@@ -2,10 +2,10 @@ package warehouse_management.com.warehouse_management.repository.inventory_item;
 
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Sort;
-import warehouse_management.com.warehouse_management.dto.WarehouseTransferTicketDto;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
+import warehouse_management.com.warehouse_management.dto.report_inventory.request.ReportParamsDto;
+import warehouse_management.com.warehouse_management.dto.report_inventory.response.ReportInventoryDto;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
 
 import java.util.Collection;
@@ -31,16 +31,39 @@ public interface CustomInventoryItemRepository {
 
     Page<InventoryConsignmentSparePartsDto> findPageInventorySparePartsConsignment(ObjectId warehouseId, PageOptionsDto optionsReq);
 
-    Page<InventoryCentralWarehouseDto> findPageInventoryCentralWarehouse(PageOptionsDto optionsReq);
+    Page<InventoryCentralWarehouseProductDto> findPageInventoryCentralWarehouse(PageOptionsDto optionsReq);
 
-    List<InventoryPoWarehouseDto> findInventoryInStockPoNumbers(String warehouseType, String filter, Sort sort);
+    Page<InventoryCentralWarehouseSparePartDto> findPageInventoryCentralWarehouseSparePart(PageOptionsDto optionsReq);
 
-    List<InventoryItemPoNumberDto> findInventoryInStockByPoNumber(String warehouseType, String poNumber, String filter, Sort sort);
+    List<InventoryPoWarehouseDto> findPoNumbersOfInventoryInStock(String warehouseType, List<String> inventoryTypes, String poNumber, String model, String warehouseId);
 
-    List<InventoryItem> insertAll(Collection<InventoryItem> inventoryItems);
+    List<InventoryItemPoNumberDto> findInventoryInStockByPoNumber(String warehouseType, String warehouseId, String poNumber, String filter);
 
-    void bulkUpdateTransferDeparture(Collection<InventoryItem> inventoryItems);
+    List<InventoryItem> bulkInsert(Collection<InventoryItem> inventoryItems);
 
-    List<InventoryItemPoNumberDto> findInventoryItemsInIds(List<ObjectId> ids);
+    void bulkUpdateTransfer(Collection<InventoryItem> inventoryItems);
 
+    void bulkUpdateStatusAndQuantity(Collection<InventoryItem> inventoryItems);
+
+    void updateStatusAndUnRefContainer(Collection<ObjectId> ids, String status);
+
+    void updateStatusAndWarehouseAndUnRefContainer(Collection<ObjectId> ids, ObjectId warehouseId, String status);
+
+    void updateStatusByIdIn(Collection<ObjectId> ids, String status);
+
+    void updateStatusAndWarehouseByIdIn(Collection<ObjectId> ids, ObjectId warehouseId, String status);
+
+    long softDelete(ObjectId id, ObjectId deletedBy);
+
+    long bulkSoftDelete(Collection<ObjectId> ids, ObjectId deletedBy);
+
+    long bulkHardDelete(Collection<ObjectId> ids);
+
+    List<InventoryProductDetailsDto> findInventoryProductDetailsInIds(ObjectId ids);
+
+    List<InventorySparePartDetailsDto> findInventorySparePartDetailsInIds(ObjectId ids);
+
+    List<InventoryItemModelDto> findAllModelsAndItems(List<String> inventoryTypes, List<ObjectId> warehouseIds, String model);
+
+    Page<ReportInventoryDto> findPageReportInventoryToDashBoard(ReportParamsDto params);
 }
