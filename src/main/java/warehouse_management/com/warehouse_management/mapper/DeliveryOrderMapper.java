@@ -20,6 +20,7 @@ public interface DeliveryOrderMapper {
     @Mapping(target = "customerId", ignore = true)
     void mapToUpdateDeliveryOrder(@MappingTarget DeliveryOrder deliveryOrder, UpdateDeliveryOrderDto dto);
 
+    @Mapping(target = "inventoryItemId", source = "id")
     DeliveryItemModelDto toDeliveryOrderItemsDto(DeliveryOrder.InventoryItemDelivery inventoryItemDelivery);
 
     DeliveryProductDetailsDto toDeliveryProductDetailsDto(DeliveryOrder.InventoryItemDelivery inventoryItemDelivery);
