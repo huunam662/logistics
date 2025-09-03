@@ -1,10 +1,13 @@
 package warehouse_management.com.warehouse_management.service;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import warehouse_management.com.warehouse_management.dto.delivery_order.request.*;
 import warehouse_management.com.warehouse_management.dto.delivery_order.response.*;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
@@ -114,32 +117,6 @@ public class DeliveryOrderService {
     }
 
     @Transactional
-    public DeliveryOrder addNotesToDeliveryOrder(PushNotesOrderDto dto){
-        DeliveryOrder deliveryOrder = getDeliveryOrderToId(new ObjectId(dto.getDeliveryOrderId()));
-        List<String> statuses = List.of(DeliveryOrderStatus.COMPLETED.getValue(), DeliveryOrderStatus.REJECTED.getValue());
-        if(statuses.contains(deliveryOrder.getStatus()))
-            throw LogicErrException.of("Đơn hàng đang ở trong phạm vi không được thêm ghi nợ.");
-        List<DeliveryOrder.BackDeliveryModel> notesToDeliveryDto = dto.getNotes();
-        if(notesToDeliveryDto == null) throw LogicErrException.of("Ghi chú cần thêm vào đơn hàng hiện đang rỗng.");
-        if(deliveryOrder.getModelNotes() == null) deliveryOrder.setModelNotes(new ArrayList<>());
-        deliveryOrder.getModelNotes().addAll(notesToDeliveryDto);
-        return deliveryOrderRepository.save(deliveryOrder);
-    }
-
-    @Transactional
-    public DeliveryOrder removeNotesInDeliveryOrder(DeleteNotesOrderDto dto){
-        DeliveryOrder deliveryOrder = getDeliveryOrderToId(new ObjectId(dto.getDeliveryOrderId()));
-        if(deliveryOrder.getInventoryItems() == null || deliveryOrder.getInventoryItems().isEmpty())
-            throw LogicErrException.of("Đơn hàng hiện không có ghi nợ nào");
-        for(var modelNote : dto.getModels()){
-            DeliveryOrder.BackDeliveryModel m = deliveryOrder.getModelNotes().stream().filter(e -> e.getModel().equals(modelNote)).findFirst().orElse(null);
-            if(m == null) throw LogicErrException.of("Nội dung '" + modelNote + "' hiện không có trong danh sách ghi nợ.");
-            deliveryOrder.getModelNotes().remove(m);
-        }
-        return deliveryOrderRepository.save(deliveryOrder);
-    }
-
-    @Transactional
     public DeliveryOrder changeStatusDeliveryOrder(ObjectId id, ChangeStatusDeliveryOrderDto dto){
         DeliveryOrder deliveryOrder = getDeliveryOrderToId(id);
         if(dto.getStatus().equals(DeliveryOrderStatus.UN_DELIVERED.getValue())
@@ -174,7 +151,7 @@ public class DeliveryOrderService {
     }
 
     @Transactional
-    public void pushItemsToDeliveryOrderLogic(List<PushItemToDeliveryDto> itemsToDeliveryDto, DeliveryOrder deliveryOrder){
+    protected void pushItemsToDeliveryOrderLogic(List<PushItemToDeliveryDto> itemsToDeliveryDto, DeliveryOrder deliveryOrder){
         if(deliveryOrder.getInventoryItems() == null) deliveryOrder.setInventoryItems(new ArrayList<>());
         List<ObjectId> pushItemIds = itemsToDeliveryDto.stream().filter(e -> e.getId() != null).map(e -> new ObjectId(e.getId())).toList();
         List<InventoryItem> itemsToDelivery = inventoryItemRepository.findByIdIn(pushItemIds);
@@ -184,6 +161,14 @@ public class DeliveryOrderService {
         Map<String, InventoryItem> itemsHoldingInWarehouseMap = itemsHoldingInWarehouse.stream().collect(Collectors.toMap(InventoryItem::getCommodityCode, e -> e));
         List<InventoryItem> sparePartToNew = new ArrayList<>();
         for(var itemToPush : itemsToDeliveryDto){
+            if(itemToPush.getManualModel() != null){
+                if(deliveryOrder.getModelNotes() == null) deliveryOrder.setModelNotes(new ArrayList<>());
+                DeliveryOrder.NoteDeliveryModel note = new DeliveryOrder.NoteDeliveryModel();
+                note.setModel(itemToPush.getManualModel());
+                note.setIsSparePart(itemToPush.getIsSparePart());
+                deliveryOrder.getModelNotes().add(note);
+                continue;
+            }
             if(itemToPush.getQuantity() <= 0) throw LogicErrException.of("Số lượng hàng hóa cần thêm phải lớn hơn 0.");
             InventoryItem item = itemsToDeliveryMap.getOrDefault(new ObjectId(itemToPush.getId()), null);
             if(item == null) throw LogicErrException.of("Mặt hàng cần thêm vào đơn hiện không tồn tại.");
@@ -308,4 +293,113 @@ public class DeliveryOrderService {
         inventoryItemRepository.bulkInsert(itemsToNew);
         inventoryItemRepository.bulkUpdateStatusAndQuantity(itemsToUpdate);
     }
+
+    @Transactional
+    public DeliveryOrder updateDeliveryOrderItems(PushItemsDeliveryDto dto){
+        DeliveryOrder deliveryOrder = getDeliveryOrderToId(new ObjectId(dto.getDeliveryOrderId()));
+        if(dto.getInventoryItemsDelivery() == null || dto.getInventoryItemsDelivery().isEmpty())
+            throw LogicErrException.of("Danh sách sản phẩm cần cập nhật trong đơn hiện đang rỗng.");
+        Map<ObjectId, DeliveryOrder.InventoryItemDelivery> deliveryOrderMap = deliveryOrder.getInventoryItems().stream()
+                .collect(Collectors.toMap(DeliveryOrder.InventoryItemDelivery::getId, e -> e));
+        List<PushItemToDeliveryDto> itemsReqToPushNew = new ArrayList<>();
+        List<PushItemToDeliveryDto> itemsReqToPushUpdate = new ArrayList<>();
+        for(var itemReq : dto.getInventoryItemsDelivery()){
+            if(deliveryOrderMap.containsKey(new ObjectId(itemReq.getId()))) itemsReqToPushUpdate.add(itemReq);
+            else itemsReqToPushNew.add(itemReq);
+        }
+        // - Nếu item không tồn tại thì thêm mới
+        if(!itemsReqToPushNew.isEmpty()) pushItemsToDeliveryOrderLogic(itemsReqToPushNew, deliveryOrder);
+        Map<ObjectId, InventoryItem> inventoryInWarehouseMap = inventoryItemRepository.findByIdIn(deliveryOrderMap.keySet()).stream()
+                .collect(Collectors.toMap(InventoryItem::getId, e -> e));
+        for(var itemToUpdateReq : itemsReqToPushUpdate){
+            DeliveryOrder.InventoryItemDelivery deliveryItem = deliveryOrderMap.get(new ObjectId(itemToUpdateReq.getId()));
+            // - Nếu item đã tồn tại và trạng thái là "đã giao" thì không cho phép cập nhật
+            if(deliveryItem.getIsDelivered()) {
+                if(deliveryItem.getInventoryType().equals(InventoryType.SPARE_PART.getId()))
+                    throw LogicErrException.of("Hàng hòa mã '"+deliveryItem.getCommodityCode()+"' đã giao không được phép cập nhật.");
+                else throw LogicErrException.of("Sản phẩm mã '"+deliveryItem.getProductCode()+"' đã giao không được phép cập nhật.");
+            }
+            // - Nếu item đã tồn tại với trạng thái "chưa giao" thì cho phép cập nhật
+            else{
+                // - Nếu là xe & phụ kiện
+                if(!deliveryItem.getInventoryType().equals(InventoryType.SPARE_PART.getId())){
+                    if(itemToUpdateReq.getQuantity() != 1) throw LogicErrException.of("Số lượng sản phẩm mã '"+deliveryItem.getProductCode()+"' mặc định luôn là 1.");
+                    // - Đối với sản phẩm xe & phụ kiện thì chỉ xóa hoặc thêm mới hoặc cho phép đổi trạng thái "chưa giao" sang "đã giao"
+                    if(itemToUpdateReq.getIsDelivered()){
+                        deliveryItem.setIsDelivered(true);
+                        InventoryItem product = inventoryInWarehouseMap.get(deliveryItem.getId());
+                        product.setStatus(InventoryItemStatus.SOLD.getId());
+                        inventoryItemRepository.save(product);
+                    }
+                }
+                // - Nếu là phụ tùng
+                // */   + Có 2 trường hợp
+                //      ++ 1. chưa giao -> chưa giao, TH chỉ cập nhật số lượng (cập nhật số lượng giu hàng nếu hàng có sẵn đáp ứng)
+                //      ++ 2. chưa giao -> đã giao, TH có thể cập nhật số lượng (cập nhật số lượng giao nếu hàng có sẵn đáp ứng)
+                // */
+                else sparePartUpdateLogic(itemToUpdateReq, deliveryItem);
+            }
+        }
+        return deliveryOrderRepository.save(deliveryOrder);
+    }
+
+    @Transactional
+    protected void sparePartUpdateLogic(PushItemToDeliveryDto itemToUpdateReq, DeliveryOrder.InventoryItemDelivery deliveryItem){
+        List<InventoryItem> inventoryHoldingAndInStock = inventoryItemRepository.findByCommodityCodeAndWarehouseIdList(deliveryItem.getCommodityCode(), deliveryItem.getWarehouseId());
+        InventoryItem itemInStock = inventoryHoldingAndInStock.stream().filter(e -> e.getStatus().equals(InventoryItemStatus.SOLD)).findFirst().orElse(null);
+        InventoryItem itemInHolding = inventoryHoldingAndInStock.stream().filter(e -> e.getStatus().equals(InventoryItemStatus.HOLD)).findFirst().orElse(null);
+        // - Nếu vẫn là trạng thái "chưa giao" và cập nhật số lượng thì merge với item "giữ hàng" (có cùng mã hàng hóa)
+        if(!itemToUpdateReq.getIsDelivered()){
+            if(itemToUpdateReq.getQuantity().equals(deliveryItem.getQuantity())) return;
+            int quantityHoldingCalResult;
+            // + Nếu số lượng phụ tùng cập nhật lớn hơn số lượng ban đầu thì kiêm tra số lượng hàng có sẵn (không đáp ứng thì không cho phép cập nhật)
+            if(itemToUpdateReq.getQuantity() > deliveryItem.getQuantity()){
+                if(itemInStock == null || itemInStock.getQuantity() < itemToUpdateReq.getQuantity() - deliveryItem.getQuantity())
+                    throw LogicErrException.of("Hàng hóa mã '"+deliveryItem.getCommodityCode()+"' không đủ số lượng sẵn hàng.");
+                quantityHoldingCalResult = itemToUpdateReq.getQuantity() - deliveryItem.getQuantity();
+                if(itemInHolding != null) itemInHolding.setQuantity(itemInHolding.getQuantity() + quantityHoldingCalResult);
+                itemInStock.setQuantity(itemInStock.getQuantity() - quantityHoldingCalResult);
+                if(itemInStock.getQuantity() == 0) itemInStock.setStatus(InventoryItemStatus.SOLD.getId());
+                inventoryItemRepository.save(itemInStock);
+            }
+            // + Nếu số lương cập nhật bé hơn số lượng ban đầu thì cập nhật số lượng hàng đang giữ (cộng thêm số lượng bị trừ so với ban đầu)
+            else{
+                quantityHoldingCalResult = deliveryItem.getQuantity() - itemToUpdateReq.getQuantity();
+                if(itemInHolding != null) itemInHolding.setQuantity(itemInHolding.getQuantity() - itemToUpdateReq.getQuantity());
+            }
+            if(itemInHolding == null){
+                itemInHolding = inventoryItemMapper.toInventoryItem(deliveryItem);
+                itemInHolding.setId(new ObjectId());
+                itemInHolding.setStatus(InventoryItemStatus.HOLD.getId());
+                itemInHolding.setQuantity(quantityHoldingCalResult);
+            }
+            inventoryItemRepository.save(itemInHolding);
+        }
+        // - Nếu cập nhật từ trạng thái "chưa giao" sang "đã giao" và cập nhật số lượng thì merge với item "đã giao" (có cùng mã hàng hóa)
+        else{
+            // + Nếu số lượng phụ tùng cập nhật lớn hơn số lượng ban đầu thì kiêm tra số lượng hàng có sẵn (không đáp ứng thì không cho phép cập nhật)
+            if(itemToUpdateReq.getQuantity() >= deliveryItem.getQuantity()){
+                if(itemInStock == null || itemInStock.getQuantity() < itemToUpdateReq.getQuantity() - deliveryItem.getQuantity())
+                    throw LogicErrException.of("Hàng hóa mã '"+deliveryItem.getCommodityCode()+"' không đủ số lượng sẵn hàng.");
+                if(itemInHolding != null) {
+                    itemInHolding.setQuantity(itemInHolding.getQuantity() - deliveryItem.getQuantity());
+                    if(itemInHolding.getQuantity() == 0) inventoryItemRepository.deleteById(itemInHolding.getId());
+                    else inventoryItemRepository.save(itemInHolding);
+                }
+                itemInStock.setQuantity(itemInStock.getQuantity() - (itemToUpdateReq.getQuantity() - deliveryItem.getQuantity()));
+                if(itemInStock.getQuantity() == 0) itemInStock.setStatus(InventoryItemStatus.SOLD.getId());
+                inventoryItemRepository.save(itemInStock);
+            }
+            // + Nếu số lương cập nhật bé hơn số lượng ban đầu thì cập nhật số lượng hàng đang giữ (cộng thêm số lượng bị trừ so với ban đầu)
+            else{
+                if(itemInHolding != null) {
+                    itemInHolding.setQuantity(itemInHolding.getQuantity() - itemToUpdateReq.getQuantity());
+                    inventoryItemRepository.save(itemInHolding);
+                }
+            }
+            deliveryItem.setIsDelivered(true);
+        }
+        deliveryItem.setQuantity(itemToUpdateReq.getQuantity());
+    }
+
 }

@@ -36,7 +36,7 @@ public class DeliveryOrder {
 
     private List<InventoryItemDelivery> inventoryItems; // Các mặt hàng trong đơn giao
 
-    private List<BackDeliveryModel> modelNotes;  // Các Model còn nợ
+    private List<NoteDeliveryModel> modelNotes;  // Các Model còn nợ
 
     @CreatedBy
     private ObjectId createdBy;
@@ -53,7 +53,7 @@ public class DeliveryOrder {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class BackDeliveryModel{
+    public static class NoteDeliveryModel{
         private String model; // Model sản phẩm
         private Boolean isSparePart;
     }
