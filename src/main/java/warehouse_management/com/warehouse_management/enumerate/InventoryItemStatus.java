@@ -5,7 +5,7 @@ public enum InventoryItemStatus {
     IN_TRANSIT("IN_TRANSIT"),   // Đang vận chuyển
     IN_REPAIR("IN_REPAIR"), // Đang sửa  chữa
     HOLD("HOLD"),   // Giữ hàng
-    OUT_STOCK("OUT_STOCK"),   // Đã bán
+    SOLD("SOLD"),   // Đã bán
     OTHER("OTHER"); // Khác
 
     private final String id;
