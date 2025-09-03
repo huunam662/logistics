@@ -24,7 +24,9 @@ import warehouse_management.com.warehouse_management.model.Container;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.model.WarehouseTransaction;
+import warehouse_management.com.warehouse_management.pojo.IdProjection;
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
+import warehouse_management.com.warehouse_management.repository.warehouse.WarehouseRepository;
 import warehouse_management.com.warehouse_management.repository.warehouse_transaction.WarehouseTransactionRepository;
 import warehouse_management.com.warehouse_management.utils.GeneralResource;
 import warehouse_management.com.warehouse_management.utils.TranUtils;
@@ -32,6 +34,7 @@ import warehouse_management.com.warehouse_management.utils.TranUtils;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -48,56 +51,210 @@ public class InventoryItemService {
     private final WarehouseTransactionRepository warehouseTransferTicketRepository;
     private final MongoTemplate mongoTemplate;
     private final TranUtils tranUtils;
+    private final WarehouseRepository warehouseRepository;
 
+//    NHẬP VÀO KHO BẰNG EXCEL HOẶC FORM
 
     @Transactional
-    public InventoryItem createInventorySparePart(CreateInventorySparePartDto req){
-        Warehouse warehouse = warehouseService.getWarehouseToId(new ObjectId(req.getWarehouseId()));
+    public InventoryItem createInventorySparePart(CreateInventorySparePartDto req) {
+        Warehouse inStockWh = warehouseService.getWarehouseToId(new ObjectId(req.getWarehouseId()));
+        LocalDate orderDate = parseOrderDate(req.getOrderDate());
+        // 1. Chuyển đổi DTO sang InventoryItem
+        InventoryItem newItem = buildSparePartItem(req, inStockWh, orderDate);
+        InventoryItem saved = inventoryItemRepository.save(newItem);
+        // 2. insert vào các kho destination khác
+//        CHỈ CÓ PHỤ TÙNG MỚI INSERT VÀO CÁC KHO KHÁC
+        if (inStockWh.getType() == WarehouseType.PRODUCTION) {
+            inventoryItemRepository.bulkInsert(buildInventoryItemToOtherDestWh(List.of(newItem)));
+        }
+        // 3. Ghi phiếu nhập kho (WarehouseTransaction)
+        warehouseTransferTicketRepository.save(buildAWarehouseTransaction(inStockWh, newItem));
+        return saved;
+    }
+
+    @Transactional
+    public InventoryItem createInventoryProduct(CreateInventoryProductDto req) {
+        Warehouse inStockWh = warehouseService.getWarehouseToId(new ObjectId(req.getWarehouseId()));
+        // 1. Chuyển đổi DTO sang InventoryItem
+        InventoryItem newItem = buildProductItem(req, inStockWh);
+        InventoryItem saved = inventoryItemRepository.save(newItem);
+
+        // 3. Ghi phiếu nhập kho (WarehouseTransaction)
+        warehouseTransferTicketRepository.save(buildAWarehouseTransaction(inStockWh, newItem));
+
+        return saved;
+    }
+
+    private InventoryItem buildSparePartItem(CreateInventorySparePartDto req, Warehouse wh, LocalDate orderDate) {
         InventoryItem item = inventoryItemMapper.toInventoryItemSparePart(req);
-        item.setWarehouseId(warehouse.getId());
+        item.setWarehouseId(wh.getId());
         item.setInventoryType(InventoryType.SPARE_PART.getId());
         item.setStatus(InventoryItemStatus.IN_STOCK);
-        if(item.getLogistics() == null) item.setLogistics(new InventoryItem.Logistics());
-        try{
-            item.getLogistics().setOrderDate(LocalDate.parse(req.getOrderDate()).atStartOfDay());
+        if (item.getLogistics() == null) {
+            item.setLogistics(new InventoryItem.Logistics());
         }
-        catch (Exception e){
-            throw LogicErrException.of("Ngày đặt hàng phải đúng định dạng 'yyyy-MM-dd'");
+        item.getLogistics().setOrderDate(orderDate.atStartOfDay());
+        return item;
+    }
+
+    private InventoryItem buildProductItem(CreateInventoryProductDto req, Warehouse wh) {
+        InventoryItem item = mapper.toInventoryItemModel(req);
+        item.setWarehouseId(wh.getId());
+        item.setQuantity(1); // Xe hoặc Phụ kiện mặc định là 1
+        item.setInitialCondition(true);
+        item.setStatus(InventoryItemStatus.IN_STOCK);
+        LocalDateTime orderDate = parseOrderDate(req.getLogistics().getOrderDate()).atStartOfDay();
+        LocalDateTime estimateCompletionDate = parseOrderDate(req.getLogistics().getEstimateCompletionDate()).atStartOfDay();
+        if (item.getLogistics() == null) {
+            item.setLogistics(new InventoryItem.Logistics());
         }
-        // Ghi vào phiếu nhập
+        item.getLogistics().setOrderDate(orderDate);
+        item.getLogistics().setEstimateCompletionDate(estimateCompletionDate);
+        return item;
+    }
+
+    private LocalDate parseOrderDate(String dateStr) {
+        try {
+            return LocalDate.parse(dateStr);
+        } catch (Exception e) {
+            throw LogicErrException.of("Ngày phải đúng định dạng 'yyyy-MM-dd'");
+        }
+    }
+
+    private WarehouseTransaction buildAWarehouseTransaction(Warehouse inStockWh, InventoryItem item) {
         WarehouseTransaction.InventoryItemTicket itemSnapshot = inventoryItemMapper.toInventoryItemTicket(item);
 
         WarehouseTransaction tran = new WarehouseTransaction();
-        tran.setReason("Nhập kho hàng hóa " + item.getCommodityCode() + " theo PO " + item.getPoNumber());
+        tran.setReason("Nhập kho hàng hóa với PO" + item.getPoNumber());
         WarehouseTranType tranType = WarehouseTranType.DATA_ENTRY;
         tran.setTranType(tranType);
-        WarehouseSubTranType subTranType;
-        if (warehouse.getType() == WarehouseType.DESTINATION) {
-            subTranType = WarehouseSubTranType.FORM_TO_DEST_SPARE_PART;
-            tran.setSubTranType(subTranType);
-            tran.setTitle(tranUtils.generateTranTitle(tranType, subTranType, warehouse, null));
-        } else if (warehouse.getType() == WarehouseType.PRODUCTION) {
-            subTranType = WarehouseSubTranType.FORM_TO_PRODUCTION_SPARE_PART;
-            tran.setSubTranType(subTranType);
-            tran.setTitle(tranUtils.generateTranTitle(tranType, subTranType, warehouse, null));
+        WarehouseSubTranType subTranType = null;
+        if (inStockWh.getType().equals(WarehouseType.PRODUCTION)) {
+            if (item.getInventoryType().equals(InventoryType.SPARE_PART.getId())) {
+                subTranType = WarehouseSubTranType.FORM_TO_PRODUCTION_SPARE_PART;
+            } else if (item.getInventoryType().equals(InventoryType.VEHICLE.getId()) || item.getInventoryType().equals(InventoryType.ACCESSORY.getId())) {
+                subTranType = WarehouseSubTranType.FORM_TO_PRODUCTION_PRODUCT;
+            }
+
+        } else if (inStockWh.getType().equals(WarehouseType.DESTINATION)) {
+            if (item.getInventoryType().equals(InventoryType.SPARE_PART.getId())) {
+                subTranType = WarehouseSubTranType.FORM_TO_DEST_SPARE_PART;
+            } else if (item.getInventoryType().equals(InventoryType.VEHICLE.getId()) || item.getInventoryType().equals(InventoryType.ACCESSORY.getId())) {
+                subTranType = WarehouseSubTranType.FORM_TO_DEST_PRODUCT;
+            }
         }
+        if (subTranType == null) {
+            throw LogicErrException.of("Loại kho hoặc loại hàng không được hỗ trợ");
+        }
+        tran.setSubTranType(subTranType);
+        tran.setTitle(tranUtils.generateTranTitle(tranType, subTranType, inStockWh, null));
         // In dept từ wh2
         WarehouseTransaction.Department inDept = new WarehouseTransaction.Department();
-        inDept.setName(warehouse.getName());
-        inDept.setAddress(warehouse.getAddress());
+        inDept.setName(inStockWh.getName());
+        inDept.setAddress(inStockWh.getAddress());
         tran.setStockInDepartment(inDept);
 
         tran.setStatusEnum(WarehouseTransactionStatus.APPROVED); // Tự động duyệt
         tran.setApprovedAt(LocalDateTime.now());
         tran.setDestinationWarehouseId(item.getWarehouseId());
         tran.setInventoryItems(List.of(itemSnapshot));
-        warehouseTransferTicketRepository.save(tran);
+        return tran;
+    }
 
-        return inventoryItemRepository.save(item);
+    private List<InventoryItem> buildInventoryItemToOtherDestWh(List<InventoryItem> itemsToCreate) {
+
+        List<InventoryItem> dataToSave = new ArrayList<>();
+        List<IdProjection> whIds = warehouseRepository.findAllIdsByType(WarehouseType.DESTINATION);
+        if (itemsToCreate.isEmpty() || whIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        for (IdProjection whId : whIds) {
+            for (InventoryItem item : itemsToCreate) {
+                InventoryItem itemCp = mapper.cloneEntity(item);
+                itemCp.setId(null);
+                itemCp.setWarehouseId(new ObjectId(whId.getId()));
+                dataToSave.add(itemCp);
+            }
+        }
+        return dataToSave;
+    }
+
+    private void createImportTransaction(String warehouseId, List<WarehouseTransaction.InventoryItemTicket> dtos, WarehouseSubTranType importType) {
+        Warehouse wh = warehouseService.getWarehouseToId(new ObjectId(warehouseId));
+        WarehouseTransaction tran = new WarehouseTransaction();
+        WarehouseTranType tranType = WarehouseTranType.DATA_ENTRY;
+        tran.setTitle(tranUtils.generateTranTitle(tranType, importType, wh, null));
+        tran.setInventoryItems(dtos);
+        tran.setTranType(tranType);
+        tran.setReason("Nhập kho theo lô");
+        tran.setSubTranType(importType);
+        WarehouseTransaction.Department inDept = new WarehouseTransaction.Department();
+        inDept.setName(wh.getName());
+        inDept.setAddress(wh.getAddress());
+        tran.setStockInDepartment(inDept);
+        tran.setStatus(WarehouseTransactionStatus.APPROVED.getId());
+        warehouseTransferTicketRepository.save(tran);
+    }
+
+    public <T> List<InventoryItem> bulkImport(
+            String warehouseId,
+            List<T> dtos,
+            Function<T, InventoryItem> toInventoryItem,
+            Function<T, WarehouseTransaction.InventoryItemTicket> toInventoryItemTicket,
+            WarehouseSubTranType importType
+    ) {
+        if (dtos == null || dtos.isEmpty()) {
+            return List.of();
+        }
+
+        List<InventoryItem> itemsToInsert = dtos.stream()
+                .map(dto -> {
+                    InventoryItem item = toInventoryItem.apply(dto);
+                    item.setStatus(InventoryItemStatus.IN_STOCK);
+                    return item;
+                })
+                .collect(Collectors.toList());
+
+//        CHỈ CÓ PHỤ TÙNG MỚI TẠO CHO CÁC KHO KHÁC VÌ NÓ QUẢN LÝ THEO SỐ LƯỢNG
+        if (importType.equals(WarehouseSubTranType.EXCEL_TO_PRODUCTION_SPARE_PART)) {
+            itemsToInsert.addAll(buildInventoryItemToOtherDestWh(itemsToInsert));
+        }
+
+        inventoryItemRepository.bulkInsert(itemsToInsert);
+        List<WarehouseTransaction.InventoryItemTicket> itemsToTran = dtos.stream()
+                .map(toInventoryItemTicket)
+                .collect(Collectors.toList());
+
+        createImportTransaction(warehouseId, itemsToTran, importType);
+
+        return itemsToInsert;
+    }
+
+    @Transactional
+    public List<InventoryItem> bulkCreateProductionProducts(String warehouseId, List<ExcelImportProductionProductDto> dtos) {
+
+        return bulkImport(
+                warehouseId,
+                dtos,
+                mapper::toInventoryItem,
+                mapper::toInventoryItemTicket,
+                WarehouseSubTranType.EXCEL_TO_PRODUCTION_PRODUCT);
+    }
+
+    @Transactional
+    public List<InventoryItem> bulkCreateProductionSpareParts(String warehouseId, List<ExcelImportProductionSparePartDto> dtos) {
+        return bulkImport(
+                warehouseId,
+                dtos,
+                mapper::toInventoryItem,
+                mapper::toInventoryItemTicket,
+                WarehouseSubTranType.EXCEL_TO_PRODUCTION_SPARE_PART);
     }
 
 
-    public InventoryProductDetailsDto getInventoryProductDetails(ObjectId id){
+//END   -    NHẬP VÀO KHO BẰNG EXCEL HOẶC FORM
+
+    public InventoryProductDetailsDto getInventoryProductDetails(ObjectId id) {
         InventoryItem item = getItemToId(id);
         return mapper.toInventoryProductDetailsDto(item);
     }
@@ -116,57 +273,6 @@ public class InventoryItemService {
 
     }
 
-    @Transactional
-    public InventoryItem createInventoryProduct(CreateInventoryProductDto req) {
-        Warehouse warehouse = warehouseService.getWarehouseToId(new ObjectId(req.getWarehouseId()));
-        InventoryItem item = mapper.toInventoryItemModel(req);
-        item.setWarehouseId(warehouse.getId());
-        item.setQuantity(1); // Xe hoặc Phụ kiện mặc định là 1
-        item.setInitialCondition(true);
-        item.setStatus(InventoryItemStatus.IN_STOCK);
-        if(item.getLogistics() == null) item.setLogistics(new InventoryItem.Logistics());
-        try{
-            item.getLogistics().setOrderDate(LocalDate.parse(req.getLogistics().getOrderDate()).atStartOfDay());
-        }
-        catch (Exception e){
-            throw LogicErrException.of("Ngày đặt hàng phải đúng định dạng 'yyyy-MM-dd'");
-        }
-        try{
-            item.getLogistics().setEstimateCompletionDate(LocalDate.parse(req.getLogistics().getEstimateCompletionDate()).atStartOfDay());
-        }
-        catch (Exception e){
-            throw LogicErrException.of("Ngày dự kiến SX xong phải đúng định dạng 'yyyy-MM-dd'");
-        }
-        // Ghi vào phiếu nhập
-        WarehouseTransaction.InventoryItemTicket itemSnapshot = inventoryItemMapper.toInventoryItemTicket(item);
-
-        WarehouseTransaction tran = new WarehouseTransaction();
-        tran.setReason("Nhập kho hàng hóa " + item.getProductCode() + " theo PO " + item.getPoNumber());
-        WarehouseTranType tranType = WarehouseTranType.DATA_ENTRY;
-        tran.setTranType(tranType);
-        WarehouseSubTranType subTranType;
-        if (warehouse.getType() == WarehouseType.DESTINATION) {
-            subTranType = WarehouseSubTranType.FORM_TO_DEST_PRODUCT;
-            tran.setSubTranType(subTranType);
-            tran.setTitle(tranUtils.generateTranTitle(tranType, subTranType, warehouse, null));
-        } else if (warehouse.getType() == WarehouseType.PRODUCTION) {
-            subTranType = WarehouseSubTranType.FORM_TO_PRODUCTION_PRODUCT;
-            tran.setSubTranType(subTranType);
-            tran.setTitle(tranUtils.generateTranTitle(tranType, subTranType, warehouse, null));
-        }
-        WarehouseTransaction.Department inDept = new WarehouseTransaction.Department();
-        inDept.setName(warehouse.getName());
-        inDept.setAddress(warehouse.getAddress());
-        tran.setStockInDepartment(inDept);
-
-        tran.setStatusEnum(WarehouseTransactionStatus.APPROVED); // Tự động duyệt
-        tran.setApprovedAt(LocalDateTime.now());
-        tran.setDestinationWarehouseId(item.getWarehouseId());
-        tran.setInventoryItems(List.of(itemSnapshot));
-        warehouseTransferTicketRepository.save(tran);
-
-        return inventoryItemRepository.save(item);
-    }
 
     public InventoryItem getItemToId(ObjectId id){
         InventoryItem inventoryItem = inventoryItemRepository.findById(id).orElse(null);
@@ -200,8 +306,8 @@ public class InventoryItemService {
 
         try {
             ObjectId inputItemId = new ObjectId(req.getInventoryItems().get(0).getId());
-            Warehouse wh1 = GeneralResource.getWarehouseById(mongoTemplate, inventoryItemRepository.findWarehouseIdById(inputItemId).get().getWarehouseId());
-            Warehouse wh2 = GeneralResource.getWarehouseById(mongoTemplate, new ObjectId(req.getDepartureWarehouseId()));
+            Warehouse wh1 = warehouseService.getWarehouseToId(inventoryItemRepository.findWarehouseIdById(inputItemId).get().getWarehouseId());
+            Warehouse wh2 = warehouseService.getWarehouseToId(new ObjectId(req.getDepartureWarehouseId()));
             LocalDateTime arrivalDate = LocalDate.parse(req.getArrivalDate()).atStartOfDay();
             List<InventoryItem> items = transferItems(req.getInventoryItems(), warehouseDeparture.getId(), null, arrivalDate, null, InventoryItemStatus.IN_STOCK);
             // TODO: Ghi nhận log chuyển kho (người thực hiện, thời gian, PO, số lượng)
@@ -415,71 +521,6 @@ public class InventoryItemService {
         return itemsResults;
     }
 
-    private void createImportTransaction(String warehouseId, List<WarehouseTransaction.InventoryItemTicket> dtos, WarehouseSubTranType importType) {
-        Warehouse wh = GeneralResource.getWarehouseById(mongoTemplate, new ObjectId(warehouseId));
-        WarehouseTransaction tran = new WarehouseTransaction();
-        WarehouseTranType tranType = WarehouseTranType.DATA_ENTRY;
-        tran.setTitle(tranUtils.generateTranTitle(tranType, importType, wh, null));
-        tran.setInventoryItems(dtos);
-        tran.setTranType(tranType);
-        tran.setReason("Nhập kho theo lô");
-        tran.setSubTranType(importType);
-        WarehouseTransaction.Department inDept = new WarehouseTransaction.Department();
-        inDept.setName(wh.getName());
-        inDept.setAddress(wh.getAddress());
-        tran.setStockInDepartment(inDept);
-        tran.setStatus(WarehouseTransactionStatus.APPROVED.getId());
-        warehouseTransferTicketRepository.save(tran);
-    }
-
-    public <T> List<InventoryItem> bulkImport(
-            String warehouseId,
-            List<T> dtos,
-            Function<T, InventoryItem> toInventoryItem,
-            Function<T, WarehouseTransaction.InventoryItemTicket> toInventoryItemTicket,
-            WarehouseSubTranType importType
-    ) {
-        if (dtos == null || dtos.isEmpty()) {
-            return List.of();
-        }
-
-        List<InventoryItem> itemsToInsert = dtos.stream()
-                .map(dto -> {
-                    InventoryItem item = toInventoryItem.apply(dto);
-                    item.setStatus(InventoryItemStatus.IN_STOCK);
-                    return item;
-                })
-                .collect(Collectors.toList());
-
-        inventoryItemRepository.insert(itemsToInsert);
-
-        List<WarehouseTransaction.InventoryItemTicket> itemsToTran = dtos.stream()
-                .map(toInventoryItemTicket)
-                .collect(Collectors.toList());
-
-        createImportTransaction(warehouseId, itemsToTran, importType);
-
-        return itemsToInsert;
-    }
-
-    public List<InventoryItem> bulkCreateProductionProducts(String warehouseId, List<ExcelImportProductionProductDto> dtos) {
-
-        return bulkImport(
-                warehouseId,
-                dtos,
-                mapper::toInventoryItem,
-                mapper::toInventoryItemTicket,
-                WarehouseSubTranType.EXCEL_TO_PRODUCTION_PRODUCT);
-    }
-
-    public List<InventoryItem> bulkCreateProductionSpareParts(String warehouseId, List<ExcelImportProductionSparePartDto> dtos) {
-        return bulkImport(
-                warehouseId,
-                dtos,
-                mapper::toInventoryItem,
-                mapper::toInventoryItemTicket,
-                WarehouseSubTranType.EXCEL_TO_PRODUCTION_SPARE_PART);
-    }
 
     @AuditAction(action = "testMethod")
     public void approve(Integer approved) {

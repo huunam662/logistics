@@ -17,12 +17,6 @@ public class GeneralResource {
     public static final int PXK_PNK_DATASET_ROW_IDX = 17;
     public static final int PXKDCNB_DATASET_ROW_IDX = 18;
 
-    public static Warehouse getWarehouseById(MongoTemplate mongoTemplate, ObjectId warehouseId) {
-        Warehouse rs = mongoTemplate.findById(warehouseId, Warehouse.class);
-        if (rs == null)
-            throw LogicErrException.of("Kho không tồn tại").setHttpStatus(HttpStatus.NOT_FOUND);
-        return rs;
-    }
 
 
 
