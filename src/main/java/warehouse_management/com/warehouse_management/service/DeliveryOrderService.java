@@ -1,13 +1,10 @@
 package warehouse_management.com.warehouse_management.service;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 import warehouse_management.com.warehouse_management.dto.delivery_order.request.*;
 import warehouse_management.com.warehouse_management.dto.delivery_order.response.*;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
@@ -161,7 +158,7 @@ public class DeliveryOrderService {
         Map<String, InventoryItem> itemsHoldingInWarehouseMap = itemsHoldingInWarehouse.stream().collect(Collectors.toMap(InventoryItem::getCommodityCode, e -> e));
         List<InventoryItem> sparePartToNew = new ArrayList<>();
         for(var itemToPush : itemsToDeliveryDto){
-            if(itemToPush.getManualModel() != null){
+            if(itemToPush.getManualModel() != null && !itemToPush.getManualModel().isBlank()){
                 if(deliveryOrder.getModelNotes() == null) deliveryOrder.setModelNotes(new ArrayList<>());
                 DeliveryOrder.NoteDeliveryModel note = new DeliveryOrder.NoteDeliveryModel();
                 note.setModel(itemToPush.getManualModel());
