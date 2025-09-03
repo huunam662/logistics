@@ -8,5 +8,5 @@ import java.util.List;
 @Data
 public class DeliveryOrderItemsDto {
     private List<DeliveryItemModelDto> items = new ArrayList<>();
-    private List<DeliveryOrder.BackDeliveryModel> modelNotes = new ArrayList<>();
+    private List<DeliveryOrder.NoteDeliveryModel> modelNotes = new ArrayList<>();
 }

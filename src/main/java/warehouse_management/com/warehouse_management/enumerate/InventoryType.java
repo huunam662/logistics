@@ -7,7 +7,7 @@ import org.springframework.lang.Nullable;
 public enum InventoryType {
 
     SPARE_PART("SPARE_PART"),                   // Phụ tùng
-    VEHICLE_ACCESSORY("VEHICLE_ACCESSORY"), // XE PHỤ KIỆN
+//    VEHICLE_ACCESSORY("VEHICLE_ACCESSORY"), // XE PHỤ KIỆN
     VEHICLE("VEHICLE"),                         // XE
     ACCESSORY("ACCESSORY");                     // PHỤ KIỆN
 

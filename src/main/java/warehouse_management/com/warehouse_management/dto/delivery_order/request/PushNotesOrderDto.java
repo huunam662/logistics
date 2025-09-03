@@ -8,5 +8,5 @@ import java.util.List;
 @Data
 public class PushNotesOrderDto {
     private String deliveryOrderId;
-    private List<DeliveryOrder.BackDeliveryModel> notes;
+    private List<DeliveryOrder.NoteDeliveryModel> notes;
 }
