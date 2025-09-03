@@ -1,37 +1,18 @@
 package warehouse_management.com.warehouse_management.dto.report_inventory.request;
 
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springdoc.core.annotations.ParameterObject;
+import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @ParameterObject
-public class ReportParamsDto {
+public class ReportParamsDto extends PageOptionsDto {
 
-    @Schema(description = "Số trang.")
-    private Integer page = 1;
-
-    @Schema(description = "Kích thước trang.")
-    private Integer size = 10;
-
-    @Schema(description = "Lọc theo mã PO number.")
-    private String poNumber;
-
-    @Schema(description = "Lọc theo mã Model.")
-    private String model;
-
-    @Schema(description = "Lọc theo khách hàng (đại lý).")
-    private String agent;
-
-    @Schema(description = "Lọc theo từ ngày yêu cầu. Format (yyyy-MM-dd)")
-    private String fromDate;
-
-    @Schema(description = "Lọc theo đến ngày yêu cầu. Format (yyyy-MM-dd)")
-    private String toDate;
-
-    @Schema(description = "Lọc theo từ khóa trong tìm kiếm chung.")
-    private String search;
-
-    @Schema(description = "Kiểu báo cáo [PRODUCTION (hàng chờ sx), CONSIGNMENT (hàng ký gửi), CONTAINER (hàng đang đi đường)]")
+    @Parameter(description = "Kiểu báo cáo [PRODUCTION (hàng chờ sx), CONSIGNMENT (hàng ký gửi), CONTAINER (hàng đang đi đường)]")
     private String typeReport;
 }

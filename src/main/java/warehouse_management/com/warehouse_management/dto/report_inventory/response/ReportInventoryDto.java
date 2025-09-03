@@ -10,7 +10,7 @@ public class ReportInventoryDto {
     private String poNumber;
     private String model;
     private String agent;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+//    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDateTime loadToWarehouseDate;
     private String reportType;
     private Long totalVehicle;

@@ -36,7 +36,7 @@ public class DeliveryOrder {
 
     private List<InventoryItemDelivery> inventoryItems; // Các mặt hàng trong đơn giao
 
-    private List<BackDeliveryModel> modelNotes;  // Các Model còn nợ
+    private List<NoteDeliveryModel> modelNotes;  // Các Model còn nợ
 
     @CreatedBy
     private ObjectId createdBy;
@@ -53,7 +53,7 @@ public class DeliveryOrder {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class BackDeliveryModel{
+    public static class NoteDeliveryModel{
         private String model; // Model sản phẩm
         private Boolean isSparePart;
     }
@@ -79,6 +79,7 @@ public class DeliveryOrder {
         private String description;         // Mô tả
         private Boolean isDelivered;    // Đã hoặc chưa giao
         private ObjectId warehouseId;  // _id của warehouse – Có nếu đang ở kho
+        private String status;          // Trạng thái sản phẩm trong đơn
         private InventoryItemDelivery.Specifications specifications;
         private InventoryItemDelivery.Pricing pricing;
         private InventoryItemDelivery.Logistics logistics;
