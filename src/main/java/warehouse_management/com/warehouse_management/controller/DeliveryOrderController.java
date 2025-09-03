@@ -88,26 +88,6 @@ public class DeliveryOrderController {
     }
 
     @Operation(
-            summary = "POST Thêm ghi chú mặt hàng nợ vào đơn giao hàng.",
-            description = "POST Thêm ghi chú mặt hàng nợ vào đơn giao hàng."
-    )
-    @PostMapping("/add-notes")
-    public ResponseEntity<?> addNotesToDeliveryOrder(@Valid @RequestBody PushNotesOrderDto dto){
-        DeliveryOrder deliveryOrder = deliveryOrderService.addNotesToDeliveryOrder(dto);
-        return ResponseEntity.ok(ApiResponse.success(Map.of("deliveryOrderId", deliveryOrder.getId())));
-    }
-
-    @Operation(
-            summary = "DELETE Xóa ghi chú mặt hàng nợ trong đơn giao.",
-            description = "DELETE Xóa ghi chú mặt hàng nợ trong đơn giao."
-    )
-    @DeleteMapping("/notes")
-    public ResponseEntity<?> removeNotesInDeliveryOrder(@RequestBody @Valid DeleteNotesOrderDto dto){
-        DeliveryOrder deliveryOrder = deliveryOrderService.removeNotesInDeliveryOrder(dto);
-        return ResponseEntity.ok(ApiResponse.success(Map.of("deliveryOrderId", deliveryOrder.getId())));
-    }
-
-    @Operation(
             summary = "GET Chi tiết sản phẩm trong đơn giao.",
             description = "GET Chi tiết sản phẩm trong đơn giao."
     )
@@ -134,6 +114,29 @@ public class DeliveryOrderController {
     @DeleteMapping("/items")
     public ResponseEntity<?> removeItemsFromDeliveryOrder(@RequestBody @Valid DeleteItemsOrderDto dto){
         DeliveryOrder deliveryOrder = deliveryOrderService.removeItem(dto);
+        return ResponseEntity.ok(ApiResponse.success(Map.of("deliveryOrderId", deliveryOrder.getId())));
+    }
+
+    @Operation(
+            summary = "PATCH Cập nhật trạng thái đơn hàng.",
+            description = "PATCH Cập nhật trạng thái đơn hàng."
+    )
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<?> updateDeliveryOrderStatus(
+            @PathVariable("id") String id,
+            @Valid @RequestBody ChangeStatusDeliveryOrderDto dto
+    ){
+        DeliveryOrder deliveryOrder = deliveryOrderService.changeStatusDeliveryOrder(new ObjectId(id), dto);
+        return ResponseEntity.ok(ApiResponse.success(Map.of("deliveryOrderId", deliveryOrder.getId())));
+    }
+
+    @Operation(
+            summary = "PUT Cập nhật hàng hóa trong đơn.",
+            description = "PUT Cập nhật hàng hóa trong đơn."
+    )
+    @PutMapping("/{id}/update-items")
+    public ResponseEntity<?> updateDeliveryOrderItems(@Valid @RequestBody PushItemsDeliveryDto dto){
+        DeliveryOrder deliveryOrder = deliveryOrderService.updateDeliveryOrderItems(dto);
         return ResponseEntity.ok(ApiResponse.success(Map.of("deliveryOrderId", deliveryOrder.getId())));
     }
 }

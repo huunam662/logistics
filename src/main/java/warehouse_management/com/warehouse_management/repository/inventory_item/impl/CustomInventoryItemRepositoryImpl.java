@@ -609,9 +609,6 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
 
     @Override
     public Page<ReportInventoryDto> findPageReportInventoryToDashBoard(ReportParamsDto params) {
-        PageOptionsDto pageOptions = new PageOptionsDto();
-        pageOptions.setPage(params.getPage());
-        pageOptions.setSize(params.getSize());
 
         List<Criteria> filter = new ArrayList<>(List.of(
                 Criteria.where("warehouse.deletedAt").isNull(),
@@ -619,7 +616,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
                 Criteria.where("deletedAt").isNull()
         ));
-        if(params.getTypeReport().equals("CONTAINER")){
+        if("CONTAINER".equals(params.getTypeReport())){
             filter.add(Criteria.where("containerId").ne(null));
         }
         else{
@@ -627,33 +624,6 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
             if(typeReport == null) throw LogicErrException.of("Loại kho hàng cần báo cáo không hợp lệ.");
             filter.add(Criteria.where("warehouse.type").is(typeReport.getId()));
         }
-        if(params.getPoNumber() != null) filter.add(Criteria.where("poNumber").regex(params.getPoNumber(), "i"));
-        if(params.getModel() != null) filter.add(Criteria.where("model").regex(params.getModel(), "i"));
-        if(params.getAgent() != null) filter.add(Criteria.where("pricing.agent").regex(params.getAgent(), "i"));
-        if(params.getSearch() != null) filter.add(new Criteria().orOperator(
-                Criteria.where("poNumber").regex(params.getSearch(), "i"),
-                Criteria.where("model").regex(params.getSearch(), "i"),
-                Criteria.where("agent").regex(params.getSearch(), "i")
-        ));
-        if(params.getFromDate() != null){
-            try {
-                LocalDateTime fromDate = LocalDate.parse(params.getFromDate()).atStartOfDay();
-                filter.add(Criteria.where("createdAt").gte(fromDate));
-            }
-            catch (Exception e){
-                throw LogicErrException.of("Từ ngày yêu cầu phải theo đinh dạng [yyyy-MM-dd]");
-            }
-        }
-        if(params.getToDate() != null){
-            try {
-                LocalDateTime toDate = LocalDate.parse(params.getToDate()).atTime(LocalTime.MAX);
-                filter.add(Criteria.where("createdAt").lte(toDate));
-            }
-            catch (Exception e){
-                throw LogicErrException.of("Đến ngày yêu cầu phải theo đinh dạng [yyyy-MM-dd]");
-            }
-        }
-
         List<AggregationOperation> pipelines = List.of(
                 Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
                 Aggregation.unwind("warehouse"),
@@ -682,6 +652,6 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .and("_id.createdAt").as("loadToWarehouseDate")
         );
         Aggregation agg = Aggregation.newAggregation(pipelines);
-        return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, ReportInventoryDto.class, agg, pageOptions);
+        return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, ReportInventoryDto.class, agg, params);
     }
 }
