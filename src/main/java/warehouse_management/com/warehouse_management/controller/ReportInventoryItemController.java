@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import warehouse_management.com.warehouse_management.dto.ApiResponse;
 import warehouse_management.com.warehouse_management.dto.pagination.response.PageInfoDto;
 import warehouse_management.com.warehouse_management.dto.report_inventory.request.ReportParamsDto;
 import warehouse_management.com.warehouse_management.dto.report_inventory.response.ReportInventoryDto;
@@ -15,7 +16,7 @@ import warehouse_management.com.warehouse_management.service.ReportInventoryItem
 
 @RestController
 @Tag(name = "Report inventory items")
-@RequestMapping("/report-inventory-items")
+@RequestMapping("/v1/report-inventory-items")
 @RequiredArgsConstructor
 public class ReportInventoryItemController {
 
@@ -24,7 +25,7 @@ public class ReportInventoryItemController {
     @GetMapping
     public ResponseEntity<?> reportOnDashBoard(@ModelAttribute ReportParamsDto dto){
         Page<ReportInventoryDto> pageResult = reportInventoryItemService.getPageReportInventoryToDashBoard(dto);
-        return ResponseEntity.ok().body(new PageInfoDto<>(pageResult));
+        return ResponseEntity.ok().body(ApiResponse.success(new PageInfoDto<>(pageResult)));
     }
 
 }

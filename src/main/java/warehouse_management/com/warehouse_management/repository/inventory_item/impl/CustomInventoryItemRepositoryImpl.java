@@ -613,7 +613,6 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         List<Criteria> filter = new ArrayList<>(List.of(
                 Criteria.where("warehouse.deletedAt").isNull(),
                 Criteria.where("warehouse.status").is(WarehouseStatus.ACTIVE.getValue()),
-                Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
                 Criteria.where("deletedAt").isNull()
         ));
         if("CONTAINER".equals(params.getTypeReport())){
@@ -622,7 +621,9 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         else{
             WarehouseType typeReport = WarehouseType.fromId(params.getTypeReport());
             if(typeReport == null) throw LogicErrException.of("Loại kho hàng cần báo cáo không hợp lệ.");
+            filter.add(Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()));
             filter.add(Criteria.where("warehouse.type").is(typeReport.getId()));
+
         }
         List<AggregationOperation> pipelines = List.of(
                 Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
