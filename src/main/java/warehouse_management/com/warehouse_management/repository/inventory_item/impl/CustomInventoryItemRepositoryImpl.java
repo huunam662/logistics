@@ -655,4 +655,36 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         Aggregation agg = Aggregation.newAggregation(pipelines);
         return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, ReportInventoryDto.class, agg, params);
     }
+
+    public List<InventoryProductDetailsDto> findProductsByWarehouseId(ObjectId warehouseId) {
+        List<AggregationOperation> pipelines = new ArrayList<>(List.of(
+                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
+                Aggregation.unwind("warehouse"),
+                Aggregation.match(new Criteria().andOperator(
+                        Criteria.where("warehouseId").is(warehouseId),
+                        Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
+                        Criteria.where("inventoryType").in(InventoryType.VEHICLE.getId(), InventoryType.ACCESSORY.getId())
+                )),
+                Aggregation.project("model", "category", "serialNumber", "productCode", "poNumber", "inventoryType", "initialCondition", "notes", "specifications", "pricing", "logistics")
+                        .and("_id").as("id")
+        ));
+        Aggregation agg = Aggregation.newAggregation(pipelines);
+        return mongoTemplate.aggregate(agg, InventoryItem.class, InventoryProductDetailsDto.class).getMappedResults();
+    }
+
+    public List<InventorySparePartDetailsDto> findSparePartByWarehouseId(ObjectId warehouseId) {
+        List<AggregationOperation> pipelines = new ArrayList<>(List.of(
+                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
+                Aggregation.unwind("warehouse"),
+                Aggregation.match(new Criteria().andOperator(
+                        Criteria.where("warehouseId").is(warehouseId),
+                        Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
+                        Criteria.where("inventoryType").in(InventoryType.SPARE_PART.getId())
+                )),
+                Aggregation.project("commodityCode", "poNumber", "quantity", "orderDate", "description", "inventoryType", "notes", "contractNumber", "pricing")
+                        .and("_id").as("id")
+        ));
+        Aggregation agg = Aggregation.newAggregation(pipelines);
+        return mongoTemplate.aggregate(agg, InventoryItem.class, InventorySparePartDetailsDto.class).getMappedResults();
+    }
 }
