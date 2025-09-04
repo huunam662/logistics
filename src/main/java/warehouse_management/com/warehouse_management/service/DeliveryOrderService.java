@@ -19,6 +19,9 @@ import warehouse_management.com.warehouse_management.model.DeliveryOrder;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.repository.delivery_order.DeliveryOrderRepository;
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -238,13 +241,23 @@ public class DeliveryOrderService {
     @Transactional
     public DeliveryOrder removeItem(DeleteItemsOrderDto dto){
         DeliveryOrder deliveryOrder = getDeliveryOrderToId(new ObjectId(dto.getDeliveryOrderId()));
+
         if(deliveryOrder.getInventoryItems() == null || deliveryOrder.getInventoryItems().isEmpty())
             throw LogicErrException.of("Đơn hàng hiện không có mặt hàng nào");
+
         List<ObjectId> deliveryOrderIds = dto.getItemIds().stream().map(ObjectId::new).toList();
-        List<DeliveryOrder.InventoryItemDelivery> items = deliveryOrder.getInventoryItems().stream().filter(o -> deliveryOrderIds.contains(o.getId())).toList();
+
+        List<DeliveryOrder.InventoryItemDelivery> items = deliveryOrder.getInventoryItems()
+                .stream().filter(o -> deliveryOrderIds.contains(o.getId())).toList();
+
         if(items.isEmpty()) throw LogicErrException.of("Hàng hóa trong đơn không tồn tại.");
+
         List<InventoryItem> itemsInWarehouse = inventoryItemRepository.findByIdIn(items.stream().map(DeliveryOrder.InventoryItemDelivery::getId).toList());
+
         restoreDeliveryItemsLogic(deliveryOrder, itemsInWarehouse);
+
+        deliveryOrder.getInventoryItems().removeIf(i -> deliveryOrderIds.contains(i.getId()));
+
         return deliveryOrderRepository.save(deliveryOrder);
     }
 
@@ -258,6 +271,7 @@ public class DeliveryOrderService {
         List<ObjectId> itemIdsToDel = new ArrayList<>();
         for(var itemInDelivery : deliveryOrder.getInventoryItems()){
             InventoryItem item = itemsInWarehouseMap.getOrDefault(itemInDelivery.getId(), null);
+            if (item == null) continue;
             if(!item.getInventoryType().equals(InventoryType.SPARE_PART.getId())) {
                 item.setStatus(InventoryItemStatus.IN_STOCK.getId());
                 itemsToUpdate.add(item);
@@ -283,9 +297,12 @@ public class DeliveryOrderService {
                 else {
                     item.setQuantity(item.getQuantity() + itemInDelivery.getQuantity());
                     itemsToUpdate.add(item);
+                    // Để sang sẵn hãng
                 }
             }
         }
+
+        deliveryOrderRepository.save(deliveryOrder);
         inventoryItemRepository.bulkHardDelete(itemIdsToDel);
         inventoryItemRepository.bulkInsert(itemsToNew);
         inventoryItemRepository.bulkUpdateStatusAndQuantity(itemsToUpdate);
