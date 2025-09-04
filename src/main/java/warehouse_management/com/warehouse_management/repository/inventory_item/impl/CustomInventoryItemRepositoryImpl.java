@@ -613,7 +613,6 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         List<Criteria> filter = new ArrayList<>(List.of(
                 Criteria.where("warehouse.deletedAt").isNull(),
                 Criteria.where("warehouse.status").is(WarehouseStatus.ACTIVE.getValue()),
-                Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
                 Criteria.where("deletedAt").isNull()
         ));
         if("CONTAINER".equals(params.getTypeReport())){
@@ -622,7 +621,9 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         else{
             WarehouseType typeReport = WarehouseType.fromId(params.getTypeReport());
             if(typeReport == null) throw LogicErrException.of("Loại kho hàng cần báo cáo không hợp lệ.");
+            filter.add(Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()));
             filter.add(Criteria.where("warehouse.type").is(typeReport.getId()));
+
         }
         List<AggregationOperation> pipelines = List.of(
                 Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
@@ -653,5 +654,39 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         );
         Aggregation agg = Aggregation.newAggregation(pipelines);
         return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, ReportInventoryDto.class, agg, params);
+    }
+
+    public List<InventoryProductDetailsDto> findProductsByWarehouseId(ObjectId warehouseId, String poNumber) {
+        List<AggregationOperation> pipelines = new ArrayList<>(List.of(
+                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
+                Aggregation.unwind("warehouse"),
+                Aggregation.match(new Criteria().andOperator(
+                        Criteria.where("warehouseId").is(warehouseId),
+                        Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
+                        Criteria.where("inventoryType").in(InventoryType.VEHICLE.getId(), InventoryType.ACCESSORY.getId()),
+                        Criteria.where("poNumber").regex(poNumber, "i")
+                )),
+                Aggregation.project("model", "category", "serialNumber", "productCode", "poNumber", "inventoryType", "initialCondition", "notes", "specifications", "pricing", "logistics")
+                        .and("_id").as("id")
+        ));
+        Aggregation agg = Aggregation.newAggregation(pipelines);
+        return mongoTemplate.aggregate(agg, InventoryItem.class, InventoryProductDetailsDto.class).getMappedResults();
+    }
+
+    public List<InventorySparePartDetailsDto> findSparePartByWarehouseId(ObjectId warehouseId, String poNumber) {
+        List<AggregationOperation> pipelines = new ArrayList<>(List.of(
+                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
+                Aggregation.unwind("warehouse"),
+                Aggregation.match(new Criteria().andOperator(
+                        Criteria.where("warehouseId").is(warehouseId),
+                        Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
+                        Criteria.where("inventoryType").in(InventoryType.SPARE_PART.getId()),
+                        Criteria.where("poNumber").regex(poNumber, "i")
+                )),
+                Aggregation.project("commodityCode", "poNumber", "quantity", "orderDate", "description", "inventoryType", "notes", "contractNumber", "pricing")
+                        .and("_id").as("id")
+        ));
+        Aggregation agg = Aggregation.newAggregation(pipelines);
+        return mongoTemplate.aggregate(agg, InventoryItem.class, InventorySparePartDetailsDto.class).getMappedResults();
     }
 }
