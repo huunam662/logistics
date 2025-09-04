@@ -3,10 +3,12 @@ package warehouse_management.com.warehouse_management.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import warehouse_management.com.warehouse_management.dto.delivery_order.response.WarehouseForOrder;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
@@ -18,6 +20,7 @@ import warehouse_management.com.warehouse_management.dto.warehouse.request.Creat
 import warehouse_management.com.warehouse_management.dto.warehouse.request.UpdateWarehouseDto;
 import warehouse_management.com.warehouse_management.dto.warehouse.response.GetDepartureWarehouseForContainerDto;
 import warehouse_management.com.warehouse_management.dto.warehouse.response.WarehouseResponseDto;
+import warehouse_management.com.warehouse_management.service.InventoryItemService;
 import warehouse_management.com.warehouse_management.service.WarehouseService;
 import java.util.List;
 import java.util.Map;
@@ -25,14 +28,11 @@ import java.util.Map;
 @RestController
 @Tag(name = "Warehouse")
 @RequestMapping("/v1/warehouses")
+@RequiredArgsConstructor
 public class WarehouseController {
 
     private final WarehouseService warehouseService;
-
-    @Autowired
-    public WarehouseController(WarehouseService service) {
-        this.warehouseService = service;
-    }
+    private final InventoryItemService inventoryItemService;
 
     @PostMapping
     public ApiResponse<?> createWarehouse(@Valid @RequestBody CreateWarehouseDto createDto) {
@@ -230,6 +230,18 @@ public class WarehouseController {
     public ApiResponse<List<WarehouseForOrder>> getWarehousesForOrder() {
         List<WarehouseForOrder> dtos = warehouseService.getWarehousesForOrder();
         return ApiResponse.success(dtos);
+    }
+
+    @GetMapping("/{id}/products")
+    public ResponseEntity<?> getProductsByWarehouseId(@PathVariable("id") String warehouseId){
+        List<InventoryProductDetailsDto> productDetails = inventoryItemService.getProductsByWarehouseId(warehouseId);
+        return ResponseEntity.ok(ApiResponse.success(productDetails));
+    }
+
+    @GetMapping("/{id}/spare-part")
+    public ResponseEntity<?> getSparePartByWarehouseId(@PathVariable("id") String warehouseId){
+        List<InventorySparePartDetailsDto> sparePartDetailsDtos = inventoryItemService.getSparePartByWarehouseId(warehouseId);
+        return ResponseEntity.ok(ApiResponse.success(sparePartDetailsDtos));
     }
 
 }
