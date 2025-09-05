@@ -12,6 +12,7 @@ public class DeliveryItemModelDto {
     private String productCode;
     private String commodityCode;
     private Integer quantity;
+    private Boolean isDelivered;
     private InventoryItemModelDto.Specifications specifications;
 
     @Data

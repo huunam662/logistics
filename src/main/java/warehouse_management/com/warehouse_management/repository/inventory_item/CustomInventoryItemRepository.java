@@ -66,4 +66,8 @@ public interface CustomInventoryItemRepository {
     List<InventoryItemModelDto> findAllModelsAndItems(List<String> inventoryTypes, List<ObjectId> warehouseIds, String model);
 
     Page<ReportInventoryDto> findPageReportInventoryToDashBoard(ReportParamsDto params);
+
+    List<InventoryProductDetailsDto> findProductsByWarehouseId(ObjectId warehouseId, String poNumber);
+
+    List<InventorySparePartDetailsDto> findSparePartByWarehouseId(ObjectId warehouseId, String poNumber);
 }

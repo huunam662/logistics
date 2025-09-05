@@ -535,4 +535,12 @@ public class InventoryItemService {
         List<ObjectId> ids = warehouseIds.stream().map(ObjectId::new).toList();
         return inventoryItemRepository.findAllModelsAndItems(inventoryTypes, ids, model);
     }
+
+    public List<InventoryProductDetailsDto> getProductsByWarehouseId(String warehouseId, String poNumber){
+        return inventoryItemRepository.findProductsByWarehouseId(new ObjectId(warehouseId), poNumber);
+    }
+
+    public List<InventorySparePartDetailsDto> getSparePartByWarehouseId(String warehouseId, String poNumber){
+        return inventoryItemRepository.findSparePartByWarehouseId(new ObjectId(warehouseId), poNumber);
+    }
 }
