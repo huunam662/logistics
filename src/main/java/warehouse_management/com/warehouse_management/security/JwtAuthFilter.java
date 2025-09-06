@@ -61,16 +61,24 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authToken);
 
             } catch (ExpiredJwtException e) {
-                response.sendError(HttpServletResponse.SC_FORBIDDEN, "JWT token expired");
+                // Xử lý lỗi token hết hạn với phản hồi JSON tùy chỉnh
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json");
+                response.getWriter().write("{\"error\": \"Unauthorized\", \"message1\": \"" + e.getMessage() + "\"}");
                 return;
             } catch (SignatureException e) {
-                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid JWT signature");
+                // Xử lý lỗi chữ ký không hợp lệ với phản hồi JSON tùy chỉnh
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json");
+                response.getWriter().write("{\"error\": \"Unauthorized\", \"message2\": \"" + e.getMessage() + "\"}");
                 return;
             } catch (Exception e) {
-                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid JWT token");
+                // Xử lý các lỗi JWT khác với phản hồi JSON tùy chỉnh
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json");
+                response.getWriter().write("{\"error\": \"Unauthorized\", \"message3\": \"" + e.getMessage() + "\"}");
                 return;
             }
-
         }
 
         filterChain.doFilter(request, response);

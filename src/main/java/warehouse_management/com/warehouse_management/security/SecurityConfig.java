@@ -34,15 +34,21 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Allow CORS preflight
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-//                .exceptionHandling(ex -> ex
-//                        .authenticationEntryPoint((request, response, authException) -> {
-//                            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Unauthorized: Authentication required1");
-//                        })
-//                        .accessDeniedHandler((request, response, accessDeniedException) -> {
-//                            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden: Insufficient permissions2");
-//                        })
-//                );
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            // Ghi lỗi unauthorized vào response, bao gồm thông điệp cụ thể từ exception
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"error\": \"Unauthorized\", \"message4\": \"" + authException.getMessage() + "\"}");
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            // Ghi lỗi forbidden vào response, bao gồm thông điệp cụ thể từ exception
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"error\": \"Forbidden\", \"message5\": \"" + accessDeniedException.getMessage() + "\"}");
+                        })
+                );
 
         return http.build();
     }
