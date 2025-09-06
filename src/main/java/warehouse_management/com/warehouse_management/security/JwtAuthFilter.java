@@ -1,6 +1,7 @@
 package warehouse_management.com.warehouse_management.security;
 
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -19,6 +20,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import warehouse_management.com.warehouse_management.exceptions.LogicErrException;
 
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
 import java.util.List;
 
 @Component
@@ -42,8 +45,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         if (token != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             try {
+                Key signingKey = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
                 Claims claims = Jwts.parser()
-                        .setSigningKey(secretKey)
+                        .setSigningKey(signingKey)
                         .parseClaimsJws(token)
                         .getBody();
 

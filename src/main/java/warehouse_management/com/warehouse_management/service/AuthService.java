@@ -22,6 +22,7 @@ import warehouse_management.com.warehouse_management.utils.JwtUtils;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 import java.util.List;
@@ -64,17 +65,15 @@ public class AuthService {
 //        long expirationEpochSeconds = anaworkToken.getExpiration();
 //        Date expirationDate = new Date(expirationEpochSeconds * 1000);
         List<String> permissions = authGetPermissionResponse.getData();
-        byte[] apiKeySecretBytes = secretKey.getBytes();
-        Key signingKey = new SecretKeySpec(apiKeySecretBytes, SignatureAlgorithm.HS256.getJcaName());
-        SecretKey key = Keys.secretKeyFor(SignatureAlgorithm.HS512);
-        System.out.println(key.getEncoded().toString());
+        Key signingKey = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
+
         String tk = Jwts.builder()
                 .setSubject(authGetInfoResponse.getUser().getEmail())
                 .claim("id", authGetInfoResponse.getUser().getId())
                 .claim("permissions", permissions) // nhúng permission vào JWT
                 .setIssuedAt(new Date())
                 .setExpiration(generateExpiration())
-                .signWith(signingKey) // Ký token với HS256
+                .signWith(signingKey, io.jsonwebtoken.SignatureAlgorithm.HS256)
                 .compact();
         LoginResponse loginResponse = new LoginResponse();
         AuthGetInfoResponse.UserDTO user = authGetInfoResponse.getUser();
