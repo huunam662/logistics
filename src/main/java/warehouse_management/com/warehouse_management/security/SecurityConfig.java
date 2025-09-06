@@ -51,8 +51,12 @@ public class SecurityConfig {
     public UrlBasedCorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOriginPatterns(List.of("*")); // 👈 cho phép tất cả domain
-        config.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
+        // Chỉ định rõ các origin được phép, ví dụ:
+        config.setAllowedOriginPatterns(List.of(
+                "http://localhost:5173",  // Frontend dev
+                "https://logistic-erp.meu-solutions.com"
+        ));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
