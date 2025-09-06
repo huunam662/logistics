@@ -24,6 +24,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 
@@ -65,7 +66,13 @@ public class AuthService {
 //        long expirationEpochSeconds = anaworkToken.getExpiration();
 //        Date expirationDate = new Date(expirationEpochSeconds * 1000);
         List<String> permissions = authGetPermissionResponse.getData();
-        Key signingKey = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
+        byte[] keyBytes;
+        try {
+            keyBytes = Base64.getDecoder().decode(secretKey);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Khóa bí mật không phải là chuỗi Base64 hợp lệ: " + e.getMessage());
+        }
+        Key signingKey = Keys.hmacShaKeyFor(keyBytes);
 
         String tk = Jwts.builder()
                 .setSubject(authGetInfoResponse.getUser().getEmail())

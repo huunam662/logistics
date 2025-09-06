@@ -22,6 +22,7 @@ import warehouse_management.com.warehouse_management.exceptions.LogicErrExceptio
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.util.Base64;
 import java.util.List;
 
 @Component
@@ -45,7 +46,17 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         if (token != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             try {
-                Key signingKey = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
+                byte[] keyBytes;
+                try {
+                    keyBytes = Base64.getDecoder().decode(secretKey);
+                } catch (IllegalArgumentException e) {
+                    throw new IllegalArgumentException("Khóa bí mật không phải là chuỗi Base64 hợp lệ: " + e.getMessage());
+                }
+                // Kiểm tra độ dài khóa
+//                if (keyBytes.length < 32) {
+//                    throw new IllegalArgumentException("Khóa bí mật quá ngắn: " + keyBytes.length + " byte, cần ít nhất 32 byte");
+//                }
+                Key signingKey = Keys.hmacShaKeyFor(keyBytes);
                 Claims claims = Jwts.parser()
                         .setSigningKey(signingKey)
                         .parseClaimsJws(token)
