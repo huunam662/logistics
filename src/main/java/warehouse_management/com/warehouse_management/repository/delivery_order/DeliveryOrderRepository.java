@@ -5,6 +5,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import warehouse_management.com.warehouse_management.model.DeliveryOrder;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface DeliveryOrderRepository extends MongoRepository<DeliveryOrder, ObjectId>, CustomDeliveryOrderRepository {
@@ -12,4 +13,9 @@ public interface DeliveryOrderRepository extends MongoRepository<DeliveryOrder, 
     @Query("{'deliveryOrderCode': ?0}")
     Optional<DeliveryOrder> findByCode(String deliveryOrderCode);
 
+    @Query("{'inventoryItems.commodityCode': ?0, 'inventoryItems.warehouseId': ?1}")
+    List<DeliveryOrder> findByCommodityCode(String commodityCode, ObjectId warehouseId);
+
+    @Query("{'inventoryItems.productCode': ?0, 'inventoryItems.warehouseId': ?1}")
+    DeliveryOrder findByProductCode(String productCode, ObjectId warehouseId);
 }
