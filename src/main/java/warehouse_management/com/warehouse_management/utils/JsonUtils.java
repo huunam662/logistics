@@ -36,5 +36,15 @@ public class JsonUtils {
             throw LogicErrException.of("Failed to convert object to JSON: " + e.getMessage());
         }
     }
+    public static  <T> T parseJsonToDto(String json, Class<T> clazz) {
+        try {
+            if (json == null || json.isEmpty()) {
+                throw new IllegalArgumentException("JSON string is null or empty");
+            }
+            return MAPPER.readValue(json, clazz);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to parse JSON to DTO: " + e.getMessage(), e);
+        }
+    }
 }
 
