@@ -3,6 +3,7 @@ package warehouse_management.com.warehouse_management.service;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import io.swagger.v3.core.util.Json;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -16,9 +17,15 @@ import warehouse_management.com.warehouse_management.integration.auth.dto.respon
 import warehouse_management.com.warehouse_management.integration.auth.dto.response.AuthLoginResponse;
 import warehouse_management.com.warehouse_management.integration.auth.client.AuthIntegrationClient;
 import warehouse_management.com.warehouse_management.pojo.AnaworkToken;
+import warehouse_management.com.warehouse_management.utils.GeneralResource;
 import warehouse_management.com.warehouse_management.utils.JsonUtils;
 import warehouse_management.com.warehouse_management.utils.JwtUtils;
 
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 
@@ -26,8 +33,7 @@ import java.util.List;
 public class AuthService {
     private final AuthIntegrationClient authIntegrationClient;
     private final JwtUtils jwtUtils;
-    @Value("${app.jwt.secret}")
-    private String secretKey;
+
 
     @Value("${app.jwt.main-token-exp}")
     private int mainTokenExp;
@@ -60,13 +66,21 @@ public class AuthService {
 //        long expirationEpochSeconds = anaworkToken.getExpiration();
 //        Date expirationDate = new Date(expirationEpochSeconds * 1000);
         List<String> permissions = authGetPermissionResponse.getData();
+        byte[] keyBytes;
+        try {
+            keyBytes = Base64.getDecoder().decode(GeneralResource.secretKey);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Khóa bí mật không phải là chuỗi Base64 hợp lệ: " + e.getMessage());
+        }
+        Key signingKey = Keys.hmacShaKeyFor(keyBytes);
+
         String tk = Jwts.builder()
                 .setSubject(authGetInfoResponse.getUser().getEmail())
                 .claim("id", authGetInfoResponse.getUser().getId())
                 .claim("permissions", permissions) // nhúng permission vào JWT
                 .setIssuedAt(new Date())
                 .setExpiration(generateExpiration())
-                .signWith(SignatureAlgorithm.HS256, secretKey)
+                .signWith(signingKey, io.jsonwebtoken.SignatureAlgorithm.HS256)
                 .compact();
         LoginResponse loginResponse = new LoginResponse();
         AuthGetInfoResponse.UserDTO user = authGetInfoResponse.getUser();
