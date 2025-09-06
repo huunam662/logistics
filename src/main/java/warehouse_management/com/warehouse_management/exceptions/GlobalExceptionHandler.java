@@ -199,13 +199,13 @@ public class GlobalExceptionHandler {
     /**
      * Bắt tất cả các lỗi chưa được handle.
      */
-//    @ExceptionHandler(Exception.class)
-//    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-//    public ResponseEntity<ApiResponse<String>> handleAllUncaughtException(Exception ex) {
-//        logger.error("Unexpected error", ex);
-//        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-//                .body(ApiResponse.fail(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()), "Unexpected server error."));
-//    }
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ResponseEntity<ApiResponse<String>> handleAllUncaughtException(Exception ex) {
+        logger.error("Unexpected error", ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.fail( "Unexpected server error."+ ex.getMessage()+ex.toString()));
+    }
 
 //next 1 2 3 four 5 6 7 8
 }
