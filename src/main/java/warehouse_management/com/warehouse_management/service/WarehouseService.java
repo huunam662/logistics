@@ -5,6 +5,7 @@ import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import warehouse_management.com.warehouse_management.app.CustomAuthentication;
 import warehouse_management.com.warehouse_management.dto.delivery_order.response.WarehouseForOrder;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
@@ -18,6 +19,7 @@ import warehouse_management.com.warehouse_management.mapper.warehouse.WarehouseM
 import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
 import warehouse_management.com.warehouse_management.repository.warehouse.WarehouseRepository;
+import warehouse_management.com.warehouse_management.security.CustomUserDetail;
 
 import java.util.List;
 import java.util.Optional;
@@ -31,12 +33,14 @@ public class WarehouseService {
     private final WarehouseRepository repository;
     private final WarehouseMapper mapper;
     private final InventoryItemRepository inventoryItemRepository;
+    private final CustomAuthentication customAuthentication;
 
-    public WarehouseService(InventoryItemRepository inventoryItemRepository, WarehouseRepository repository, WarehouseMapper mapper, WarehouseRepository warehouseRepository) {
+    public WarehouseService(InventoryItemRepository inventoryItemRepository, WarehouseRepository repository, WarehouseMapper mapper, WarehouseRepository warehouseRepository, CustomAuthentication customAuthentication) {
         this.repository = repository;
         this.mapper = mapper;
         this.warehouseRepository = warehouseRepository;
         this.inventoryItemRepository = inventoryItemRepository;
+        this.customAuthentication = customAuthentication;
     }
 
     public Warehouse getWarehouseToId(ObjectId warehouseId) {
@@ -82,6 +86,10 @@ public class WarehouseService {
     }
 
     public List<WarehouseResponseDto> getAllWarehouses() {
+        CustomUserDetail user = customAuthentication.getUser();
+        System.out.println(user);
+        System.out.println(user.getUsername());
+        System.out.println(user.getAuthorities());
         return repository.findAll()
                 .stream()
                 .map(mapper::toResponseDto)
