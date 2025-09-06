@@ -43,7 +43,6 @@ public class ContainerService {
     private final InventoryItemService inventoryItemService;
     private final InventoryItemMapper inventoryItemMapper;
     private final DeliveryOrderRepository deliveryOrderRepository;
-    private final DeliveryOrderService deliveryOrderService;
 
     public Page<ContainerResponseDto> getContainers(PageOptionsDto req) {
         MatchOperation matchStage = Aggregation.match(new Criteria().andOperator(
@@ -334,7 +333,7 @@ public class ContainerService {
             DeliveryOrder deliveryOrder = deliveryOrderRepository.findByProductCode(p.getProductCode(), container.getFromWareHouseId());
             if(deliveryOrder == null) continue;
             DeliveryOrder.InventoryItemDelivery productDelivery = deliveryOrder.getInventoryItems().stream()
-                    .filter(o -> o.getProductCode().equals(p.getProductCode()) && o.getWarehouseId().equals(container.getFromWareHouseId()))
+                    .filter(o -> !o.getInventoryType().equals(InventoryType.SPARE_PART.getId()) && o.getProductCode().equals(p.getProductCode()) && o.getWarehouseId().equals(container.getFromWareHouseId()))
                     .findFirst().orElse(null);
             if(productDelivery == null) continue;
             InventoryItem productInStock = inventoryItemRepository.findById(productDelivery.getId()).orElse(null);
@@ -359,7 +358,7 @@ public class ContainerService {
             List<DeliveryOrder> deliveryOrders = deliveryOrderRepository.findByCommodityCode(p.getCommodityCode(), container.getFromWareHouseId());
             for(var d : deliveryOrders){
                 DeliveryOrder.InventoryItemDelivery sparePartDelivery = d.getInventoryItems().stream()
-                        .filter(o -> o.getCommodityCode().equals(p.getCommodityCode()) && o.getWarehouseId().equals(container.getFromWareHouseId()))
+                        .filter(o -> o.getInventoryType().equals(InventoryType.SPARE_PART.getId()) && o.getCommodityCode().equals(p.getCommodityCode()) && o.getWarehouseId().equals(container.getFromWareHouseId()))
                         .findFirst().orElse(null);
                 if(sparePartDelivery == null || sparePartInStock.getQuantity() < sparePartDelivery.getQuantity())
                     continue;
