@@ -19,6 +19,8 @@ import org.springframework.web.method.annotation.HandlerMethodValidationExceptio
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
 
 import warehouse_management.com.warehouse_management.dto.ValidationErrRes;
+import warehouse_management.com.warehouse_management.integration.IntegrationException;
+import warehouse_management.com.warehouse_management.integration.auth.exceptions.AuthIntegrationException;
 import warehouse_management.com.warehouse_management.utils.Msg;
 
 import java.util.Collections;
@@ -100,6 +102,40 @@ public class GlobalExceptionHandler {
                 : ApiResponse.fail(code, message);
         return ResponseEntity.status(status).body(body);
     }
+
+    // Xử lý lỗi logic nghiệp vụ (business logic)
+    @ExceptionHandler(IntegrationException.class)
+    public ResponseEntity<ApiResponse<?>> handleIntegrationException(IntegrationException ex) {
+        ex.printStackTrace();
+
+
+        String message = ex.getRawMessage();
+
+
+        // Mặc định là BAD_REQUEST, trừ khi exception khai báo khác
+        HttpStatus status = ex.getHttpStatus();
+
+        ApiResponse<?> body = ApiResponse.fail(message);
+        body.setCode("F100");
+        return ResponseEntity.status(status).body(body);
+    }
+
+    @ExceptionHandler(AuthIntegrationException.class)
+    public ResponseEntity<ApiResponse<?>> handleIntegrationException(AuthIntegrationException ex) {
+        ex.printStackTrace();
+
+
+        String message = ex.getRawMessage();
+
+
+        // Mặc định là BAD_REQUEST, trừ khi exception khai báo khác
+        HttpStatus status = ex.getHttpStatus();
+
+        ApiResponse<?> body = ApiResponse.fail(message);
+        body.setCode("F200");
+        return ResponseEntity.status(status).body(body);
+    }
+
 
     /**
      * Xử lý lỗi @Valid trong @RequestParam, @PathVariable.
