@@ -61,7 +61,8 @@ public class SecurityConfig {
         // Chỉ định rõ các origin được phép, ví dụ:
         config.setAllowedOriginPatterns(List.of(
                 "http://localhost:5173",  // Frontend dev
-                "https://logistic-erp.meu-solutions.com"
+                "https://logistic-erp.meu-solutions.com",
+                "https://gateway.dev.meu-solutions.com"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
