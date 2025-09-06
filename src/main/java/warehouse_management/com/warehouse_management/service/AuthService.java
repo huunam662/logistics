@@ -66,7 +66,7 @@ public class AuthService {
                 .claim("permissions", permissions) // nhúng permission vào JWT
                 .setIssuedAt(new Date())
                 .setExpiration(generateExpiration())
-                .signWith(SignatureAlgorithm.HS256, secretKey)
+                .signWith(SignatureAlgorithm.HS512, secretKey)
                 .compact();
         LoginResponse loginResponse = new LoginResponse();
         AuthGetInfoResponse.UserDTO user = authGetInfoResponse.getUser();
