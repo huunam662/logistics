@@ -17,6 +17,7 @@ import warehouse_management.com.warehouse_management.integration.auth.dto.respon
 import warehouse_management.com.warehouse_management.integration.auth.dto.response.AuthLoginResponse;
 import warehouse_management.com.warehouse_management.integration.auth.client.AuthIntegrationClient;
 import warehouse_management.com.warehouse_management.pojo.AnaworkToken;
+import warehouse_management.com.warehouse_management.utils.GeneralResource;
 import warehouse_management.com.warehouse_management.utils.JsonUtils;
 import warehouse_management.com.warehouse_management.utils.JwtUtils;
 
@@ -32,8 +33,7 @@ import java.util.List;
 public class AuthService {
     private final AuthIntegrationClient authIntegrationClient;
     private final JwtUtils jwtUtils;
-    @Value("${app.jwt.secret}")
-    private String secretKey;
+
 
     @Value("${app.jwt.main-token-exp}")
     private int mainTokenExp;
@@ -68,7 +68,7 @@ public class AuthService {
         List<String> permissions = authGetPermissionResponse.getData();
         byte[] keyBytes;
         try {
-            keyBytes = Base64.getDecoder().decode(secretKey);
+            keyBytes = Base64.getDecoder().decode(GeneralResource.secretKey);
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Khóa bí mật không phải là chuỗi Base64 hợp lệ: " + e.getMessage());
         }

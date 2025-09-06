@@ -12,4 +12,6 @@ public class GeneralResource {
     public static final String AUTH_GET_PERMISSION = "AUTH_GET_PERMISSION";
     public static final String AUTH_GET_INFO = "AUTH_GET_INFO";
 
+    public static final String secretKey= "rO0ABXNyABFqYXZhLnV0aWwuUmFuZG9tU3RyZWFtVmFsdWVxPGRG1ZYr6g6B8u8fFw==";
+
 }

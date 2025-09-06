@@ -19,6 +19,7 @@ import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import warehouse_management.com.warehouse_management.exceptions.LogicErrException;
+import warehouse_management.com.warehouse_management.utils.GeneralResource;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
@@ -28,9 +29,6 @@ import java.util.List;
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
 
-
-    @Value("${app.jwt.secret}")
-    private String secretKey;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -48,7 +46,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             try {
                 byte[] keyBytes;
                 try {
-                    keyBytes = Base64.getDecoder().decode(secretKey);
+                    keyBytes = Base64.getDecoder().decode(GeneralResource.secretKey);
                 } catch (IllegalArgumentException e) {
                     throw new IllegalArgumentException("Khóa bí mật không phải là chuỗi Base64 hợp lệ: " + e.getMessage());
                 }
