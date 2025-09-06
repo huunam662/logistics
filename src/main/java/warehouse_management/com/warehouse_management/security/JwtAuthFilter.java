@@ -50,10 +50,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 String email = claims.getSubject(); // lấy subject
                 String id = claims.get("id", String.class); // lấy claim permissions
                 List<String> permissions = claims.get("permissions", List.class); // lấy claim permissions
-                if (email == null || id == null || permissions == null || permissions.isEmpty()) {
-                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT claims");
-                    return;
-                }
+//                if (email == null || id == null || permissions == null || permissions.isEmpty()) {
+//                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT claims");
+//                    return;
+//                }
                 // Giả sử CustomUserDetail của bạn đã implements UserDetails
                 CustomUserDetail userDetails = new CustomUserDetail(email, id, permissions);
                 UsernamePasswordAuthenticationToken authToken =
@@ -61,13 +61,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authToken);
 
             } catch (ExpiredJwtException e) {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "JWT token expired");
+                response.sendError(HttpServletResponse.SC_FORBIDDEN, "JWT token expired");
                 return;
             } catch (SignatureException e) {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT signature");
+                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid JWT signature");
                 return;
             } catch (Exception e) {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT token");
+                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid JWT token");
                 return;
             }
 

@@ -34,15 +34,15 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Allow CORS preflight
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint((request, response, authException) -> {
-                            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized: Authentication required");
-                        })
-                        .accessDeniedHandler((request, response, accessDeniedException) -> {
-                            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden: Insufficient permissions");
-                        })
-                );
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+//                .exceptionHandling(ex -> ex
+//                        .authenticationEntryPoint((request, response, authException) -> {
+//                            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Unauthorized: Authentication required1");
+//                        })
+//                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+//                            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden: Insufficient permissions2");
+//                        })
+//                );
 
         return http.build();
     }
