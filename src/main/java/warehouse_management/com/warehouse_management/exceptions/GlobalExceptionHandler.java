@@ -8,6 +8,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -15,10 +16,13 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
 
 import warehouse_management.com.warehouse_management.dto.ValidationErrRes;
+import warehouse_management.com.warehouse_management.integration.IntegrationException;
+import warehouse_management.com.warehouse_management.integration.auth.exceptions.AuthIntegrationException;
 import warehouse_management.com.warehouse_management.utils.Msg;
 
 import java.util.Collections;
@@ -101,6 +105,40 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(status).body(body);
     }
 
+    // Xử lý lỗi logic nghiệp vụ (business logic)
+    @ExceptionHandler(IntegrationException.class)
+    public ResponseEntity<ApiResponse<?>> handleIntegrationException(IntegrationException ex) {
+        ex.printStackTrace();
+
+
+        String message = ex.getRawMessage();
+
+
+        // Mặc định là BAD_REQUEST, trừ khi exception khai báo khác
+        HttpStatus status = ex.getHttpStatus();
+
+        ApiResponse<?> body = ApiResponse.fail(message);
+        body.setCode("F100");
+        return ResponseEntity.status(status).body(body);
+    }
+
+    @ExceptionHandler(AuthIntegrationException.class)
+    public ResponseEntity<ApiResponse<?>> handleIntegrationException(AuthIntegrationException ex) {
+        ex.printStackTrace();
+
+
+        String message = ex.getRawMessage();
+
+
+        // Mặc định là BAD_REQUEST, trừ khi exception khai báo khác
+        HttpStatus status = ex.getHttpStatus();
+
+        ApiResponse<?> body = ApiResponse.fail(message);
+        body.setCode("F200");
+        return ResponseEntity.status(status).body(body);
+    }
+
+
     /**
      * Xử lý lỗi @Valid trong @RequestParam, @PathVariable.
      */
@@ -152,6 +190,11 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.fail(String.valueOf(HttpStatus.METHOD_NOT_ALLOWED.value()), "HTTP method not supported."));
     }
 
+    // Xử lý lỗi 401 Unauthorized
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<?> handleAuthenticationException(AuthenticationException ex, WebRequest request) {
+        return  ResponseEntity.ok(ApiResponse.fail(ex.getMessage()+"-----"+ex.toString()));
+    }
 
     /**
      * Bắt tất cả các lỗi chưa được handle.
@@ -164,6 +207,6 @@ public class GlobalExceptionHandler {
 //                .body(ApiResponse.fail(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()), "Unexpected server error."));
 //    }
 
-//next 1 2 3 four 5
+//next 1 2 3 four 5 6 7 8
 }
 
