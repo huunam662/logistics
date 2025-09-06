@@ -109,14 +109,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IntegrationException.class)
     public ResponseEntity<ApiResponse<?>> handleIntegrationException(IntegrationException ex) {
         ex.printStackTrace();
-
-
         String message = ex.getRawMessage();
-
-
         // Mặc định là BAD_REQUEST, trừ khi exception khai báo khác
         HttpStatus status = ex.getHttpStatus();
-
         ApiResponse<?> body = ApiResponse.fail(message);
         body.setCode("F100");
         return ResponseEntity.status(status).body(body);
@@ -125,11 +120,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AuthIntegrationException.class)
     public ResponseEntity<ApiResponse<?>> handleIntegrationException(AuthIntegrationException ex) {
         ex.printStackTrace();
-
-
         String message = ex.getRawMessage();
-
-
         // Mặc định là BAD_REQUEST, trừ khi exception khai báo khác
         HttpStatus status = ex.getHttpStatus();
 
@@ -190,11 +181,6 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.fail(String.valueOf(HttpStatus.METHOD_NOT_ALLOWED.value()), "HTTP method not supported."));
     }
 
-    // Xử lý lỗi 401 Unauthorized
-    @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<?> handleAuthenticationException(AuthenticationException ex, WebRequest request) {
-        return  ResponseEntity.ok(ApiResponse.fail(ex.getMessage()+"-----"+ex.toString()));
-    }
 
     /**
      * Bắt tất cả các lỗi chưa được handle.
