@@ -3,6 +3,7 @@ package warehouse_management.com.warehouse_management.service;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import io.swagger.v3.core.util.Json;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -19,6 +20,7 @@ import warehouse_management.com.warehouse_management.pojo.AnaworkToken;
 import warehouse_management.com.warehouse_management.utils.JsonUtils;
 import warehouse_management.com.warehouse_management.utils.JwtUtils;
 
+import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.Key;
 import java.util.Date;
@@ -64,6 +66,8 @@ public class AuthService {
         List<String> permissions = authGetPermissionResponse.getData();
         byte[] apiKeySecretBytes = secretKey.getBytes();
         Key signingKey = new SecretKeySpec(apiKeySecretBytes, SignatureAlgorithm.HS256.getJcaName());
+        SecretKey key = Keys.secretKeyFor(SignatureAlgorithm.HS512);
+        System.out.println(key.getEncoded().toString());
         String tk = Jwts.builder()
                 .setSubject(authGetInfoResponse.getUser().getEmail())
                 .claim("id", authGetInfoResponse.getUser().getId())
