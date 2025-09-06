@@ -22,11 +22,9 @@ import warehouse_management.com.warehouse_management.enumerate.*;
 import warehouse_management.com.warehouse_management.exceptions.LogicErrException;
 import warehouse_management.com.warehouse_management.mapper.InventoryItemMapper;
 import warehouse_management.com.warehouse_management.mapper.WarehouseTransactionMapper;
-import warehouse_management.com.warehouse_management.model.Container;
-import warehouse_management.com.warehouse_management.model.InventoryItem;
-import warehouse_management.com.warehouse_management.model.Warehouse;
-import warehouse_management.com.warehouse_management.model.WarehouseTransaction;
+import warehouse_management.com.warehouse_management.model.*;
 import warehouse_management.com.warehouse_management.repository.container.ContainerRepository;
+import warehouse_management.com.warehouse_management.repository.delivery_order.DeliveryOrderRepository;
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
 import warehouse_management.com.warehouse_management.repository.warehouse_transaction.WarehouseTransactionRepository;
 import warehouse_management.com.warehouse_management.utils.GeneralResource;
@@ -44,9 +42,8 @@ public class ContainerService {
     private final InventoryItemRepository inventoryItemRepository;
     private final InventoryItemService inventoryItemService;
     private final InventoryItemMapper inventoryItemMapper;
-    private final MongoTemplate mongoTemplate;
-    private final WarehouseTransactionRepository warehouseTransferTicketRepository;
-    private final InventoryItemMapper mapper;
+    private final DeliveryOrderRepository deliveryOrderRepository;
+    private final DeliveryOrderService deliveryOrderService;
 
     public Page<ContainerResponseDto> getContainers(PageOptionsDto req) {
         MatchOperation matchStage = Aggregation.match(new Criteria().andOperator(
@@ -207,12 +204,11 @@ public class ContainerService {
     public Map<String, ObjectId> pushItems(@RequestBody InventoryItemToContainerDto req){
         if(req.getInventoryItems().isEmpty())
             throw LogicErrException.of("Hàng hóa cần nhập sang kho khác hiện đang rỗng.");
-
         Container container = getContainerToId(new ObjectId(req.getContainerId()));
         if(!container.getContainerStatus().equals(ContainerStatus.PENDING))
             throw LogicErrException.of("Chỉ được phép thêm hàng hóa khi đang chờ xác nhận.");
         try{
-            List<InventoryItem> itemsPushToCont = inventoryItemService.transferItems(req.getInventoryItems(), container.getFromWareHouseId(), container, container.getArrivalDate(), null, InventoryItemStatus.OTHER);
+            List<InventoryItem> itemsPushToCont = inventoryItemService.transferItems(req.getInventoryItems(), container.getFromWareHouseId(), container, container.getArrivalDate(), null, InventoryItemStatus.IN_TRANSIT);
             container.setContainerStatus(ContainerStatus.PENDING);
             if(container.getInventoryItems() == null) container.setInventoryItems(new ArrayList<>());
             final int itemsContSize = container.getInventoryItems().size();
@@ -291,10 +287,13 @@ public class ContainerService {
         if(containerStatus == null) throw LogicErrException.of("Trạng thái không hợp lệ.");
         // update container
         if(containerStatus.equals(ContainerStatus.COMPLETED)){
+            if(container.getInventoryItems() == null || container.getInventoryItems().isEmpty())
+                throw LogicErrException.of("Chỉ được hoàn tất khi trong CONT " +container.getContainerCode()+" có hàng.");
             containerCompletedAndRejectedLogic(container, container.getToWarehouseId());
             List<ObjectId> itemIds = container.getInventoryItems().stream().map(Container.InventoryItemContainer::getId).toList();
             inventoryItemRepository.updateStatusAndWarehouseAndUnRefContainer(itemIds, container.getToWarehouseId(), InventoryItemStatus.IN_STOCK.getId());
             container.setCompletionDate(LocalDateTime.now());
+            updateDeliveryItemsRefDepartureWarehouse(container);
             // TODO: Phiếu xuất/nhập
         }
         container.setContainerStatus(containerStatus);
@@ -327,5 +326,52 @@ public class ContainerService {
         }
     }
 
+    @Transactional
+    protected void updateDeliveryItemsRefDepartureWarehouse(Container container){
+        List<DeliveryOrder> deliveryOrdersUpdate = new ArrayList<>();
+        List<Container.InventoryItemContainer> products = container.getInventoryItems().stream().filter(o -> !o.getInventoryType().equals(InventoryType.SPARE_PART.getId())).toList();
+        for(var p : products){
+            DeliveryOrder deliveryOrder = deliveryOrderRepository.findByProductCode(p.getProductCode(), container.getFromWareHouseId());
+            if(deliveryOrder == null) continue;
+            DeliveryOrder.InventoryItemDelivery productDelivery = deliveryOrder.getInventoryItems().stream()
+                    .filter(o -> o.getProductCode().equals(p.getProductCode()) && o.getWarehouseId().equals(container.getFromWareHouseId()))
+                    .findFirst().orElse(null);
+            if(productDelivery == null) continue;
+            InventoryItem productInStock = inventoryItemRepository.findById(productDelivery.getId()).orElse(null);
+            if(productInStock == null) continue;
+            productDelivery.setWarehouseId(container.getToWarehouseId());
+            deliveryOrdersUpdate.add(deliveryOrder);
+            productInStock.setStatus(InventoryItemStatus.SOLD);
+            inventoryItemRepository.save(productInStock);
+        }
+        List<Container.InventoryItemContainer> spareParts = container.getInventoryItems().stream().filter(o -> o.getInventoryType().equals(InventoryType.SPARE_PART.getId())).toList();
+        for(var p : spareParts){
+            InventoryItem sparePartInStock = inventoryItemRepository.findByCommodityCodeAndWarehouseId(p.getCommodityCode(), container.getToWarehouseId(), InventoryItemStatus.IN_STOCK.getId()).orElse(null);
+            if(sparePartInStock == null) continue;
+            InventoryItem sparePartHolding = inventoryItemRepository.findByCommodityCodeAndWarehouseId(p.getCommodityCode(), container.getToWarehouseId(), InventoryItemStatus.HOLD.getId()).orElseGet(
+                    () -> {
+                        InventoryItem item = inventoryItemMapper.toInventoryItem(p);
+                        item.setQuantity(0);
+                        item.setStatus(InventoryItemStatus.HOLD);
+                        item.setWarehouseId(container.getToWarehouseId());
+                        return item;
+                    });
+            List<DeliveryOrder> deliveryOrders = deliveryOrderRepository.findByCommodityCode(p.getCommodityCode(), container.getFromWareHouseId());
+            for(var d : deliveryOrders){
+                DeliveryOrder.InventoryItemDelivery sparePartDelivery = d.getInventoryItems().stream()
+                        .filter(o -> o.getCommodityCode().equals(p.getCommodityCode()) && o.getWarehouseId().equals(container.getFromWareHouseId()))
+                        .findFirst().orElse(null);
+                if(sparePartDelivery == null || sparePartInStock.getQuantity() < sparePartDelivery.getQuantity())
+                    continue;
+                sparePartInStock.setQuantity(sparePartInStock.getQuantity() - sparePartDelivery.getQuantity());
+                sparePartHolding.setQuantity(sparePartHolding.getQuantity() + sparePartDelivery.getQuantity());
+                sparePartDelivery.setWarehouseId(container.getToWarehouseId());
+                deliveryOrdersUpdate.add(d);
+            }
+            if(sparePartHolding.getQuantity() > 0) inventoryItemRepository.save(sparePartHolding);
+            inventoryItemRepository.save(sparePartInStock);
+        }
+        if(!deliveryOrdersUpdate.isEmpty()) deliveryOrderRepository.saveAll(deliveryOrdersUpdate);
+    }
 
 }

@@ -52,5 +52,6 @@ public interface InventoryItemMapper {
 
     InventoryItem toInventoryItem(DeliveryOrder.InventoryItemDelivery item);
 
+    InventoryItem toInventoryItem(Container.InventoryItemContainer item);
 
 }
