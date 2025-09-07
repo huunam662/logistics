@@ -13,9 +13,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
-import warehouse_management.com.warehouse_management.config.UserDetailsImpl;
+import warehouse_management.com.warehouse_management.security.CustomUserDetail;
+
 
 import java.security.Key;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,7 +36,7 @@ public class JwtUtils {
     private String jwtIssuer;
 
     public String generateJwtToken(Authentication authentication) {
-        UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
+        CustomUserDetail userPrincipal = (CustomUserDetail) authentication.getPrincipal();
 
         List<String> permissions = userPrincipal.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
@@ -46,7 +48,7 @@ public class JwtUtils {
                 .setIssuedAt(new Date())
                 .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
                 .claim("perms", permissions) // Include permissions in claims
-                .claim("userId", userPrincipal.getId()) // Include user ID
+//                .claim("userId", userPrincipal.getId()) // Include user ID
                 .signWith(key(), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -113,5 +115,11 @@ public class JwtUtils {
     public boolean isTokenExpired(String token) {
         final Date expiration = getExpirationDateFromToken(token);
         return expiration.before(new Date());
+    }
+
+    public String decodePayload(String token){
+        String[] parts = token.split("\\.");
+        String payload = new String(Base64.getUrlDecoder().decode(parts[1]));
+        return payload;
     }
 }

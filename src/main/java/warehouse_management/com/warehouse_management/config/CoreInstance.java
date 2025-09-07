@@ -13,6 +13,8 @@ import org.springframework.data.mongodb.config.EnableMongoAuditing;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import warehouse_management.com.warehouse_management.security.CustomUserDetail;
+
 import java.io.IOException;
 import java.util.Optional;
 
@@ -44,7 +46,7 @@ public class CoreInstance {
             if(authentication == null || !authentication.isAuthenticated() || authentication instanceof AnonymousAuthenticationToken){
                 return Optional.empty();
             }
-            if(!(authentication.getPrincipal() instanceof UserDetailsImpl user)){
+            if(!(authentication.getPrincipal() instanceof CustomUserDetail user)){
                 return Optional.empty();
             }
             return Optional.of(new ObjectId(user.getId()));
