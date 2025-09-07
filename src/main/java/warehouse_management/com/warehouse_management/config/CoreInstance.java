@@ -40,7 +40,7 @@ public class CoreInstance {
 
     @Primary
     @Bean
-    public AuditorAware<ObjectId> auditorWare() {
+    public AuditorAware<String> auditorWare() {
         return () -> {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             if(authentication == null || !authentication.isAuthenticated() || authentication instanceof AnonymousAuthenticationToken){
@@ -49,7 +49,7 @@ public class CoreInstance {
             if(!(authentication.getPrincipal() instanceof CustomUserDetail user)){
                 return Optional.empty();
             }
-            return Optional.of(new ObjectId(user.getId()));
+            return Optional.of((user.getId()));
         };
     }
 }
