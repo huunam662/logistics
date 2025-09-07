@@ -328,48 +328,48 @@ public class ContainerService {
     @Transactional
     protected void updateDeliveryItemsRefDepartureWarehouse(Container container){
         List<DeliveryOrder> deliveryOrdersUpdate = new ArrayList<>();
-        List<Container.InventoryItemContainer> products = container.getInventoryItems().stream().filter(o -> !o.getInventoryType().equals(InventoryType.SPARE_PART.getId())).toList();
+        List<Container.InventoryItemContainer> products = container.getInventoryItems()
+                .stream()
+                .filter(o -> !o.getInventoryType().equals(InventoryType.SPARE_PART.getId()))
+                .toList();
         for(var p : products){
             DeliveryOrder deliveryOrder = deliveryOrderRepository.findByProductCode(p.getProductCode(), container.getFromWareHouseId());
             if(deliveryOrder == null) continue;
             DeliveryOrder.InventoryItemDelivery productDelivery = deliveryOrder.getInventoryItems().stream()
-                    .filter(o -> !o.getInventoryType().equals(InventoryType.SPARE_PART.getId()) && o.getProductCode().equals(p.getProductCode()) && o.getWarehouseId().equals(container.getFromWareHouseId()))
-                    .findFirst().orElse(null);
+                    .filter(o -> !o.getInventoryType().equals(InventoryType.SPARE_PART.getId())
+                            && o.getProductCode().equals(p.getProductCode())
+                            && o.getWarehouseId().equals(container.getFromWareHouseId()))
+                    .findFirst()
+                    .orElse(null);
             if(productDelivery == null) continue;
-            InventoryItem productInStock = inventoryItemRepository.findById(productDelivery.getId()).orElse(null);
-            if(productInStock == null) continue;
+            InventoryItem productInHold = inventoryItemRepository.findById(productDelivery.getId()).orElse(null);
+            if(productInHold == null) throw LogicErrException.of("Sản phẩm " + p.getProductCode() + " không tồn tại trong kho đến.");
             productDelivery.setWarehouseId(container.getToWarehouseId());
             deliveryOrdersUpdate.add(deliveryOrder);
-            productInStock.setStatus(InventoryItemStatus.SOLD);
-            inventoryItemRepository.save(productInStock);
         }
-        List<Container.InventoryItemContainer> spareParts = container.getInventoryItems().stream().filter(o -> o.getInventoryType().equals(InventoryType.SPARE_PART.getId())).toList();
+        List<Container.InventoryItemContainer> spareParts = container.getInventoryItems()
+                .stream()
+                .filter(o -> o.getInventoryType().equals(InventoryType.SPARE_PART.getId()))
+                .toList();
         for(var p : spareParts){
-            InventoryItem sparePartInStock = inventoryItemRepository.findByCommodityCodeAndWarehouseId(p.getCommodityCode(), container.getToWarehouseId(), InventoryItemStatus.IN_STOCK.getId()).orElse(null);
-            if(sparePartInStock == null) continue;
-            InventoryItem sparePartHolding = inventoryItemRepository.findByCommodityCodeAndWarehouseId(p.getCommodityCode(), container.getToWarehouseId(), InventoryItemStatus.HOLD.getId()).orElseGet(
-                    () -> {
-                        InventoryItem item = inventoryItemMapper.toInventoryItem(p);
-                        item.setQuantity(0);
-                        item.setStatus(InventoryItemStatus.HOLD);
-                        item.setWarehouseId(container.getToWarehouseId());
-                        return item;
-                    });
+            InventoryItem sparePartHolding = inventoryItemRepository.findByCommodityCodeAndWarehouseId(p.getCommodityCode(), container.getToWarehouseId(), InventoryItemStatus.HOLD.getId()).orElse(null);
+            if(sparePartHolding == null) continue;
+            int sparePartQuantity = sparePartHolding.getQuantity();
             List<DeliveryOrder> deliveryOrders = deliveryOrderRepository.findByCommodityCode(p.getCommodityCode(), container.getFromWareHouseId())
                     .stream().sorted(Comparator.comparing(DeliveryOrder::getDeliveryDate, Comparator.nullsLast(Comparator.naturalOrder()))).toList();
             for(var d : deliveryOrders){
                 DeliveryOrder.InventoryItemDelivery sparePartDelivery = d.getInventoryItems().stream()
-                        .filter(o -> o.getInventoryType().equals(InventoryType.SPARE_PART.getId()) && o.getCommodityCode().equals(p.getCommodityCode()) && o.getWarehouseId().equals(container.getFromWareHouseId()))
-                        .findFirst().orElse(null);
-                if(sparePartDelivery == null || sparePartInStock.getQuantity() < sparePartDelivery.getQuantity())
+                        .filter(o -> o.getInventoryType().equals(InventoryType.SPARE_PART.getId())
+                                && o.getCommodityCode().equals(p.getCommodityCode())
+                                && o.getWarehouseId().equals(container.getFromWareHouseId()))
+                        .findFirst()
+                        .orElse(null);
+                if(sparePartDelivery == null || sparePartQuantity < sparePartDelivery.getQuantity())
                     continue;
-                sparePartInStock.setQuantity(sparePartInStock.getQuantity() - sparePartDelivery.getQuantity());
-                sparePartHolding.setQuantity(sparePartHolding.getQuantity() + sparePartDelivery.getQuantity());
+                sparePartQuantity -= sparePartDelivery.getQuantity();
                 sparePartDelivery.setWarehouseId(container.getToWarehouseId());
                 deliveryOrdersUpdate.add(d);
             }
-            if(sparePartHolding.getQuantity() > 0) inventoryItemRepository.save(sparePartHolding);
-            inventoryItemRepository.save(sparePartInStock);
         }
         if(!deliveryOrdersUpdate.isEmpty()) deliveryOrderRepository.saveAll(deliveryOrdersUpdate);
     }
