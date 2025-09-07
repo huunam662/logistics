@@ -32,6 +32,11 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/swagger-ui/**").permitAll()
+                        .requestMatchers("/v3/api-docs/**").permitAll()
+                        .requestMatchers("/logistic-erp/v3/api-docs/**").permitAll()
+                        .requestMatchers("/logistic-erp/v3/api-docs/swagger-config").permitAll()
+                        .requestMatchers("/swagger-ui.html").permitAll()
+                        .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Allow CORS preflight
                         .anyRequest().authenticated()
                 )
@@ -61,7 +66,9 @@ public class SecurityConfig {
         // Chỉ định rõ các origin được phép, ví dụ:
         config.setAllowedOriginPatterns(List.of(
                 "http://localhost:5173",  // Frontend dev
-                "https://logistic-erp.meu-solutions.com"
+                "http://localhost:8080",  // Frontend dev
+                "https://logistic-erp.meu-solutions.com",
+                "https://gateway.dev.meu-solutions.com"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
