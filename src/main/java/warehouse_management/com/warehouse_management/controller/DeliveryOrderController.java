@@ -134,7 +134,7 @@ public class DeliveryOrderController {
             summary = "PUT Cập nhật hàng hóa trong đơn.",
             description = "PUT Cập nhật hàng hóa trong đơn."
     )
-    @PutMapping("/{id}/update-items")
+    @PutMapping("/update-items")
     public ResponseEntity<?> updateDeliveryOrderItems(@Valid @RequestBody PushItemsDeliveryDto dto){
         DeliveryOrder deliveryOrder = deliveryOrderService.updateDeliveryOrderItems(dto);
         return ResponseEntity.ok(ApiResponse.success(Map.of("deliveryOrderId", deliveryOrder.getId())));
