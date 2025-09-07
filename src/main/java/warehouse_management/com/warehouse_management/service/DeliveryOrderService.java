@@ -174,7 +174,8 @@ public class DeliveryOrderService {
         Map<String, InventoryItem> itemsHoldingInWarehouseMap = itemsHoldingInWarehouse.stream().collect(Collectors.toMap(InventoryItem::getCommodityCode, e -> e));
         List<InventoryItem> sparePartToNew = new ArrayList<>();
         for(var itemToPush : itemsToDeliveryDto){
-            if(itemToPush.getManualModel() != null && !itemToPush.getManualModel().isBlank()){
+            if(itemToPush.getManualModel() != null && !itemToPush.getManualModel().isBlank()
+            && (itemToPush.getId() == null || itemToPush.getId().isBlank())){
                 if(deliveryOrder.getModelNotes() == null) deliveryOrder.setModelNotes(new ArrayList<>());
                 DeliveryOrder.NoteDeliveryModel note = new DeliveryOrder.NoteDeliveryModel();
                 note.setModel(itemToPush.getManualModel());
@@ -182,11 +183,16 @@ public class DeliveryOrderService {
                 deliveryOrder.getModelNotes().add(note);
                 continue;
             }
+
             if(itemToPush.getQuantity() <= 0) throw LogicErrException.of("Số lượng hàng hóa cần thêm phải lớn hơn 0.");
+
             InventoryItem item = itemsToDeliveryMap.getOrDefault(new ObjectId(itemToPush.getId()), null);
+
             if(item == null) throw LogicErrException.of("Mặt hàng cần thêm vào đơn hiện không tồn tại.");
             String warehouseType = warehouseRepository.findTypeById(item.getWarehouseId());
+
             if(warehouseType == null) throw LogicErrException.of("Loại kho chứa hàng hóa phải có giá trị.");
+
             if(WarehouseType.DEPARTURE.getId().equals(warehouseType)){
                 if(itemToPush.getIsDelivered()) throw LogicErrException.of("Hàng hóa thuộc kho đi không được phép chọn đã giao.");
                 if(deliveryOrder.getInventoryItems() == null) deliveryOrder.setInventoryItems(new ArrayList<>());
@@ -414,6 +420,7 @@ public class DeliveryOrderService {
         if(!itemsReqToPushNew.isEmpty()) pushItemsToDeliveryOrderLogic(itemsReqToPushNew, deliveryOrder);
         Map<ObjectId, InventoryItem> inventoryInWarehouseMap = inventoryItemRepository.findByIdIn(deliveryOrderMap.keySet()).stream()
                 .collect(Collectors.toMap(InventoryItem::getId, e -> e));
+
         for(var itemToUpdateReq : itemsReqToPushUpdate){
             DeliveryOrder.InventoryItemDelivery deliveryItem = deliveryOrderMap.get(new ObjectId(itemToUpdateReq.getId()));
             String warehouseType = warehouseRepository.findTypeById(deliveryItem.getWarehouseId());
