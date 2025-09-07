@@ -299,7 +299,10 @@ public class DeliveryOrderService {
             else {
                 if(item.getQuantity() < quantityToDelivery)
                     throw LogicErrException.of("Số lượng phụ tùng " + item.getCommodityCode() + " cần giao vượt quá số lượng trong kho.");
-                else item.setQuantity(item.getQuantity() - quantityToDelivery);
+                else {
+                    item.setQuantity(item.getQuantity() - quantityToDelivery);
+                    if(item.getQuantity() == 0) item.setStatus(InventoryItemStatus.SOLD.getId());
+                }
             }
         }
     }
@@ -346,8 +349,9 @@ public class DeliveryOrderService {
             }
             else{
                 if(!itemInDelivery.getIsDelivered()){
-                    InventoryItem itemInStock = inventoryItemRepository.findByCommodityCodeAndWarehouseId(itemInDelivery.getCommodityCode(), itemInDelivery.getWarehouseId(), InventoryItemStatus.IN_STOCK.getId()).orElse(
-                            inventoryItemRepository.findByCommodityCodeAndWarehouseId(itemInDelivery.getCommodityCode(), itemInDelivery.getWarehouseId(), InventoryItemStatus.IN_STOCK.getId()).orElse(null)
+                    InventoryItem itemInStock = inventoryItemRepository.findByCommodityCodeAndWarehouseId(itemInDelivery.getCommodityCode(), itemInDelivery.getWarehouseId(), InventoryItemStatus.IN_STOCK.getId()).orElseGet(
+                            () -> inventoryItemRepository.findByCommodityCodeAndWarehouseId(itemInDelivery.getCommodityCode(), itemInDelivery.getWarehouseId(), InventoryItemStatus.SOLD.getId())
+                                    .orElseThrow(() -> LogicErrException.of("Không tồn tại mặt hàng có sẵn mã '"+itemInDelivery.getCommodityCode()+"' trong kho."))
                     );
                     if(itemInStock == null){
                         itemInStock = inventoryItemMapper.toInventoryItem(itemInDelivery);
@@ -367,8 +371,11 @@ public class DeliveryOrderService {
                 }
                 else {
                     item.setQuantity(item.getQuantity() + itemInDelivery.getQuantity());
+                    if(item.getStatus().equals(InventoryItemStatus.SOLD)) {
+                        // Để sang sẵn hãng
+                        item.setStatus(InventoryItemStatus.IN_STOCK.getId());
+                    }
                     itemsToUpdate.add(item);
-                    // Để sang sẵn hãng
                 }
             }
         }
