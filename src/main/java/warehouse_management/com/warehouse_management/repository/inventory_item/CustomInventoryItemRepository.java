@@ -59,10 +59,6 @@ public interface CustomInventoryItemRepository {
 
     long bulkHardDelete(Collection<ObjectId> ids);
 
-    List<InventoryProductDetailsDto> findInventoryProductDetailsInIds(ObjectId ids);
-
-    List<InventorySparePartDetailsDto> findInventorySparePartDetailsInIds(ObjectId ids);
-
     List<InventoryItemModelDto> findAllModelsAndItems(List<String> inventoryTypes, List<ObjectId> warehouseIds, String model);
 
     Page<ReportInventoryDto> findPageReportInventoryToDashBoard(ReportParamsDto params);

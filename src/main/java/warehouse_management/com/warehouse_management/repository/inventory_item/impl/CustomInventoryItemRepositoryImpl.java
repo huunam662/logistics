@@ -546,43 +546,14 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     }
 
     @Override
-    public List<InventoryProductDetailsDto> findInventoryProductDetailsInIds(ObjectId ids) {
-        List<AggregationOperation> pipelines = List.of(
-            Aggregation.match(new Criteria().andOperator(
-                    Criteria.where("containerId").is(ids),
-                    Criteria.where("inventoryType").in(InventoryType.VEHICLE.getId(), InventoryType.ACCESSORY.getId())
-            )),
-            Aggregation.project("model", "category", "serialNumber", "productCode", "poNumber", "inventoryType", "initialCondition", "notes", "specifications", "pricing", "logistics")
-                    .and("_id").as("id")
-        );
-        Aggregation aggregation = Aggregation.newAggregation(pipelines);
-        AggregationResults<InventoryProductDetailsDto> aggResults = mongoTemplate.aggregate(aggregation, InventoryItem.class, InventoryProductDetailsDto.class);
-        return aggResults.getMappedResults();
-    }
-
-    @Override
-    public List<InventorySparePartDetailsDto> findInventorySparePartDetailsInIds(ObjectId ids) {
-        List<AggregationOperation> pipelines = List.of(
-                Aggregation.match(new Criteria().andOperator(
-                        Criteria.where("containerId").is(ids),
-                        Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId())
-                )),
-                Aggregation.project("commodityCode", "poNumber", "quantity", "orderDate", "description", "inventoryType", "notes", "contractNumber", "pricing")
-                        .and("_id").as("id")
-        );
-        Aggregation aggregation = Aggregation.newAggregation(pipelines);
-        AggregationResults<InventorySparePartDetailsDto> aggResults = mongoTemplate.aggregate(aggregation, InventoryItem.class, InventorySparePartDetailsDto.class);
-        return aggResults.getMappedResults();
-    }
-
-    @Override
     public List<InventoryItemModelDto> findAllModelsAndItems(List<String> inventoryTypes, List<ObjectId> warehouseIds, String model) {
         List<AggregationOperation> pipelines = List.of(
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("inventoryType").in(inventoryTypes),
                         Criteria.where("status").in(InventoryItemStatus.IN_STOCK.getId(), InventoryItemStatus.IN_TRANSIT.getId()),
                         Criteria.where("model").regex(model, "i"),
-                        Criteria.where("warehouseId").in(warehouseIds)
+                        Criteria.where("warehouseId").in(warehouseIds),
+                        Criteria.where("deletedAt").isNull()
                 )),
                 Aggregation.project("warehouseId", "model", "productCode", "commodityCode", "quantity", "specifications")
                         .and("_id").as("inventoryItemId")
@@ -647,8 +618,9 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 Aggregation.unwind("warehouse"),
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("warehouseId").is(warehouseId),
-                        Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
+                        Criteria.where("status").in(InventoryItemStatus.IN_STOCK.getId(), InventoryItemStatus.IN_TRANSIT.getId(), InventoryItemStatus.HOLD.getId()),
                         Criteria.where("inventoryType").in(InventoryType.VEHICLE.getId(), InventoryType.ACCESSORY.getId()),
+                        Criteria.where("deletedAt").isNull(),
                         Criteria.where("poNumber").regex(poNumber, "i")
                 )),
                 Aggregation.project("model", "category", "serialNumber", "productCode", "poNumber", "inventoryType", "initialCondition", "notes", "specifications", "pricing", "logistics")
@@ -664,8 +636,9 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 Aggregation.unwind("warehouse"),
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("warehouseId").is(warehouseId),
-                        Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
+                        Criteria.where("status").in(InventoryItemStatus.IN_STOCK.getId(), InventoryItemStatus.IN_TRANSIT.getId(), InventoryItemStatus.HOLD.getId()),
                         Criteria.where("inventoryType").in(InventoryType.SPARE_PART.getId()),
+                        Criteria.where("deletedAt").isNull(),
                         Criteria.where("poNumber").regex(poNumber, "i")
                 )),
                 Aggregation.project("commodityCode", "poNumber", "quantity", "orderDate", "description", "inventoryType", "notes", "contractNumber", "pricing")
