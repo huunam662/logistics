@@ -181,6 +181,11 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.fail(String.valueOf(HttpStatus.METHOD_NOT_ALLOWED.value()), "HTTP method not supported."));
     }
 
+    // Xử lý lỗi 401 Unauthorized
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<?> handleAuthenticationException(AuthenticationException ex, WebRequest request) {
+        return  ResponseEntity.ok(ApiResponse.fail(ex.getMessage()+"-----"+ex.toString()));
+    }
 
     /**
      * Bắt tất cả các lỗi chưa được handle.

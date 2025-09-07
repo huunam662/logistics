@@ -86,10 +86,6 @@ public class WarehouseService {
     }
 
     public List<WarehouseResponseDto> getAllWarehouses() {
-        CustomUserDetail user = customAuthentication.getUser();
-        System.out.println(user);
-        System.out.println(user.getUsername());
-        System.out.println(user.getAuthorities());
         return repository.findAll()
                 .stream()
                 .map(mapper::toResponseDto)
