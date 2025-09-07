@@ -1,6 +1,7 @@
 package warehouse_management.com.warehouse_management.repository.container;
 
 import org.bson.types.ObjectId;
+import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -25,5 +26,11 @@ CustomContainerRepository{
 
     @Query("{'_id': {'$in': ?0}}")
     List<Container> findAllInIds(List<ObjectId> ids);
+
+    @Aggregation(pipeline = {
+            "{$match:  {_id: ?0}}",
+            "{$project: {containerCode: 1, _id: 0}}"
+    })
+    String findCodeById(ObjectId id);
 
 }
