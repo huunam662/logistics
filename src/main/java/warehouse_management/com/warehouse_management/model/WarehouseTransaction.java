@@ -42,9 +42,9 @@ public class WarehouseTransaction {
     private List<InventoryItemTicket> inventoryItems;    // Các mặt hàng có trong phiếu
 
     @CreatedBy
-    private ObjectId createdBy;
-    @LastModifiedBy
-    private ObjectId updatedBy;
+    private String createdBy;
+     @LastModifiedBy
+    private String updatedBy;
     private ObjectId deletedBy;
 
     @CreatedDate

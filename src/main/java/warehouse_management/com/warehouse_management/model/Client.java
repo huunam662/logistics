@@ -18,11 +18,11 @@ public class Client {
 
     private String name; // Tên
     @CreatedBy
-    private ObjectId createdBy;
+    private String createdBy;
 
     private String address; // Địa chỉ
-    @LastModifiedBy
-    private ObjectId updatedBy;
+     @LastModifiedBy
+    private String updatedBy;
 
     private String phone; // Điện thoại
     private ObjectId deletedBy;
