@@ -338,6 +338,8 @@ public class DeliveryOrderService {
         for(var itemInDelivery : deliveryOrder.getInventoryItems()){
             InventoryItem item = itemsInWarehouseMap.getOrDefault(itemInDelivery.getId(), null);
             if (item == null) continue;
+            String warehouseType = warehouseRepository.findTypeById(item.getWarehouseId());
+            if(warehouseType.equals(WarehouseType.DEPARTURE.getId())) continue;
             if(!item.getInventoryType().equals(InventoryType.SPARE_PART.getId())) {
                 item.setStatus(InventoryItemStatus.IN_STOCK.getId());
                 itemsToUpdate.add(item);
