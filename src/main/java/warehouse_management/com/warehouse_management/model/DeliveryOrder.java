@@ -39,9 +39,9 @@ public class DeliveryOrder {
     private List<NoteDeliveryModel> modelNotes;  // Các Model còn nợ
 
     @CreatedBy
-    private ObjectId createdBy;
-    @LastModifiedBy
-    private ObjectId updatedBy;
+    private String createdBy;
+     @LastModifiedBy
+    private String updatedBy;
     private ObjectId deletedBy;
 
     @CreatedDate

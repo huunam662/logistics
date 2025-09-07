@@ -36,9 +36,9 @@ public class Container {
     private ObjectId toWarehouseId;       // Tham chiếu đến _id kho đến
 
     @CreatedBy
-    private ObjectId createdBy;
-    @LastModifiedBy
-    private ObjectId updatedBy;
+    private String createdBy;
+     @LastModifiedBy
+    private String updatedBy;
     private ObjectId deletedBy;
 
     @CreatedDate
