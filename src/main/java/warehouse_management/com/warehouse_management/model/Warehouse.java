@@ -34,9 +34,9 @@ public class Warehouse {
     private String note;       // Ghi chú thêm
 
     @CreatedBy
-    private ObjectId createdBy;
+    private String createdBy;
     @LastModifiedBy
-    private ObjectId updatedBy;
+    private String updatedBy;
     private ObjectId deletedBy;
 
     @CreatedDate

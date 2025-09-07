@@ -44,9 +44,9 @@ public class InventoryItem {
     private String description;         // Mô tả
 
     @CreatedBy
-    private ObjectId createdBy;
-    @LastModifiedBy
-    private ObjectId updatedBy;
+    private String createdBy;
+     @LastModifiedBy
+    private String updatedBy;
     private ObjectId deletedBy;
 
     @CreatedDate
