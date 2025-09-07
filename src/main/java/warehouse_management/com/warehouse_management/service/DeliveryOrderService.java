@@ -164,7 +164,9 @@ public class DeliveryOrderService {
     @Transactional
     protected void pushItemsToDeliveryOrderLogic(List<PushItemToDeliveryDto> itemsToDeliveryDto, DeliveryOrder deliveryOrder){
         if(deliveryOrder.getInventoryItems() == null) deliveryOrder.setInventoryItems(new ArrayList<>());
-        List<ObjectId> pushItemIds = itemsToDeliveryDto.stream().filter(e -> e.getId() != null).map(e -> new ObjectId(e.getId())).toList();
+        List<ObjectId> pushItemIds = itemsToDeliveryDto.stream()
+                .filter(e -> (e.getId() != null && !e.getId().isBlank()))
+                .map(e -> new ObjectId(e.getId())).toList();
         List<InventoryItem> itemsToDelivery = inventoryItemRepository.findByIdIn(pushItemIds);
         Map<ObjectId, InventoryItem> itemsToDeliveryMap = itemsToDelivery.stream().collect(Collectors.toMap(InventoryItem::getId, e -> e));
         List<String> commodityCodes = itemsToDelivery.stream().filter(e -> e.getInventoryType().equals(InventoryType.SPARE_PART.getId()) && e.getCommodityCode() != null).map(InventoryItem::getCommodityCode).toList();
@@ -386,14 +388,17 @@ public class DeliveryOrderService {
         List<PushItemToDeliveryDto> itemsReqToPushNew = new ArrayList<>();
         List<PushItemToDeliveryDto> itemsReqToPushUpdate = new ArrayList<>();
         for(var itemReq : dto.getInventoryItemsDelivery()){
-            if(deliveryOrderMap.containsKey(new ObjectId(itemReq.getId()))) itemsReqToPushUpdate.add(itemReq);
+            if(itemReq.getId() != null && !itemReq.getId().isBlank()
+                && deliveryOrderMap.containsKey(new ObjectId(itemReq.getId()))) {
+                itemsReqToPushUpdate.add(itemReq);
+            }
             else {
-                if(itemReq.getManualModel() != null && !itemReq.getManualModel().isBlank()) {
-                    deliveryOrder.getModelNotes().stream()
-                            .filter(o -> o.getModel().equals(itemReq.getManualModel()))
-                            .findFirst().ifPresent(modelNote -> deliveryOrder.getModelNotes().remove(modelNote));
-                }
                 itemsReqToPushNew.add(itemReq);
+            }
+            // Handle remove manual model if it has updated to new existing item
+            if(itemReq.getManualModel() != null && !itemReq.getManualModel().isBlank()) {
+                deliveryOrder.getModelNotes()
+                        .removeIf(note -> note.getModel().equals(itemReq.getManualModel()));
             }
         }
         // - Nếu item không tồn tại thì thêm mới
@@ -406,8 +411,9 @@ public class DeliveryOrderService {
             if(warehouseType == null) throw LogicErrException.of("Loại kho chứa hàng hóa phải có giá trị.");
             if(WarehouseType.DEPARTURE.getId().equals(warehouseType)) {
                 if(itemToUpdateReq.getIsDelivered()) throw LogicErrException.of("Hàng hóa thuộc kho đi không được phép chọn đã giao.");
-                if(deliveryItem.getInventoryType().equals(InventoryType.SPARE_PART.getId()))
-                    throw LogicErrException.of("Sản phẩm ở kho đi chỉ được phép cập nhật khi đã dến kho đích.");
+                if(deliveryItem.getInventoryType().equals(InventoryType.SPARE_PART.getId())) {
+                    throw LogicErrException.of("Phụ tùng ở kho đi chỉ được phép cập nhật khi đã dến kho đích.");
+                }
                 deliveryItem.setQuantity(deliveryItem.getQuantity() + itemToUpdateReq.getQuantity());
                 continue;
             }
