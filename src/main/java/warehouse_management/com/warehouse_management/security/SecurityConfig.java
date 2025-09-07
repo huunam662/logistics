@@ -70,7 +70,7 @@ public class SecurityConfig {
                 "https://logistic-erp.meu-solutions.com",
                 "https://gateway.dev.meu-solutions.com"
         ));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATH", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
