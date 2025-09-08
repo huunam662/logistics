@@ -450,17 +450,19 @@ public class InventoryItemService {
                     item.setQuantity(item.getQuantity() - quantityToTransfer);
                     InventoryItem sparePartToDeparture = inventoryItemMapper.cloneEntity(item);
                     if(container != null){
-                        boolean isExistsInContainer = false;
-                        for(var sp : itemsSparePartInTransitContainer){
-                            // Nếu phụ tùng có mã hàng hóa tương ứng đã tồn tại trong container thì cập nhật số lượng
-                            if(sp.getCommodityCode().equals(item.getCommodityCode())){
-                                sp.setQuantity(sp.getQuantity() + quantityToTransfer);
-                                isExistsInContainer = true;
-                                break;
+                        if(!item.getStatus().equals(InventoryItemStatus.HOLD)){
+                            boolean isExistsInContainer = false;
+                            for(var sp : itemsSparePartInTransitContainer){
+                                // Nếu phụ tùng có mã hàng hóa tương ứng đã tồn tại trong container thì cập nhật số lượng
+                                if(sp.getCommodityCode().equals(item.getCommodityCode())){
+                                    sp.setQuantity(sp.getQuantity() + quantityToTransfer);
+                                    isExistsInContainer = true;
+                                    break;
+                                }
                             }
+                            // Duyệt qua item tiếp theo
+                            if(isExistsInContainer) continue;
                         }
-                        // Duyệt qua item tiếp theo
-                        if(isExistsInContainer) continue;
                         sparePartToDeparture.setContainerId(container.getId());
                         sparePartToDeparture.getLogistics().setDepartureDate(container.getDepartureDate());
                     }
@@ -482,18 +484,20 @@ public class InventoryItemService {
             }
 
             if(container != null){
-                boolean isExistsInContainer = false;
-                for(var sp : itemsSparePartInTransitContainer){
-                    // Nếu phụ tùng có mã hàng hóa tương ứng đã tồn tại trong container thì cập nhật số lượng
-                    if(sp.getCommodityCode().equals(item.getCommodityCode())){
-                        sp.setQuantity(sp.getQuantity() + item.getQuantity());
-                        item.setQuantity(0);
-                        isExistsInContainer = true;
-                        break;
+                if(!item.getStatus().equals(InventoryItemStatus.HOLD)) {
+                    boolean isExistsInContainer = false;
+                    for (var sp : itemsSparePartInTransitContainer) {
+                        // Nếu phụ tùng có mã hàng hóa tương ứng đã tồn tại trong container thì cập nhật số lượng
+                        if (sp.getCommodityCode().equals(item.getCommodityCode())) {
+                            sp.setQuantity(sp.getQuantity() + item.getQuantity());
+                            item.setQuantity(0);
+                            isExistsInContainer = true;
+                            break;
+                        }
                     }
+                    // Duyệt qua item tiếp theo
+                    if (isExistsInContainer) continue;
                 }
-                // Duyệt qua item tiếp theo
-                if(isExistsInContainer) continue;
 
                 item.setContainerId(container.getId());
                 item.getLogistics().setDepartureDate(container.getDepartureDate());

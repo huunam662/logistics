@@ -168,12 +168,23 @@ public class ContainerService {
         for(Container c : containers){
             if(!c.getContainerStatus().equals(ContainerStatus.PENDING))
                 throw LogicErrException.of("CONT " + c.getContainerCode() + "chỉ được phép xóa khi đang chờ xác nhận");
-            containerCompletedAndRejectedLogic(c, c.getFromWareHouseId());
+            UpOrRestoreItemInContainer(c);
         }
 
         long deletedCount = containerRepository.bulkSoftDelete(containerIds, currentUserId);
 
         return deletedCount > 0;
+    }
+
+    @Transactional
+    protected void UpOrRestoreItemInContainer(Container c) {
+        containerCompletedAndRejectedLogic(c, c.getFromWareHouseId(), InventoryItemStatus.IN_TRANSIT, InventoryItemStatus.IN_STOCK);
+        containerCompletedAndRejectedLogic(c, c.getFromWareHouseId(), InventoryItemStatus.HOLD, InventoryItemStatus.HOLD);
+        List<ObjectId> itemIds = c.getInventoryItems()
+                .stream()
+                .filter(i -> i.getStatus().equals(InventoryItemStatus.IN_TRANSIT.getId()))
+                .map(Container.InventoryItemContainer::getId).toList();
+        inventoryItemRepository.updateStatusAndWarehouseAndUnRefContainer(itemIds, c.getFromWareHouseId(), InventoryItemStatus.IN_STOCK.getId());
     }
 
     @Transactional
@@ -185,9 +196,7 @@ public class ContainerService {
         if(!container.getContainerStatus().equals(ContainerStatus.PENDING))
             throw LogicErrException.of("Chỉ được phép xóa khi đang chờ xác nhận");
         if(container.getInventoryItems() != null){
-            containerCompletedAndRejectedLogic(container, container.getFromWareHouseId());
-            List<ObjectId> itemIds = container.getInventoryItems().stream().map(Container.InventoryItemContainer::getId).toList();
-            inventoryItemRepository.updateStatusAndWarehouseAndUnRefContainer(itemIds, container.getFromWareHouseId(), InventoryItemStatus.IN_STOCK.getId());
+            UpOrRestoreItemInContainer(container);
         }
         containerRepository.softDeleteById(new ObjectId(containerId), null);
         return true;
@@ -288,9 +297,7 @@ public class ContainerService {
         if(containerStatus.equals(ContainerStatus.COMPLETED)){
             if(container.getInventoryItems() == null || container.getInventoryItems().isEmpty())
                 throw LogicErrException.of("Chỉ được hoàn tất khi trong CONT " +container.getContainerCode()+" có hàng.");
-            containerCompletedAndRejectedLogic(container, container.getToWarehouseId());
-            List<ObjectId> itemIds = container.getInventoryItems().stream().map(Container.InventoryItemContainer::getId).toList();
-            inventoryItemRepository.updateStatusAndWarehouseAndUnRefContainer(itemIds, container.getToWarehouseId(), InventoryItemStatus.IN_STOCK.getId());
+            UpOrRestoreItemInContainer(container);
             container.setCompletionDate(LocalDateTime.now());
             updateDeliveryItemsRefDepartureWarehouse(container);
             // TODO: Phiếu xuất/nhập
@@ -301,25 +308,27 @@ public class ContainerService {
     }
 
     @Transactional
-    public void containerCompletedAndRejectedLogic(Container container, ObjectId warehouseId){
+    public void containerCompletedAndRejectedLogic(Container container, ObjectId warehouseId, InventoryItemStatus statusItemInCont, InventoryItemStatus statusItemInWarehouse){
         if(container.getInventoryItems() == null) return;
         // Update items nếu là trạng thái hoàn tất giao hàng
         // Nếu ở kho được chỉ định đã tồn tại phụ tùng với trạng thái đang IN_STOCK thì cập nhập số lượng
         Map<String, Container.InventoryItemContainer> inventoryContainerSparePartMap = container.getInventoryItems().stream()
-                .filter(item -> item.getInventoryType().equals(InventoryType.SPARE_PART.getId()) && item.getCommodityCode() != null)
+                .filter(item -> item.getInventoryType().equals(InventoryType.SPARE_PART.getId())
+                        && item.getCommodityCode() != null
+                        && item.getStatus().equals(statusItemInCont.getId()))
                 .collect(Collectors.toMap(Container.InventoryItemContainer::getCommodityCode, item -> item));
         // Lấy ra các phụ tùng với mã sản phẩm đã tồn tại ở kho được chỉ định và trạng thái đang IN_STOCK
-        List<InventoryItem> sparePartsInStockDestination = inventoryItemRepository.findSparePartByCommodityCodeIn(inventoryContainerSparePartMap.keySet(), warehouseId, InventoryItemStatus.IN_STOCK.getId());
+        List<InventoryItem> sparePartsInStockWarehouse = inventoryItemRepository.findSparePartByCommodityCodeIn(inventoryContainerSparePartMap.keySet(), warehouseId, statusItemInWarehouse.getId());
         // Danh sách lưu trữ các spare part cần xóa mềm thuộc container
-        if(!sparePartsInStockDestination.isEmpty()){
+        if(!sparePartsInStockWarehouse.isEmpty()){
             List<ObjectId> sparePartsToDel = new ArrayList<>();
             // Cập nhật lại số lượng phụ tùng có sẵn trong kho được chỉ định (trùng mã hàng hóa)
-            for(var sparePart : sparePartsInStockDestination){
+            for(var sparePart : sparePartsInStockWarehouse){
                 Container.InventoryItemContainer sparePartInContainer = inventoryContainerSparePartMap.get(sparePart.getCommodityCode());
                 sparePart.setQuantity(sparePart.getQuantity() + sparePartInContainer.getQuantity());
                 sparePartsToDel.add(sparePartInContainer.getId());
             }
-            inventoryItemRepository.bulkUpdateTransfer(sparePartsInStockDestination);
+            inventoryItemRepository.bulkUpdateTransfer(sparePartsInStockWarehouse);
             // Xóa cứng các phụ tùng được clone trước đó ở kho nguồn (do trước đó chỉ lấy ra số lượng bé hơn số lượng tồn kho)
             inventoryItemRepository.bulkHardDelete(sparePartsToDel);
         }
