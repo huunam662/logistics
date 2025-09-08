@@ -168,7 +168,7 @@ public class DeliveryOrderService {
         if(status.equals(DeliveryOrderStatus.COMPLETED)){
             if(deliveryOrder.getInventoryItems() == null
                     || deliveryOrder.getInventoryItems().isEmpty()
-            || deliveryOrder.getInventoryItems().stream().filter(o -> !o.getIsDelivered()).findFirst().isEmpty()){
+            || deliveryOrder.getInventoryItems().stream().anyMatch(o -> !o.getIsDelivered())){
                 throw LogicErrException.of("Không được phép hoàn tất khi chưa giao đủ.");
             }
         }
@@ -446,8 +446,10 @@ public class DeliveryOrderService {
             }
             // Handle remove manual model if it has updated to new existing item
             if(itemReq.getManualModel() != null && !itemReq.getManualModel().isBlank()) {
-                deliveryOrder.getModelNotes()
-                        .removeIf(note -> note.getModel().equals(itemReq.getManualModel()));
+                if(deliveryOrder.getModelNotes() != null){
+                    deliveryOrder.getModelNotes()
+                            .removeIf(note -> note.getModel().equals(itemReq.getManualModel()));
+                }
             }
         }
         // - Nếu item không tồn tại thì thêm mới
@@ -499,8 +501,6 @@ public class DeliveryOrderService {
                 pushItemsToDeliveryOrderLogic(List.of(itemToUpdateReq), deliveryOrder);
                 return;
             }
-            // - Nếu vẫn là trạng thái "chưa giao" và cập nhật số lượng thì merge với item "giữ hàng" (có cùng mã hàng hóa)
-            if(itemToUpdateReq.getQuantity().equals(deliveryItem.getQuantity())) return;
             int quantityHoldingCalResult;
             // + Nếu số lượng phụ tùng cập nhật lớn hơn số lượng ban đầu thì kiêm tra số lượng hàng có sẵn (không đáp ứng thì không cho phép cập nhật)
             if(itemToUpdateReq.getQuantity() > deliveryItem.getQuantity()){
@@ -510,12 +510,12 @@ public class DeliveryOrderService {
                 if(itemInHolding != null) itemInHolding.setQuantity(itemInHolding.getQuantity() + quantityHoldingCalResult);
                 itemInStockOrSold.setQuantity(itemInStockOrSold.getQuantity() - quantityHoldingCalResult);
                 if(itemInStockOrSold.getQuantity() == 0) itemInStockOrSold.setStatus(InventoryItemStatus.SOLD.getId());
-                inventoryItemRepository.save(itemInStockOrSold);
             }
             // + Nếu số lương cập nhật bé hơn số lượng ban đầu thì cập nhật số lượng hàng đang giữ (cộng thêm số lượng bị trừ so với ban đầu)
             else{
                 quantityHoldingCalResult = deliveryItem.getQuantity() - itemToUpdateReq.getQuantity();
                 if(itemInHolding != null) itemInHolding.setQuantity(itemInHolding.getQuantity() - itemToUpdateReq.getQuantity());
+                itemInStockOrSold.setQuantity(itemInStockOrSold.getQuantity() + quantityHoldingCalResult);
             }
             if(itemInHolding == null){
                 itemInHolding = inventoryItemMapper.toInventoryItem(deliveryItem);
@@ -524,51 +524,13 @@ public class DeliveryOrderService {
                 itemInHolding.setQuantity(quantityHoldingCalResult);
             }
             inventoryItemRepository.save(itemInHolding);
+            inventoryItemRepository.save(itemInStockOrSold);
             deliveryItem.setQuantity(itemToUpdateReq.getQuantity());
         }
         else{
             // Nếu trong đơn đã tồn tại mặt hàng đã giao nhưng nhận yêu cầu tăng thêm số lượng đã giao
-            if(itemInHolding == null && itemInStockOrSold.getId().equals(new ObjectId(itemToUpdateReq.getId()))){
-                if(itemInStockOrSold.getQuantity() < itemToUpdateReq.getQuantity())
-                    throw LogicErrException.of("Hàng hóa mã '"+deliveryItem.getCommodityCode()+"' không đủ số lượng trong kho.");
-                itemInStockOrSold.setQuantity(itemInStockOrSold.getQuantity() - itemToUpdateReq.getQuantity());
-                if(itemInStockOrSold.getQuantity() == 0) itemInStockOrSold.setStatus(InventoryItemStatus.SOLD.getId());
-                inventoryItemRepository.save(itemInStockOrSold);
-                updateItemSoldInDeliveryLogic(itemToUpdateReq, deliveryOrder, itemInStockOrSold, itemInStockOrSold.getCommodityCode());
-                return;
-            }
-            else if(itemInHolding != null && itemInStockOrSold.getId().equals(new ObjectId(itemToUpdateReq.getId()))){
-                ObjectId itemInHoldingId = itemInHolding.getId();
-                DeliveryOrder.InventoryItemDelivery itemHoldingInDelivery = deliveryOrder.getInventoryItems()
-                        .stream().filter(o -> o.getInventoryType().equals(InventoryType.SPARE_PART.getId()) && o.getId().equals(itemInHoldingId))
-                        .findFirst().orElse(null);
-                boolean notEnoughQuantityInStock = false;
-                if(itemHoldingInDelivery == null){
-                    notEnoughQuantityInStock = itemInStockOrSold.getQuantity() < itemToUpdateReq.getQuantity();
-                    if(!notEnoughQuantityInStock) itemInStockOrSold.setQuantity(itemInStockOrSold.getQuantity() - itemToUpdateReq.getQuantity());
-                }
-                else{
-                    if(itemHoldingInDelivery.getQuantity() < itemToUpdateReq.getQuantity()){
-                        notEnoughQuantityInStock = itemInStockOrSold.getQuantity() + itemHoldingInDelivery.getQuantity() < itemToUpdateReq.getQuantity();
-                        if(!notEnoughQuantityInStock) {
-                            itemInStockOrSold.setQuantity(itemInStockOrSold.getQuantity() + itemHoldingInDelivery.getQuantity() - itemToUpdateReq.getQuantity());
-                            deliveryOrder.getInventoryItems().remove(itemHoldingInDelivery);
-                        }
-                    }
-                    else{
-                        itemHoldingInDelivery.setQuantity(itemHoldingInDelivery.getQuantity() - itemToUpdateReq.getQuantity());
-                        itemInHolding.setQuantity(itemInHolding.getQuantity() - itemToUpdateReq.getQuantity());
-                        inventoryItemRepository.save(itemInHolding);
-                    }
-                    if(itemHoldingInDelivery.getQuantity() <= itemInHolding.getQuantity()) {
-                        deliveryOrder.getInventoryItems().remove(itemHoldingInDelivery);
-                        inventoryItemRepository.deleteById(itemInHoldingId);
-                    }
-                }
-                if(notEnoughQuantityInStock) throw LogicErrException.of("Hàng hóa mã '"+deliveryItem.getCommodityCode()+"' không đủ số lượng trong kho.");
-                if(itemInStockOrSold.getQuantity() == 0) itemInStockOrSold.setStatus(InventoryItemStatus.SOLD.getId());
-                inventoryItemRepository.save(itemInStockOrSold);
-                updateItemSoldInDeliveryLogic(itemToUpdateReq, deliveryOrder, itemInStockOrSold, itemInStockOrSold.getCommodityCode());
+            if(itemInStockOrSold.getId().equals(new ObjectId(itemToUpdateReq.getId()))){
+                updatePlusItemsLogic(itemInHolding, itemInStockOrSold, itemToUpdateReq, deliveryItem, deliveryOrder);
                 return;
             }
             // - Nếu cập nhật từ trạng thái "chưa giao" sang "đã giao" và cập nhật số lượng thì merge với item "đã giao" (có cùng mã hàng hóa)
@@ -630,6 +592,54 @@ public class DeliveryOrderService {
                 }
             }
         }
+    }
+
+    @Transactional
+    protected void updatePlusItemsLogic(
+            InventoryItem itemInHolding,
+            InventoryItem itemInStockOrSold,
+            PushItemToDeliveryDto itemToUpdateReq,
+            DeliveryOrder.InventoryItemDelivery deliveryItem,
+            DeliveryOrder deliveryOrder
+    ){
+        if(itemInHolding == null){
+            if(itemInStockOrSold.getQuantity() < itemToUpdateReq.getQuantity())
+                throw LogicErrException.of("Hàng hóa mã '"+deliveryItem.getCommodityCode()+"' không đủ số lượng trong kho.");
+            itemInStockOrSold.setQuantity(itemInStockOrSold.getQuantity() - itemToUpdateReq.getQuantity());
+        }
+        else {
+            ObjectId itemInHoldingId = itemInHolding.getId();
+            DeliveryOrder.InventoryItemDelivery itemHoldingInDelivery = deliveryOrder.getInventoryItems()
+                    .stream().filter(o -> o.getInventoryType().equals(InventoryType.SPARE_PART.getId()) && o.getId().equals(itemInHoldingId))
+                    .findFirst().orElse(null);
+            boolean notEnoughQuantityInStock = false;
+            if(itemHoldingInDelivery == null){
+                notEnoughQuantityInStock = itemInStockOrSold.getQuantity() < itemToUpdateReq.getQuantity();
+                if(!notEnoughQuantityInStock) itemInStockOrSold.setQuantity(itemInStockOrSold.getQuantity() - itemToUpdateReq.getQuantity());
+            }
+            else{
+                if(itemHoldingInDelivery.getQuantity() < itemToUpdateReq.getQuantity()){
+                    notEnoughQuantityInStock = itemInStockOrSold.getQuantity() + itemHoldingInDelivery.getQuantity() < itemToUpdateReq.getQuantity();
+                    if(!notEnoughQuantityInStock) {
+                        itemInStockOrSold.setQuantity(itemInStockOrSold.getQuantity() + itemHoldingInDelivery.getQuantity() - itemToUpdateReq.getQuantity());
+                        deliveryOrder.getInventoryItems().remove(itemHoldingInDelivery);
+                    }
+                }
+                else{
+                    itemHoldingInDelivery.setQuantity(itemHoldingInDelivery.getQuantity() - itemToUpdateReq.getQuantity());
+                    itemInHolding.setQuantity(itemInHolding.getQuantity() - itemToUpdateReq.getQuantity());
+                    inventoryItemRepository.save(itemInHolding);
+                }
+                if(itemHoldingInDelivery.getQuantity() <= itemInHolding.getQuantity()) {
+                    deliveryOrder.getInventoryItems().remove(itemHoldingInDelivery);
+                    inventoryItemRepository.deleteById(itemInHoldingId);
+                }
+            }
+            if(notEnoughQuantityInStock) throw LogicErrException.of("Hàng hóa mã '"+deliveryItem.getCommodityCode()+"' không đủ số lượng trong kho.");
+        }
+        if(itemInStockOrSold.getQuantity() == 0) itemInStockOrSold.setStatus(InventoryItemStatus.SOLD.getId());
+        inventoryItemRepository.save(itemInStockOrSold);
+        updateItemSoldInDeliveryLogic(itemToUpdateReq, deliveryOrder, itemInStockOrSold, itemInStockOrSold.getCommodityCode());
     }
 
     private void updateItemSoldInDeliveryLogic(PushItemToDeliveryDto itemToUpdateReq, DeliveryOrder deliveryOrder, InventoryItem itemInStockOrSold, String commodityCode) {
