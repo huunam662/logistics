@@ -5,6 +5,7 @@ import lombok.Data;
 @Data
 public class InventoryItemModelDto {
     private String warehouseId;
+    private String warehouseType;
     private String model;
     private String inventoryItemId;
     private String productCode;

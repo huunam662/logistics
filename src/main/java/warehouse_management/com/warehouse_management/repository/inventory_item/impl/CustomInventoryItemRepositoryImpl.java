@@ -32,10 +32,7 @@ import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.repository.inventory_item.CustomInventoryItemRepository;
 import warehouse_management.com.warehouse_management.utils.MongoRsqlUtils;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Repository
 public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRepository {
@@ -555,8 +552,11 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("warehouseId").in(warehouseIds),
                         Criteria.where("deletedAt").isNull()
                 )),
-                Aggregation.project("warehouseId", "model", "productCode", "commodityCode", "quantity", "specifications")
+                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
+                Aggregation.unwind("warehouse", true),
+                Aggregation.project("warehouseId", "model", "productCode", "commodityCode", "quantity", "specifications", "warehouse.type")
                         .and("_id").as("inventoryItemId")
+                        .and("warehouse.type").as("warehouseType")
         );
         Aggregation aggregation = Aggregation.newAggregation(pipelines);
         AggregationResults<InventoryItemModelDto> aggResults = mongoTemplate.aggregate(aggregation, InventoryItem.class, InventoryItemModelDto.class);

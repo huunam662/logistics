@@ -84,23 +84,47 @@ public class DeliveryOrderService {
         return deliveryOrderRepository.findPageDeliveryOrder(optionsDto);
     }
 
-    public DeliveryOrderItemsDto getDeliveryOrderItemTicks(ObjectId id, boolean isSparePart){
+    public DeliveryOrderItemsDto getDeliveryOrderItemTicks(ObjectId id, boolean isSparePart) {
         DeliveryOrder deliveryOrder = getDeliveryOrderToId(id);
+        List<WarehouseForOrder> warehouseForOrders = warehouseRepository.getWarehousesForOrder();
+        Map<ObjectId, String> warehouseIdToType = new HashMap<>();
+        for (WarehouseForOrder warehouseForOrder : warehouseForOrders) {
+            warehouseIdToType.put(new ObjectId(warehouseForOrder.getId()), warehouseForOrder.getType());
+        }
+
         DeliveryOrderItemsDto deliveryOrderItemsDto = new DeliveryOrderItemsDto();
-        if(deliveryOrder.getInventoryItems() != null){
-            List<DeliveryOrder.InventoryItemDelivery> inventoryItemDeliveries = isSparePart
-                    ? deliveryOrder.getInventoryItems().stream().filter(e -> e.getInventoryType().equals(InventoryType.SPARE_PART.getId())).toList()
-                    : deliveryOrder.getInventoryItems().stream().filter(e -> !e.getInventoryType().equals(InventoryType.SPARE_PART.getId())).toList();
-            List<DeliveryItemModelDto> itemsDto = inventoryItemDeliveries.stream().map(deliveryOrderMapper::toDeliveryOrderItemsDto).toList();
+
+        if (deliveryOrder.getInventoryItems() != null) {
+            List<DeliveryOrder.InventoryItemDelivery> inventoryItemDeliveries;
+
+            if (isSparePart) {
+                inventoryItemDeliveries = deliveryOrder.getInventoryItems().stream()
+                        .filter(e -> e.getInventoryType().equals(InventoryType.SPARE_PART.getId()))
+                        .toList();
+            } else {
+                inventoryItemDeliveries = deliveryOrder.getInventoryItems().stream()
+                        .filter(e -> !e.getInventoryType().equals(InventoryType.SPARE_PART.getId()))
+                        .toList();
+            }
+            List<DeliveryItemModelDto> itemsDto = new ArrayList<>();
+
+            for (DeliveryOrder.InventoryItemDelivery inventoryItemDelivery : inventoryItemDeliveries) {
+                DeliveryItemModelDto item = deliveryOrderMapper.toDeliveryOrderItemsDto(inventoryItemDelivery);
+                item.setWarehouseType(warehouseIdToType.getOrDefault(item.getWarehouseId(),""));
+                itemsDto.add(item);
+            }
+
             deliveryOrderItemsDto.setItems(itemsDto);
         }
-        if(deliveryOrder.getModelNotes() != null){
-            for(var backDeliveryModel : deliveryOrder.getModelNotes()){
-                if(isSparePart == backDeliveryModel.getIsSparePart()){
+
+        if (deliveryOrder.getModelNotes() != null) {
+            for (var backDeliveryModel : deliveryOrder.getModelNotes()) {
+                if (isSparePart == backDeliveryModel.getIsSparePart()) {
                     deliveryOrderItemsDto.getModelNotes().add(backDeliveryModel);
                 }
             }
         }
+
         return deliveryOrderItemsDto;
     }
 
@@ -158,10 +182,14 @@ public class DeliveryOrderService {
     public DeliveryOrder addItemsToDeliveryOrder(PushItemsDeliveryDto dto){
         DeliveryOrder deliveryOrder = getDeliveryOrderToId(new ObjectId(dto.getDeliveryOrderId()));
         List<String> statuses = List.of(DeliveryOrderStatus.COMPLETED.getValue(), DeliveryOrderStatus.REJECTED.getValue());
-        if(statuses.contains(deliveryOrder.getStatus()))
+
+        if(statuses.contains(deliveryOrder.getStatus())) {
             throw LogicErrException.of("Đơn hàng đang ở trong phạm vi không được thêm sản phẩm.");
+        }
+
         List<PushItemToDeliveryDto> itemsToDeliveryDto = dto.getInventoryItemsDelivery();
         if(itemsToDeliveryDto == null) throw LogicErrException.of("Sản phẩm cần thêm vào đơn hàng hiện đang rỗng.");
+
         pushItemsToDeliveryOrderLogic(itemsToDeliveryDto, deliveryOrder);
         return deliveryOrderRepository.save(deliveryOrder);
     }
@@ -178,6 +206,7 @@ public class DeliveryOrderService {
         List<InventoryItem> itemsHoldingInWarehouse = inventoryItemRepository.findSparePartByCommodityCodeIn(commodityCodes, InventoryItemStatus.HOLD.getId());
         Map<String, InventoryItem> itemsHoldingInWarehouseMap = itemsHoldingInWarehouse.stream().collect(Collectors.toMap(InventoryItem::getCommodityCode, e -> e));
         List<InventoryItem> sparePartToNew = new ArrayList<>();
+
         for(var itemToPush : itemsToDeliveryDto){
             if(itemToPush.getManualModel() != null && !itemToPush.getManualModel().isBlank()
             && (itemToPush.getId() == null || itemToPush.getId().isBlank())){
