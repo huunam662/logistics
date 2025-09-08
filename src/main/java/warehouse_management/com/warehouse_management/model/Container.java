@@ -77,7 +77,6 @@ public class Container {
         private Specifications specifications;
         private Pricing pricing;
         private Logistics logistics;
-        private String status;
 
         @Data
         @NoArgsConstructor
