@@ -2,7 +2,6 @@ package warehouse_management.com.warehouse_management.service;
 
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
-import org.hibernate.validator.internal.util.logging.Log;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +18,7 @@ import warehouse_management.com.warehouse_management.mapper.InventoryItemMapper;
 import warehouse_management.com.warehouse_management.model.Client;
 import warehouse_management.com.warehouse_management.model.DeliveryOrder;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
+import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.repository.container.ContainerRepository;
 import warehouse_management.com.warehouse_management.repository.delivery_order.DeliveryOrderRepository;
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
@@ -38,6 +38,7 @@ public class DeliveryOrderService {
     private final WarehouseRepository warehouseRepository;
     private final ClientService clientService;
     private final ContainerRepository containerRepository;
+    private final WarehouseService warehouseService;
 
     public DeliveryOrder getDeliveryOrderToId(ObjectId id) {
         return deliveryOrderRepository.findById(id)
@@ -130,7 +131,8 @@ public class DeliveryOrderService {
         }
         if(deliveryOrder.getStatus().equals(DeliveryOrderStatus.REJECTED.getValue()))
             throw LogicErrException.of("Đơn hàng đã được hủy trước đó.");
-        if(deliveryOrder.getStatus().equals(DeliveryOrderStatus.COMPLETED.getValue()))
+        if(!dto.getStatus().equals(DeliveryOrderStatus.REJECTED.getValue())
+                && deliveryOrder.getStatus().equals(DeliveryOrderStatus.COMPLETED.getValue()))
             throw LogicErrException.of("Đơn hàng đã được hoàn tất trước đó.");
         DeliveryOrderStatus status = DeliveryOrderStatus.fromValue(dto.getStatus());
         if(status == null) throw LogicErrException.of("Trạng thái cần cập nhật không hợp lệ.");
@@ -192,13 +194,13 @@ public class DeliveryOrderService {
             InventoryItem item = itemsToDeliveryMap.getOrDefault(new ObjectId(itemToPush.getId()), null);
 
             if(item == null) throw LogicErrException.of("Mặt hàng cần thêm vào đơn hiện không tồn tại.");
-            String warehouseType = warehouseRepository.findTypeById(item.getWarehouseId());
+            Warehouse warehouse = warehouseService.getWarehouseToId(item.getWarehouseId());
 
-            if(warehouseType == null) throw LogicErrException.of("Loại kho chứa hàng hóa phải có giá trị.");
-            if(WarehouseType.DEPARTURE.getId().equals(warehouseType) && itemToPush.getIsDelivered()){
+            if(warehouse.getType() == null) throw LogicErrException.of("Kho "+warehouse.getName()+" không tồn tại loại kho.");
+            if(WarehouseType.DEPARTURE.getId().equals(warehouse.getTypeString()) && itemToPush.getIsDelivered()){
                 if(!item.getInventoryType().equals(InventoryType.SPARE_PART.getId()))
-                    throw LogicErrException.of("Sản phẩm "+item.getProductCode()+" thuộc kho đi không được phép chọn đã giao.");
-                else throw LogicErrException.of("Hàng "+item.getCommodityCode()+" thuộc kho đi không được phép chọn đã giao.");
+                    throw LogicErrException.of("Sản phẩm "+item.getProductCode()+" thuộc kho "+warehouse.getName()+" không được phép chọn đã giao.");
+                else throw LogicErrException.of("Hàng "+item.getCommodityCode()+" thuộc kho "+warehouse.getName()+" không được phép chọn đã giao.");
             }
             if(item.getInventoryType().equals(InventoryType.SPARE_PART.getId())){
                 pushSparePartToDeliveryOrderLogic(deliveryOrder, itemToPush, item, sparePartToNew, itemsHoldingInWarehouseMap);
@@ -430,13 +432,13 @@ public class DeliveryOrderService {
 
         for(var itemToUpdateReq : itemsReqToPushUpdate){
             DeliveryOrder.InventoryItemDelivery deliveryItem = deliveryOrderMap.get(new ObjectId(itemToUpdateReq.getId()));
-            String warehouseType = warehouseRepository.findTypeById(deliveryItem.getWarehouseId());
-            if(warehouseType == null) throw LogicErrException.of("Loại kho chứa hàng hóa phải có giá trị.");
-            if(WarehouseType.DEPARTURE.getId().equals(warehouseType) && itemToUpdateReq.getIsDelivered()) {
-                if (!deliveryItem.getInventoryType().equals(InventoryType.SPARE_PART.getId()))
-                    throw LogicErrException.of("Sản phẩm " + deliveryItem.getProductCode() + " thuộc kho đi không được phép chọn đã giao.");
-                else
-                    throw LogicErrException.of("Hàng " + deliveryItem.getCommodityCode() + " thuộc kho đi không được phép chọn đã giao.");
+            Warehouse warehouse = warehouseService.getWarehouseToId(deliveryItem.getWarehouseId());
+
+            if(warehouse.getType() == null) throw LogicErrException.of("Kho "+warehouse.getName()+" không tồn tại loại kho.");
+            if(WarehouseType.DEPARTURE.getId().equals(warehouse.getTypeString()) && itemToUpdateReq.getIsDelivered()){
+                if(!deliveryItem.getInventoryType().equals(InventoryType.SPARE_PART.getId()))
+                    throw LogicErrException.of("Sản phẩm "+deliveryItem.getProductCode()+" thuộc kho "+warehouse.getName()+" không được phép chọn đã giao.");
+                else throw LogicErrException.of("Hàng "+deliveryItem.getCommodityCode()+" thuộc kho "+warehouse.getName()+" không được phép chọn đã giao.");
             }
             // - Nếu là xe & phụ kiện
             if (!deliveryItem.getInventoryType().equals(InventoryType.SPARE_PART.getId())) {
