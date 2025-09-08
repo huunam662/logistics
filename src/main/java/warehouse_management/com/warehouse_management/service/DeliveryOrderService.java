@@ -53,9 +53,9 @@ public class DeliveryOrderService {
         Client client = clientService.getClientToId(new ObjectId(dto.getCustomerId()));
         deliveryOrder = deliveryOrderMapper.toCreateDeliveryOrder(dto);
         deliveryOrder.setCustomerId(client.getId());
-        if(dto.getHoldingDays() == null || dto.getHoldingDays() == 0)
+        if(dto.getHoldingDays() == null || dto.getHoldingDays() <= 0)
             deliveryOrder.setStatus(DeliveryOrderStatus.UN_DELIVERED.getValue());
-        else deliveryOrder.setStatus(DeliveryOrderStatus.UN_DELIVERED.getValue());
+        else deliveryOrder.setStatus(DeliveryOrderStatus.HOLD.getValue());
         return deliveryOrderRepository.save(deliveryOrder);
     }
 
