@@ -544,20 +544,28 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
 
     @Override
     public List<InventoryItemModelDto> findAllModelsAndItems(List<String> inventoryTypes, List<ObjectId> warehouseIds, String model) {
-        List<AggregationOperation> pipelines = List.of(
+        List<String> statusIns = new ArrayList<>(List.of(InventoryItemStatus.IN_STOCK.getId()));
+        if(!inventoryTypes.contains(InventoryType.SPARE_PART.getId())){
+            statusIns.add(InventoryItemStatus.IN_TRANSIT.getId());
+        }
+        List<AggregationOperation> pipelines = new ArrayList<>(List.of(
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("inventoryType").in(inventoryTypes),
-                        Criteria.where("status").in(InventoryItemStatus.IN_STOCK.getId(), InventoryItemStatus.IN_TRANSIT.getId(), InventoryItemStatus.HOLD.getId()),
+                        Criteria.where("status").in(statusIns),
                         Criteria.where("model").regex(model, "i"),
                         Criteria.where("warehouseId").in(warehouseIds),
                         Criteria.where("deletedAt").isNull()
                 )),
                 Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
-                Aggregation.unwind("warehouse", true),
-                Aggregation.project("warehouseId", "model", "productCode", "commodityCode", "quantity", "specifications", "warehouse.type")
-                        .and("_id").as("inventoryItemId")
-                        .and("warehouse.type").as("warehouseType")
-        );
+                Aggregation.unwind("warehouse", true)
+        ));
+        if(inventoryTypes.contains(InventoryType.SPARE_PART.getId())){
+            pipelines.add(Aggregation.match(Criteria.where("warehouse.type").ne(WarehouseType.DEPARTURE.getId())));
+        }
+        ProjectionOperation projection = Aggregation.project("warehouseId", "model", "productCode", "commodityCode", "quantity", "specifications", "warehouse.type")
+                .and("_id").as("inventoryItemId")
+                .and("warehouse.type").as("warehouseType");
+        pipelines.add(projection);
         Aggregation aggregation = Aggregation.newAggregation(pipelines);
         AggregationResults<InventoryItemModelDto> aggResults = mongoTemplate.aggregate(aggregation, InventoryItem.class, InventoryItemModelDto.class);
         return aggResults.getMappedResults();
