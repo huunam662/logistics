@@ -62,6 +62,10 @@ public class Warehouse {
         return type == null ? null : WarehouseType.fromId(type);
     }
 
+    public String getTypeString() {
+        return type;
+    }
+
     public void setStatus(WarehouseType warehouseType) {
         this.type = warehouseType == null ? null : warehouseType.getId();
     }

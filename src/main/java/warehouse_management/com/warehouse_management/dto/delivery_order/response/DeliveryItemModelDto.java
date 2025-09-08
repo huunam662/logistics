@@ -7,6 +7,7 @@ import warehouse_management.com.warehouse_management.dto.inventory_item.response
 @Data
 public class DeliveryItemModelDto {
     private ObjectId warehouseId;
+    private String warehouseType;
     private String model;
     private ObjectId inventoryItemId;
     private String productCode;

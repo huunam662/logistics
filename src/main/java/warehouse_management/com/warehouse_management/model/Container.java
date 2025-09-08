@@ -78,7 +78,6 @@ public class Container {
         private Pricing pricing;
         private Logistics logistics;
 
-
         @Data
         @NoArgsConstructor
         @AllArgsConstructor

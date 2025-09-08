@@ -461,14 +461,15 @@ public class InventoryItemService {
                         }
                         // Duyệt qua item tiếp theo
                         if(isExistsInContainer) continue;
+
                         sparePartToDeparture.setContainerId(container.getId());
                         sparePartToDeparture.getLogistics().setDepartureDate(container.getDepartureDate());
                     }
+                    
                     sparePartToDeparture.setId(null);
                     sparePartToDeparture.setQuantity(quantityToTransfer);
                     // Kho hiện tại → “Kho khác”
                     sparePartToDeparture.setWarehouseId(toWarehouseId);
-                    sparePartToDeparture.setStatus(itemStatus.getId());
                     if(arrivalDate != null){
                         // Ngày giao hàng = ngày đã chọn theo PO
                         sparePartToDeparture.getLogistics().setArrivalDate(arrivalDate);
@@ -483,9 +484,9 @@ public class InventoryItemService {
 
             if(container != null){
                 boolean isExistsInContainer = false;
-                for(var sp : itemsSparePartInTransitContainer){
+                for (var sp : itemsSparePartInTransitContainer) {
                     // Nếu phụ tùng có mã hàng hóa tương ứng đã tồn tại trong container thì cập nhật số lượng
-                    if(sp.getCommodityCode().equals(item.getCommodityCode())){
+                    if (sp.getCommodityCode().equals(item.getCommodityCode())) {
                         sp.setQuantity(sp.getQuantity() + item.getQuantity());
                         item.setQuantity(0);
                         isExistsInContainer = true;
@@ -493,14 +494,15 @@ public class InventoryItemService {
                     }
                 }
                 // Duyệt qua item tiếp theo
-                if(isExistsInContainer) continue;
+                if (isExistsInContainer) continue;
 
                 item.setContainerId(container.getId());
                 item.getLogistics().setDepartureDate(container.getDepartureDate());
             }
+            if(container != null && !item.getStatus().equals(InventoryItemStatus.HOLD))
+                item.setStatus(itemStatus.getId());
             // Kho hiện tại → “Kho khác”
             item.setWarehouseId(toWarehouseId);
-            item.setStatus(itemStatus.getId());
             if(arrivalDate != null){
                 // Ngày giao hàng = ngày đã chọn theo PO
                 item.getLogistics().setArrivalDate(arrivalDate);

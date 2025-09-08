@@ -32,10 +32,7 @@ import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.repository.inventory_item.CustomInventoryItemRepository;
 import warehouse_management.com.warehouse_management.utils.MongoRsqlUtils;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Repository
 public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRepository {
@@ -550,13 +547,16 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         List<AggregationOperation> pipelines = List.of(
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("inventoryType").in(inventoryTypes),
-                        Criteria.where("status").in(InventoryItemStatus.IN_STOCK.getId(), InventoryItemStatus.IN_TRANSIT.getId()),
+                        Criteria.where("status").in(InventoryItemStatus.IN_STOCK.getId(), InventoryItemStatus.IN_TRANSIT.getId(), InventoryItemStatus.HOLD.getId()),
                         Criteria.where("model").regex(model, "i"),
                         Criteria.where("warehouseId").in(warehouseIds),
                         Criteria.where("deletedAt").isNull()
                 )),
-                Aggregation.project("warehouseId", "model", "productCode", "commodityCode", "quantity", "specifications")
+                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
+                Aggregation.unwind("warehouse", true),
+                Aggregation.project("warehouseId", "model", "productCode", "commodityCode", "quantity", "specifications", "warehouse.type")
                         .and("_id").as("inventoryItemId")
+                        .and("warehouse.type").as("warehouseType")
         );
         Aggregation aggregation = Aggregation.newAggregation(pipelines);
         AggregationResults<InventoryItemModelDto> aggResults = mongoTemplate.aggregate(aggregation, InventoryItem.class, InventoryItemModelDto.class);
@@ -618,7 +618,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 Aggregation.unwind("warehouse"),
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("warehouseId").is(warehouseId),
-                        Criteria.where("status").in(InventoryItemStatus.IN_STOCK.getId(), InventoryItemStatus.IN_TRANSIT.getId(), InventoryItemStatus.HOLD.getId()),
+                        Criteria.where("status").in(InventoryItemStatus.IN_STOCK.getId(), InventoryItemStatus.HOLD.getId()),
                         Criteria.where("inventoryType").in(InventoryType.VEHICLE.getId(), InventoryType.ACCESSORY.getId()),
                         Criteria.where("deletedAt").isNull(),
                         Criteria.where("poNumber").regex(poNumber, "i")
@@ -636,7 +636,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 Aggregation.unwind("warehouse"),
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("warehouseId").is(warehouseId),
-                        Criteria.where("status").in(InventoryItemStatus.IN_STOCK.getId(), InventoryItemStatus.IN_TRANSIT.getId(), InventoryItemStatus.HOLD.getId()),
+                        Criteria.where("status").in(InventoryItemStatus.IN_STOCK.getId()),
                         Criteria.where("inventoryType").in(InventoryType.SPARE_PART.getId()),
                         Criteria.where("deletedAt").isNull(),
                         Criteria.where("poNumber").regex(poNumber, "i")

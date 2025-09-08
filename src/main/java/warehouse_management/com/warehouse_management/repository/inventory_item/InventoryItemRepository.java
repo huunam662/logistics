@@ -54,4 +54,10 @@ public interface InventoryItemRepository extends MongoRepository<InventoryItem, 
 
     @Query(value = "{'_id': ?0}", fields = "{'warehouseId': 1}")
     Optional<InventoryItem> findWarehouseIdById(ObjectId itemId);
+
+    @Aggregation(pipeline = {
+            "{$match: {containerId: ?0, status: ?1}}",
+            "{$project: {_id: 1}}"
+    })
+    List<ObjectId> findIdsByContainerIdAndStatus(ObjectId containerId, String status);
 }
