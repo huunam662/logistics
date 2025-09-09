@@ -416,9 +416,12 @@ public class DeliveryOrderService {
 
     @Transactional
     public DeliveryOrder updateDeliveryOrderItems(PushItemsDeliveryDto dto){
+
         DeliveryOrder deliveryOrder = getDeliveryOrderToId(new ObjectId(dto.getDeliveryOrderId()));
+
         if(dto.getInventoryItemsDelivery() == null || dto.getInventoryItemsDelivery().isEmpty())
-            throw LogicErrException.of("Danh sách sản phẩm cần cập nhật trong đơn hiện đang rỗng.");
+            return deliveryOrder;
+
         for(var itemDelivery : deliveryOrder.getInventoryItems()){
             dto.getInventoryItemsDelivery()
                     .stream().filter(o -> o.getId() != null
