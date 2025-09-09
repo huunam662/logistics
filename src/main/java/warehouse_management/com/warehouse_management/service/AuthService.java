@@ -2,9 +2,7 @@ package warehouse_management.com.warehouse_management.service;
 
 
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import io.swagger.v3.core.util.Json;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -16,14 +14,11 @@ import warehouse_management.com.warehouse_management.integration.auth.dto.respon
 import warehouse_management.com.warehouse_management.integration.auth.dto.response.AuthGetPermissionResponse;
 import warehouse_management.com.warehouse_management.integration.auth.dto.response.AuthLoginResponse;
 import warehouse_management.com.warehouse_management.integration.auth.client.AuthIntegrationClient;
-import warehouse_management.com.warehouse_management.pojo.AnaworkToken;
+import warehouse_management.com.warehouse_management.dto.auth.response.AnaworkToken;
 import warehouse_management.com.warehouse_management.utils.GeneralResource;
 import warehouse_management.com.warehouse_management.utils.JsonUtils;
 import warehouse_management.com.warehouse_management.utils.JwtUtils;
 
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
-import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Base64;
 import java.util.Date;

@@ -1,4 +1,4 @@
-package warehouse_management.com.warehouse_management.pojo;
+package warehouse_management.com.warehouse_management.dto.auth.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;

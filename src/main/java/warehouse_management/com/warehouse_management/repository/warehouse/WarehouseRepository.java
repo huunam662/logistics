@@ -6,7 +6,8 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import warehouse_management.com.warehouse_management.enumerate.WarehouseType;
 import warehouse_management.com.warehouse_management.model.Warehouse;
-import warehouse_management.com.warehouse_management.pojo.IdProjection;
+import warehouse_management.com.warehouse_management.dto.warehouse.response.IdAndNameWarehouseDto;
+import warehouse_management.com.warehouse_management.dto.inventory_item.response.IdProjection;
 import java.util.List;
 
 public interface WarehouseRepository extends MongoRepository<Warehouse, ObjectId>,
@@ -22,4 +23,10 @@ CustomWarehouseRepository {
             "{$project: {type: 1, _id: 0}}"
     })
     String findTypeById(ObjectId id);
+
+    @Aggregation(pipeline = {
+            "{$match: {type: ?0, deletedAt: null}}",
+            "{$project: {id: '$_id', name: 1}}"
+    })
+    List<IdAndNameWarehouseDto> findIdsByType(String type);
 }
