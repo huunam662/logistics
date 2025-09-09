@@ -345,7 +345,6 @@ public class DeliveryOrderService {
     @Transactional
     public DeliveryOrder removeItem(DeleteItemsOrderDto dto){
         DeliveryOrder deliveryOrder = getDeliveryOrderToId(new ObjectId(dto.getDeliveryOrderId()));
-
         if(deliveryOrder.getInventoryItems() == null || deliveryOrder.getInventoryItems().isEmpty())
             throw LogicErrException.of("Đơn hàng hiện không có mặt hàng nào");
 
