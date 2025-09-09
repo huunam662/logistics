@@ -23,16 +23,14 @@ import warehouse_management.com.warehouse_management.dto.pagination.request.Page
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
 import warehouse_management.com.warehouse_management.dto.report_inventory.request.ReportParamsDto;
 import warehouse_management.com.warehouse_management.dto.report_inventory.response.ReportInventoryDto;
-import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
-import warehouse_management.com.warehouse_management.enumerate.InventoryType;
-import warehouse_management.com.warehouse_management.enumerate.WarehouseStatus;
-import warehouse_management.com.warehouse_management.enumerate.WarehouseType;
+import warehouse_management.com.warehouse_management.enumerate.*;
 import warehouse_management.com.warehouse_management.exceptions.LogicErrException;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.repository.inventory_item.CustomInventoryItemRepository;
 import warehouse_management.com.warehouse_management.utils.MongoRsqlUtils;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Repository
 public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRepository {
@@ -574,48 +572,77 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     @Override
     public Page<ReportInventoryDto> findPageReportInventoryToDashBoard(ReportParamsDto params) {
 
-        List<Criteria> filter = new ArrayList<>(List.of(
-                Criteria.where("warehouse.deletedAt").isNull(),
-                Criteria.where("warehouse.status").is(WarehouseStatus.ACTIVE.getValue()),
-                Criteria.where("deletedAt").isNull()
-        ));
+        GroupOperation group = Aggregation.group("poNumber", "model", "createdAt")
+                .first("pricing.agent").as("agent")
+                .sum(
+                        ConditionalOperators.when(Criteria.where("inventoryType").is(InventoryType.VEHICLE.getId()))
+                                .thenValueOf("quantity")
+                                .otherwise(0)
+                ).as("totalVehicle")
+                .sum(
+                        ConditionalOperators.when(Criteria.where("inventoryType").is(InventoryType.ACCESSORY.getId()))
+                                .thenValueOf("quantity")
+                                .otherwise(0)
+                ).as("totalAccessory")
+                .sum(
+                        ConditionalOperators.when(Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId()))
+                                .thenValueOf("quantity")
+                                .otherwise(0)
+                ).as("totalSparePart");
+
+        ProjectionOperation project = Aggregation.project("agent", "totalVehicle", "totalAccessory", "totalSparePart")
+                .and("_id.poNumber").as("poNumber")
+                .and("_id.model").as("model")
+                .and("_id.createdAt").as("loadToWarehouseDate");
+
+        List<AggregationOperation> lookups = new ArrayList<>();
+
+        List<Criteria> filter = new ArrayList<>(List.of(Criteria.where("deletedAt").isNull()));
+
         if("CONTAINER".equals(params.getTypeReport())){
-            filter.add(Criteria.where("containerId").ne(null));
+            lookups.add(Aggregation.lookup("container", "containerId", "_id", "container"));
+            lookups.add(Aggregation.unwind("container"));
+            ArithmeticOperators.Subtract dayLateOperatorsSubtract = ArithmeticOperators.Subtract.valueOf("$$NOW").subtract("container.arrivalDate");
+            group = group.first("container.containerCode").as("containerCode")
+                    .first("container.containerStatus").as("containerStatus")
+                    .first("container.departureDate").as("departureDate")
+                    .first("container.arrivalDate").as("arrivalDate")
+                    .first(
+                            ConditionalOperators.when(Criteria.where("container.arrivalDate").ne(null))
+                            .then(
+                                    ConditionalOperators.when(ComparisonOperators.Gt.valueOf(dayLateOperatorsSubtract).greaterThanValue(0))
+                                    .then(ArithmeticOperators.Divide.valueOf(dayLateOperatorsSubtract).divideBy(TimeUnit.DAYS.toMillis(1)))
+                                    .otherwise(0)
+                            )
+                            .otherwise(0)
+                    ).as("daysLate");
+            project = project.andInclude("containerCode", "containerStatus", "departureDate", "arrivalDate", "daysLate");
         }
+        else{
+            lookups.add(Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"));
+            lookups.add(Aggregation.unwind("warehouse"));
+            filter.add(Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()));
+        }
+
+        List<AggregationOperation> pipelines = new ArrayList<>();
+        pipelines.add(Aggregation.match(new Criteria().andOperator(filter)));
+        pipelines.addAll(lookups);
+        if("CONTAINER".equals(params.getTypeReport()))
+            pipelines.add(Aggregation.match(new Criteria().andOperator(
+                    Criteria.where("container.containerStatus").is(ContainerStatus.IN_TRANSIT.getId()),
+                    Criteria.where("container.deletedAt").isNull()
+            )));
         else{
             WarehouseType typeReport = WarehouseType.fromId(params.getTypeReport());
             if(typeReport == null) throw LogicErrException.of("Loại kho hàng cần báo cáo không hợp lệ.");
-            filter.add(Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()));
-            filter.add(Criteria.where("warehouse.type").is(typeReport.getId()));
-
+            pipelines.add(Aggregation.match(new Criteria().andOperator(
+                    Criteria.where("warehouse.type").is(typeReport.getId()),
+                    Criteria.where("warehouse.deletedAt").isNull(),
+                    Criteria.where("warehouse.status").is(WarehouseStatus.ACTIVE.getValue())
+            )));
         }
-        List<AggregationOperation> pipelines = List.of(
-                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
-                Aggregation.unwind("warehouse"),
-                Aggregation.match(new Criteria().andOperator(filter)),
-                Aggregation.group("poNumber", "model", "createdAt")
-                        .first("pricing.agent").as("agent")
-                        .first("warehouse.type").as("reportType")
-                        .sum(
-                                ConditionalOperators.when(Criteria.where("inventoryType").is(InventoryType.VEHICLE.getId()))
-                                        .thenValueOf("quantity")
-                                        .otherwise(0)
-                        ).as("totalVehicle")
-                        .sum(
-                                ConditionalOperators.when(Criteria.where("inventoryType").is(InventoryType.ACCESSORY.getId()))
-                                        .thenValueOf("quantity")
-                                        .otherwise(0)
-                        ).as("totalAccessory")
-                        .sum(
-                                ConditionalOperators.when(Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId()))
-                                        .thenValueOf("quantity")
-                                        .otherwise(0)
-                        ).as("totalSparePart"),
-                Aggregation.project("agent", "reportType", "totalVehicle", "totalAccessory", "totalSparePart")
-                        .and("_id.poNumber").as("poNumber")
-                        .and("_id.model").as("model")
-                        .and("_id.createdAt").as("loadToWarehouseDate")
-        );
+        pipelines.add(group);
+        pipelines.add(project);
         Aggregation agg = Aggregation.newAggregation(pipelines);
         return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, ReportInventoryDto.class, agg, params);
     }
