@@ -353,7 +353,7 @@ public class ContainerService {
             if(productDelivery == null) continue;
             InventoryItem productInHold = inventoryItemRepository.findById(productDelivery.getId()).orElse(null);
             if(productInHold == null) throw LogicErrException.of("Sản phẩm " + p.getProductCode() + " không tồn tại trong kho đến.");
-            productDelivery.setWarehouseId(container.getToWarehouseId());
+            productDelivery.setWarehouseId(productInHold.getWarehouseId());
             deliveryOrdersUpdate.add(deliveryOrder);
         }
         if(!deliveryOrdersUpdate.isEmpty()) deliveryOrderRepository.saveAll(deliveryOrdersUpdate);
