@@ -29,6 +29,7 @@ public class Warranty {
     private String note;                                        // Ghi chú cho đơn bảo hành
     private WarrantyStatus status;                              // Trạng thái của đơn bảo hành
     private List<WarrantyTransaction> warrantyTransactions;     // Phiếu bảo hành của đơn bảo hành
+    private LocalDateTime completedDate;                        // Ngày hoàn thành
 
     @CreatedBy
     private String createdBy;

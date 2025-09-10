@@ -119,13 +119,10 @@ public class WarrantyService {
      * @return đơn bảo hành sau khi cập nhật
      */
     public WarrantyResponseDTO updateStatus(UpdateStatusWarrantyRequestDTO updateStatusWarrantyRequestDTO) {
-        Warranty warranty = checkExistWarrantyAndGet(updateStatusWarrantyRequestDTO.getWarrantyId().toString());
+        checkExistWarrantyAndGet(updateStatusWarrantyRequestDTO.getWarrantyId().toString());
 
-        warranty.setStatus(updateStatusWarrantyRequestDTO.getStatus());
-
-        warrantyRepository.updateStatus(updateStatusWarrantyRequestDTO.getWarrantyId(),
-                updateStatusWarrantyRequestDTO.getStatus());
-        return warrantyMapper.toResponseDto(warranty);
+        return warrantyMapper.toResponseDto(warrantyRepository.updateStatus(updateStatusWarrantyRequestDTO.getWarrantyId(),
+                updateStatusWarrantyRequestDTO.getStatus()));
     }
 
     /**
