@@ -3,7 +3,6 @@ package warehouse_management.com.warehouse_management.dto.warranty.response;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import org.bson.types.ObjectId;
-import warehouse_management.com.warehouse_management.model.WarrantyTransaction;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,7 +16,7 @@ public class WarrantyResponseDTO {
     private String clientName; // Tên khách hàng
     private String note; // Ghi chú
     private String status; // Trạng thái
-    private List<WarrantyTransaction> warrantyTransactions; // Phiếu bảo hành của sản phẩm
+    private List<WarrantyTransactionResponseDTO> warrantyTransactions; // Phiếu bảo hành của sản phẩm
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime arrivalDate; // Ngày giao hàng
