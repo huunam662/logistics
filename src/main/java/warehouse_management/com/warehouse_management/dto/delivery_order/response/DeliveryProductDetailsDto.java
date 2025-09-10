@@ -1,6 +1,7 @@
 package warehouse_management.com.warehouse_management.dto.delivery_order.response;
 
 import lombok.Data;
+import org.bson.types.ObjectId;
 
 import java.math.BigDecimal;
 
@@ -16,7 +17,8 @@ public class DeliveryProductDetailsDto {
     private String notes;                  // Ghi chú chung – Không bắt buộc
     private String warehouseType;  // Loại kho (kho bảo quản dành cho hàng hóa)
     private Boolean initialCondition;       // Mô tả nguyên trạng khi nhập kho – Không bắt buộc
-    private Boolean isDelivered;    // Đã hoặc chưa giao
+    private Boolean isDelivered; // Đã hoặc chưa giao
+    private ObjectId warehouseId;
     private String otherDetails;            // Chi tiết khác
     private Pricing pricing;
 

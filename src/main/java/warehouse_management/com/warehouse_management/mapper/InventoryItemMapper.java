@@ -54,6 +54,8 @@ public interface InventoryItemMapper {
 
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "productCode", ignore = true)
+    @Mapping(target = "serialNumber", ignore = true)
     @Mapping(target = "batteryInfo", ignore = true)
     @Mapping(target = "batterySpecification", ignore = true)
 
@@ -75,6 +77,8 @@ public interface InventoryItemMapper {
 
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "productCode", ignore = true)
+    @Mapping(target = "serialNumber", ignore = true)
     @Mapping(target = "liftingCapacityKg", ignore = true)
     @Mapping(target = "chassisType", ignore = true)
     @Mapping(target = "liftingHeightMm", ignore = true)
@@ -93,7 +97,11 @@ public interface InventoryItemMapper {
     @Mapping(target = "otherDetails", ignore = true)
     InventoryItem cloneToBattery(InventoryItem inventoryItem);
 
+
+
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "productCode", ignore = true)
+    @Mapping(target = "serialNumber", ignore = true)
     @Mapping(target = "liftingCapacityKg", ignore = true)
     @Mapping(target = "chassisType", ignore = true)
     @Mapping(target = "liftingHeightMm", ignore = true)

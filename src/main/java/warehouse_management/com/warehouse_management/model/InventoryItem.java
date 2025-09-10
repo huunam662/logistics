@@ -4,10 +4,15 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bson.types.ObjectId;
-import org.springframework.data.annotation.*;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.mapping.FieldType;
+import org.springframework.data.mongodb.core.index.Indexed;
 import warehouse_management.com.warehouse_management.enumerate.AccessoryType;
 import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
 import warehouse_management.com.warehouse_management.enumerate.SparePartType;
@@ -28,6 +33,7 @@ public class InventoryItem {
     private String poNumber;       // Số của Đơn đặt hàng (Purchase Order) – Bắt buộc
 
     //   XE/PK
+    @Indexed(unique = true)
     private String productCode;    // Mã định danh của sản phẩm (đối với sản phẩm xe & phụ kiện, phụ tùng thuộc sản phẩm này) – Bắt buộc
     private String serialNumber;   // Số seri – Có cho xe/phụ kiện
     private String model;          // Model sản phẩm – Bắt buộc
@@ -54,6 +60,7 @@ public class InventoryItem {
     private String chargerSpecification;    // Thông số bộ sạc
 
     //PT
+    @Indexed(unique = true)
     private String commodityCode;  // Mã hàng hóa (đôi với phụ tùng)
     private String description;         // Mô tả
     private Integer quantity;   // Số lượng hàng hóa

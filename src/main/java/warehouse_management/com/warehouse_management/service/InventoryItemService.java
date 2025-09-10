@@ -1,5 +1,6 @@
 package warehouse_management.com.warehouse_management.service;
 
+import com.mongodb.DuplicateKeyException;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
@@ -29,10 +30,7 @@ import warehouse_management.com.warehouse_management.utils.TranUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -59,9 +57,15 @@ public class InventoryItemService {
         LocalDate orderDate = parseOrderDate(req.getOrderDate());
         // 1. Chuyển đổi DTO sang InventoryItem
         InventoryItem newItem = buildSparePartItem(req, inStockWh, orderDate);
+        if (newItem.getCommodityCode() != null) {
+            Optional<InventoryItem> existing = inventoryItemRepository.findByCommodityCode(newItem.getCommodityCode());
+            if (existing.isPresent()) {
+                throw LogicErrException.of("Mã hàng hóa đã tồn tại: " + newItem.getCommodityCode());
+            }
+        }
         InventoryItem saved = inventoryItemRepository.save(newItem);
         // 2. insert vào các kho destination khác
-//        CHỈ CÓ PHỤ TÙNG MỚI INSERT VÀO CÁC KHO KHÁC
+        //        CHỈ CÓ PHỤ TÙNG MỚI INSERT VÀO CÁC KHO KHÁC
         if (inStockWh.getType() == WarehouseType.PRODUCTION) {
             inventoryItemRepository.bulkInsert(buildInventoryItemToOtherDestWh(List.of(newItem)));
         }
@@ -73,17 +77,29 @@ public class InventoryItemService {
     @Transactional
     public InventoryItem createInventoryProduct(CreateInventoryProductDto req) {
         Warehouse inStockWh = warehouseService.getWarehouseToId(new ObjectId(req.getWarehouseId()));
-        // 1. Chuyển đổi DTO sang InventoryItem
         InventoryItem newItem = buildProductItem(req, inStockWh);
-        InventoryItem saved = inventoryItemRepository.save(newItem);
-        // 3. Ghi phiếu nhập kho (WarehouseTransaction)
-        warehouseTransferTicketRepository.save(buildAWarehouseTransaction(inStockWh, newItem));
 
-        return saved;
+        if (newItem.getProductCode() != null) {
+            Optional<InventoryItem> existing = inventoryItemRepository.findByProductCode(newItem.getProductCode());
+            if (existing.isPresent()) {
+                throw LogicErrException.of("Mã sản phẩm đã tồn tại: " + newItem.getProductCode());
+            }
+        }
+
+        try {
+            InventoryItem saved = inventoryItemRepository.save(newItem);
+            // Ghi phiếu nhập kho (WarehouseTransaction)
+            warehouseTransferTicketRepository.save(buildAWarehouseTransaction(inStockWh, saved));
+            return saved;
+        } catch (DuplicateKeyException e) {
+            throw new IllegalArgumentException("ProductCode already exists: " + newItem.getProductCode(), e);
+        }
     }
+
 
     private InventoryItem buildSparePartItem(CreateInventorySparePartDto req, Warehouse wh, LocalDate orderDate) {
         InventoryItem item = inventoryItemMapper.toInventoryItemSparePart(req);
+
         item.setWarehouseId(wh.getId());
         item.setInventoryType(InventoryType.SPARE_PART.getId());
         item.setStatus(InventoryItemStatus.IN_STOCK);
@@ -601,6 +617,9 @@ public class InventoryItemService {
         return itemsResults;
     }
 
+    public Page<InventoryItemWarrantyDto> getInventoryItemForWarranty(PageOptionsDto pageOptionsDto) {
+        return inventoryItemRepository.findItemForWarranty(pageOptionsDto);
+    }
 
     @AuditAction(action = "testMethod")
     public void approve(Integer approved) {
@@ -623,7 +642,6 @@ public class InventoryItemService {
     public List<InventorySparePartDetailsDto> getSparePartByWarehouseId(String warehouseId, String poNumber) {
         return inventoryItemRepository.findSparePartByWarehouseId(new ObjectId(warehouseId), poNumber);
     }
-
 
     public InventoryItem findByIdOrThrow(String id) {
         return inventoryItemRepository.findById(new ObjectId(id)).orElseThrow(() -> LogicErrException.of("Không tồn tại"));

@@ -60,6 +60,7 @@ public class AuthService {
         AnaworkToken anaworkToken = JsonUtils.parseJsonToDto(decodePayload, AnaworkToken.class);
 //        long expirationEpochSeconds = anaworkToken.getExpiration();
 //        Date expirationDate = new Date(expirationEpochSeconds * 1000);
+        AuthGetInfoResponse.UserDTO user = authGetInfoResponse.getUser();
         List<String> permissions = authGetPermissionResponse.getData();
         byte[] keyBytes;
         try {
@@ -73,12 +74,12 @@ public class AuthService {
                 .setSubject(authGetInfoResponse.getUser().getEmail())
                 .claim("id", authGetInfoResponse.getUser().getId())
                 .claim("permissions", permissions) // nhúng permission vào JWT
+                .claim("fullName", user.getFirstName() + " " + user.getLastName())
                 .setIssuedAt(new Date())
                 .setExpiration(generateExpiration())
                 .signWith(signingKey, io.jsonwebtoken.SignatureAlgorithm.HS256)
                 .compact();
         LoginResponse loginResponse = new LoginResponse();
-        AuthGetInfoResponse.UserDTO user = authGetInfoResponse.getUser();
         loginResponse.setToken(tk);
         loginResponse.setFullName(user.getFirstName() + " " + user.getLastName());
         loginResponse.setEmail(user.getEmail());
