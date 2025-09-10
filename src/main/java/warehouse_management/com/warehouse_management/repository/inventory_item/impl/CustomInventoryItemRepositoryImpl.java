@@ -125,7 +125,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("warehouse.deletedAt").isNull(),
                         Criteria.where("warehouseId").is(warehouseId),
                         Criteria.where("deletedAt").isNull(),
-                        Criteria.where("inventoryType").in(inventoryType.VEHICLE.getId(), inventoryType.ACCESSORY.getId())
+                        Criteria.where("inventoryType").in(inventoryType.VEHICLE.getId(), inventoryType.ACCESSORY.getId()),
                         Criteria.where("vehicleId").isNull()
                 )),
                 Aggregation.project("poNumber", "productCode", "model", "inventoryType", "category", "serialNumber", "notes", "initialCondition", "warehouseType")
@@ -343,7 +343,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("deletedAt").isNull(),
                         Criteria.where("warehouse.deletedAt").isNull(),
                         Criteria.where("warehouse.type").is(WarehouseType.DESTINATION.getId()),
-                        Criteria.where("inventoryType").in(inventoryType.VEHICLE.getId(), inventoryType.ACCESSORY.getId())
+                        Criteria.where("inventoryType").in(inventoryType.VEHICLE.getId(), inventoryType.ACCESSORY.getId()),
                         Criteria.where("vehicleId").isNull()
                 )),
                 Aggregation.project("poNumber", "productCode", "status", "model", "category", "inventoryType", "serialNumber", "manufacturingYear", "initialCondition", "notes", "warehouseType")
