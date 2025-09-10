@@ -19,7 +19,6 @@ import warehouse_management.com.warehouse_management.dto.warranty.request.Create
 import warehouse_management.com.warehouse_management.dto.warranty.request.UpdateStatusWarrantyRequestDTO;
 import warehouse_management.com.warehouse_management.dto.warranty.response.WarrantyResponseDTO;
 import warehouse_management.com.warehouse_management.dto.warranty.response.WarrantyTransactionResponseDTO;
-import warehouse_management.com.warehouse_management.model.WarrantyTransaction;
 import warehouse_management.com.warehouse_management.service.WarrantyService;
 
 import java.util.List;
