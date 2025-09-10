@@ -2,6 +2,7 @@ package warehouse_management.com.warehouse_management.dto.warranty.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
+import org.bson.types.ObjectId;
 import warehouse_management.com.warehouse_management.model.WarrantyTransaction;
 
 import java.time.LocalDateTime;
@@ -9,6 +10,7 @@ import java.util.List;
 
 @Data
 public class WarrantyResponseDTO {
+    private ObjectId id;
     private String warrantyInventoryItemProductCode; // Mã sản phẩm
     private String warrantyInventoryItemModel; // Model Xe
     private String warrantyInventoryItemSerialNumber; // Mã serial
