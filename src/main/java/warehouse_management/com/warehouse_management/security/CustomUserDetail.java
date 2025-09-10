@@ -1,5 +1,9 @@
 package warehouse_management.com.warehouse_management.security;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.util.Collections;
@@ -12,18 +16,13 @@ import java.util.Collection;
 
 import java.util.stream.Collectors;
 
+@Data
+@AllArgsConstructor
 public class CustomUserDetail implements UserDetails {
-    private  String id;
+    private String id;
     private final String email;
     private final List<String> permisions;
-
-
-    public CustomUserDetail(String email, String id, List<String> permisions) {
-        this.id = id;
-        this.email = email;
-        this.permisions = permisions;
-
-    }
+    private final String fullName;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

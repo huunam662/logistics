@@ -58,13 +58,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
                 String email = claims.getSubject(); // lấy subject
                 String id = claims.get("id", String.class); // lấy claim permissions
+                String fullName = claims.get("fullName", String.class);
                 List<String> permissions = claims.get("permissions", List.class); // lấy claim permissions
 //                if (email == null || id == null || permissions == null || permissions.isEmpty()) {
 //                    response.sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid JWT claims");
 //                    return;
 //                }
                 // Giả sử CustomUserDetail của bạn đã implements UserDetails
-                CustomUserDetail userDetails = new CustomUserDetail(email, id, permissions);
+                CustomUserDetail userDetails = new CustomUserDetail(email, id, permissions, fullName);
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authToken);

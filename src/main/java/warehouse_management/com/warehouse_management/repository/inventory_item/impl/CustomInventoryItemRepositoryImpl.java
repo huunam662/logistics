@@ -23,9 +23,11 @@ import warehouse_management.com.warehouse_management.dto.pagination.request.Page
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
 import warehouse_management.com.warehouse_management.dto.report_inventory.request.ReportParamsDto;
 import warehouse_management.com.warehouse_management.dto.report_inventory.response.ReportInventoryDto;
+import warehouse_management.com.warehouse_management.dto.warranty.response.WarrantyResponseDTO;
 import warehouse_management.com.warehouse_management.enumerate.*;
 import warehouse_management.com.warehouse_management.exceptions.LogicErrException;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
+import warehouse_management.com.warehouse_management.model.Warranty;
 import warehouse_management.com.warehouse_management.repository.inventory_item.CustomInventoryItemRepository;
 import warehouse_management.com.warehouse_management.utils.MongoRsqlUtils;
 
@@ -573,7 +575,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     @Override
     public Page<ReportInventoryDto> findPageReportInventoryToDashBoard(ReportParamsDto params) {
 
-        GroupOperation group = Aggregation.group("poNumber", "model", "createdAt")
+        GroupOperation group = Aggregation.group("poNumber", "model", "createdAt", "inventoryType")
                 .first("pricing.agent").as("agent")
                 .sum(
                         ConditionalOperators.when(Criteria.where("inventoryType").is(inventoryType.VEHICLE.getId()))
@@ -591,7 +593,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                                 .otherwise(0)
                 ).as("totalSparePart");
 
-        ProjectionOperation project = Aggregation.project("agent", "totalVehicle", "totalAccessory", "totalSparePart")
+        ProjectionOperation project = Aggregation.project("agent", "totalVehicle", "totalAccessory", "totalSparePart", "inventoryType")
                 .and("_id.poNumber").as("poNumber")
                 .and("_id.model").as("model")
                 .and("_id.createdAt").as("loadToWarehouseDate");
@@ -709,6 +711,44 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 mapper,
                 options
         );
+    }
+
+    public Page<InventoryItemWarrantyDto> findItemForWarranty(PageOptionsDto optionsDto) {
+        List<AggregationOperation> pipelines = new ArrayList<>();
+
+        // Lấy sản phẩm là loại xe đã bán
+        pipelines.add(Aggregation.match(new Criteria()
+                .andOperator(
+                        Criteria.where("deletedBy").is(null),
+                        Criteria.where("inventoryType").is(inventoryType.VEHICLE),
+                        Criteria.where("status").is(InventoryItemStatus.SOLD))));
+
+        // Lấy những sản phẩm đang không bảo hành ở warranty hoặc ở trong warranty nhưng đang không bảo hành
+        pipelines.add(Aggregation.lookup("warranty", "_id", "warrantyInventoryItem._id", "warranty"));
+        pipelines.add(
+                Aggregation.match(new Criteria().orOperator(
+                        Criteria.where("warranty").size(0),
+                        Criteria.where("warranty.status").ne(WarrantyStatus.IN_WARRANTY)
+                ))
+        );
+
+        pipelines.add(Aggregation.lookup("delivery_order", "_id", "inventoryItems._id", "order"));
+        pipelines.add(Aggregation.unwind("order"));
+        pipelines.add(Aggregation.match(Criteria.where("order.status").ne(DeliveryOrderStatus.REJECTED)));
+
+        pipelines.add(Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"));
+        pipelines.add(Aggregation.unwind("warehouse"));
+        pipelines.add(Aggregation.match(Criteria.where("warehouse.type").is(WarehouseType.DESTINATION)));
+
+        pipelines.add(Aggregation.lookup("client", "order.customerId", "_id", "client"));
+
+        pipelines.add(Aggregation.project("serialNumber","model", "id", "productCode")
+                .and("logistics.arrivalDate").as("arrivalDate")
+                .and("client.name").as("clientName"));
+
+        Aggregation agg = Aggregation.newAggregation(pipelines);
+
+        return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryItemWarrantyDto.class, agg, optionsDto);
     }
 
 }
