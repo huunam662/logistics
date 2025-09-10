@@ -7,7 +7,6 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -16,12 +15,9 @@ import java.io.IOException;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import warehouse_management.com.warehouse_management.exceptions.LogicErrException;
-import warehouse_management.com.warehouse_management.utils.GeneralResource;
+import warehouse_management.com.warehouse_management.utils.GeneralUtil;
 
-import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Base64;
 import java.util.List;
@@ -46,7 +42,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             try {
                 byte[] keyBytes;
                 try {
-                    keyBytes = Base64.getDecoder().decode(GeneralResource.secretKey);
+                    keyBytes = Base64.getDecoder().decode(GeneralUtil.secretKey);
                 } catch (IllegalArgumentException e) {
                     throw new IllegalArgumentException("Khóa bí mật không phải là chuỗi Base64 hợp lệ: " + e.getMessage());
                 }

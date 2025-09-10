@@ -4,8 +4,6 @@ import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.*;
-import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportDestinationProductDto;
-import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportDestinationSparePartDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportProductionProductDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportProductionSparePartDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
@@ -54,4 +52,65 @@ public interface InventoryItemMapper {
 
     InventoryItem toInventoryItem(Container.InventoryItemContainer item);
 
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "batteryInfo", ignore = true)
+    @Mapping(target = "batterySpecification", ignore = true)
+
+    @Mapping(target = "chargerSpecification", ignore = true)
+
+    @Mapping(target = "commodityCode", ignore = true)
+    @Mapping(target = "quantity", ignore = true)
+    @Mapping(target = "engineType", ignore = true)
+    @Mapping(target = "forkDimensions", ignore = true)
+    @Mapping(target = "valveCount", ignore = true)
+    @Mapping(target = "hasSideShift", ignore = true)
+
+
+    @Mapping(target = "pricing", ignore = true)
+    @Mapping(target = "logistics", ignore = true)
+    @Mapping(target = "otherDetails", ignore = true)
+    InventoryItem cloneToLiftingFrame(InventoryItem inventoryItem);
+
+
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "liftingCapacityKg", ignore = true)
+    @Mapping(target = "chassisType", ignore = true)
+    @Mapping(target = "liftingHeightMm", ignore = true)
+
+    @Mapping(target = "chargerSpecification", ignore = true)
+
+    @Mapping(target = "commodityCode", ignore = true)
+    @Mapping(target = "quantity", ignore = true)
+    @Mapping(target = "engineType", ignore = true)
+    @Mapping(target = "forkDimensions", ignore = true)
+    @Mapping(target = "valveCount", ignore = true)
+    @Mapping(target = "hasSideShift", ignore = true)
+
+    @Mapping(target = "pricing", ignore = true)
+    @Mapping(target = "logistics", ignore = true)
+    @Mapping(target = "otherDetails", ignore = true)
+    InventoryItem cloneToBattery(InventoryItem inventoryItem);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "liftingCapacityKg", ignore = true)
+    @Mapping(target = "chassisType", ignore = true)
+    @Mapping(target = "liftingHeightMm", ignore = true)
+
+    @Mapping(target = "batteryInfo", ignore = true)
+    @Mapping(target = "batterySpecification", ignore = true)
+
+    @Mapping(target = "commodityCode", ignore = true)
+    @Mapping(target = "quantity", ignore = true)
+    @Mapping(target = "engineType", ignore = true)
+    @Mapping(target = "forkDimensions", ignore = true)
+    @Mapping(target = "valveCount", ignore = true)
+    @Mapping(target = "hasSideShift", ignore = true)
+
+
+    @Mapping(target = "pricing", ignore = true)
+    @Mapping(target = "logistics", ignore = true)
+    @Mapping(target = "otherDetails", ignore = true)
+    InventoryItem cloneToCharger(InventoryItem inventoryItem);
 }

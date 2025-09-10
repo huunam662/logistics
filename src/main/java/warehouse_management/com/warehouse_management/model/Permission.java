@@ -9,14 +9,14 @@ import java.util.List;
 @Document(collection = "permission")
 @Getter
 public class Permission {
-    @Id
-    private String id;
-    private String name;
-    private String resource;  // "users", "products"
-    private List<String> actions; // ["create", "read", "update", "delete"]
-    private PermissionType type; // UI or API
-    private String httpMethod; // For API: GET, POST, etc.
-    private String uiComponent; // For UI: "delete_button"
-
-    public enum PermissionType { UI, API }
+//    @Id
+//    private String id;
+//    private String name;
+//    private String resource;  // "users", "products"
+//    private List<String> actions; // ["create", "read", "update", "delete"]
+//    private PermissionType type; // UI or API
+//    private String httpMethod; // For API: GET, POST, etc.
+//    private String uiComponent; // For UI: "delete_button"
+//
+//    public enum PermissionType { UI, API }
 }

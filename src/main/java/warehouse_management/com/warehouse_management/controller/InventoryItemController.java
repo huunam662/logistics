@@ -11,8 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.*;
-import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportDestinationProductDto;
-import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportDestinationSparePartDto;
+
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportProductionProductDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportProductionSparePartDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
@@ -31,7 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@Tag(name = "Inventory Item")
+@Tag(name = "Inventory ItemData")
 @RequestMapping("/v1/inventory-items")
 @RequiredArgsConstructor
 public class InventoryItemController {
@@ -119,7 +118,7 @@ public class InventoryItemController {
     )
     public ApiResponse<?> getInventoryInStockPoNumbers(
             @Parameter(description = "[VEHICLE, ACCESSORY, SPARE_PART]")
-            @RequestParam("inventoryType") List<String> inventoryTypes,
+            @RequestParam("itemType") List<String> itemTypes,
             @Parameter(description = "Tìm kiếm theo mã Po number (Nếu cần).")
             @RequestParam(value = "poNumber", required = false, defaultValue = "") String poNumber,
             @RequestParam(value = "model", required = false) String model,
@@ -127,7 +126,7 @@ public class InventoryItemController {
             @Parameter(description = "[PRODUCTION, DEPARTURE, DESTINATION, CONSIGNMENT]")
             @RequestParam(value = "warehouseType", required = false) String warehouseType
     ){
-        List<InventoryPoWarehouseDto> poNumbers = inventoryItemService.getInventoryInStockPoNumbers(inventoryTypes, poNumber, model, warehouseId, warehouseType);
+        List<InventoryPoWarehouseDto> poNumbers = inventoryItemService.getInventoryInStockPoNumbers(itemTypes, poNumber, model, warehouseId, warehouseType);
         return ApiResponse.success(poNumbers);
     }
 
@@ -251,11 +250,11 @@ public class InventoryItemController {
     public ResponseEntity<?> getModels(
             @RequestParam("warehouseIds") List<String> warehouseIds,
             @Parameter(description = "[VEHICLE, ACCESSORY, SPARE_PART]")
-            @RequestParam("inventoryTypes") List<String> inventoryTypes,
+            @RequestParam("itemTypes") List<String> itemTypes,
             @Parameter(description = "Tìm kiếm theo mã Model (Nếu cần).")
             @RequestParam(value = "model", required = false, defaultValue = "") String model
     ){
-        List<InventoryItemModelDto> models = inventoryItemService.getAllModels(inventoryTypes, warehouseIds, model);
+        List<InventoryItemModelDto> models = inventoryItemService.getAllModels(itemTypes, warehouseIds, model);
         return ResponseEntity.ok().body(ApiResponse.success(models));
     }
 }

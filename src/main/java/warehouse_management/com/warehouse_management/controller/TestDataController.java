@@ -185,9 +185,9 @@ public class TestDataController {
                     item.setQuantity(1);
                     item.setPoNumber(poNumber);
                     item.setProductCode(productCode);
-                    item.setInventoryType(InventoryType.VEHICLE.getId());
+                    item.setItemType(ItemType.VEHICLE.getId());
                     item.setSerialNumber("SERIAL_" + faker.number().digits(6));
-                    item.setCategory(faker.random().nextInt(5) % 2 == 0 ? "Ngồi lái" : "Đứng lái");
+//                    item.setCategory(faker.random().nextInt(5) % 2 == 0 ? "Ngồi lái" : "Đứng lái");
                     item.setManufacturingYear(2020 + faker.random().nextInt(5));
                 }
                 else{
@@ -195,7 +195,7 @@ public class TestDataController {
                     item.setPoNumber(poNumber);
                     item.setCommodityCode(String.format("CDC-%d-%d", currentYear, faker.random().nextInt(99999999)));
                     item.setDescription(descriptionSpareParts[faker.random().nextInt(descriptionSpareParts.length)]);
-                    item.setInventoryType(InventoryType.SPARE_PART.getId());
+                    item.setItemType(ItemType.SPARE_PART.getId());
                 }
                 item.setModel("Model " + faker.letterify("M-???"));
 
@@ -224,20 +224,20 @@ public class TestDataController {
 
                 items.add(item);
                 // Specifications
-                InventoryItem.Specifications specs = new InventoryItem.Specifications(
-                        faker.number().numberBetween(1000, 5000), // liftingCapacityKg
-                        "Khung " + faker.letterify("??"),         // chassisType
-                        faker.number().numberBetween(2000, 7000), // liftingHeightMm
-                        "Động cơ " + faker.letterify("??"),       // engineType
-                        "Bình điện " + faker.bothify("??-###"),   // batteryInfo
-                        "Thông số bình " + faker.bothify("??-##"),// batterySpecification
-                        "Thông số sạc " + faker.bothify("??-##"), // chargerSpecification
-                        "",
-                        faker.number().numberBetween(2, 6),       // valveCount
-                        faker.bool().bool(),                      // hasSideShift
-                        faker.lorem().sentence()                  // otherDetails
-                );
-                item.setSpecifications(specs);
+//                InventoryItem.Specifications specs = new InventoryItem.Specifications(
+//                        faker.number().numberBetween(1000, 5000), // liftingCapacityKg
+//                        "Khung " + faker.letterify("??"),         // chassisType
+//                        faker.number().numberBetween(2000, 7000), // liftingHeightMm
+//                        "Động cơ " + faker.letterify("??"),       // engineType
+//                        "Bình điện " + faker.bothify("??-###"),   // batteryInfo
+//                        "Thông số bình " + faker.bothify("??-##"),// batterySpecification
+//                        "Thông số sạc " + faker.bothify("??-##"), // chargerSpecification
+//                        "",
+//                        faker.number().numberBetween(2, 6),       // valveCount
+//                        faker.bool().bool(),                      // hasSideShift
+//                        faker.lorem().sentence()                  // otherDetails
+//                );
+//                item.setSpecifications(specs);
 
 // Pricing
                 InventoryItem.Pricing pricing = new InventoryItem.Pricing(

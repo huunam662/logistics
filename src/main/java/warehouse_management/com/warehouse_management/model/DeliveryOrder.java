@@ -40,7 +40,7 @@ public class DeliveryOrder {
 
     @CreatedBy
     private String createdBy;
-     @LastModifiedBy
+    @LastModifiedBy
     private String updatedBy;
     private ObjectId deletedBy;
 
@@ -53,7 +53,7 @@ public class DeliveryOrder {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class NoteDeliveryModel{
+    public static class NoteDeliveryModel {
         private String model; // Model sản phẩm
         private Boolean isSparePart;
     }
@@ -61,7 +61,7 @@ public class DeliveryOrder {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class InventoryItemDelivery{
+    public static class InventoryItemDelivery {
         private ObjectId id; // _id – Khóa chính
         private String poNumber;       // Số của Đơn đặt hàng (Purchase Order) – Bắt buộc
         private String productCode;    // Mã định danh của sản phẩm (đối với sản phẩm xe & phụ kiện, phụ tùng thuộc sản phẩm này) – Bắt buộc
@@ -69,7 +69,7 @@ public class DeliveryOrder {
         private String serialNumber;   // Số seri – Có cho xe/phụ kiện
         private String model;          // Model sản phẩm – Bắt buộc
         private String category;       // Chủng loại sản phẩm (VD: Ngồi lái) – Bắt buộc
-        private String inventoryType;   // Loại hàng tồn (VD: phụ kiện, ...) - Bắt buộc
+        private String itemType;   // Loại hàng tồn (VD: phụ kiện, ...) - Bắt buộc
         private Integer manufacturingYear; // Năm sản xuất – Không bắt buộc
         private Integer quantity;   // Số lượng hàng hóa
         private String contractNumber; // Số hợp đồng
@@ -80,27 +80,23 @@ public class DeliveryOrder {
         private Boolean isDelivered;    // Đã hoặc chưa giao
         private ObjectId warehouseId;  // _id của warehouse – Có nếu đang ở kho
         private String itemDeliveryStatus;          // Trạng thái sản phẩm trong đơn
-        private InventoryItemDelivery.Specifications specifications;
+
         private InventoryItemDelivery.Pricing pricing;
         private InventoryItemDelivery.Logistics logistics;
 
 
-        @Data
-        @NoArgsConstructor
-        @AllArgsConstructor
-        public static class Specifications {
-            private Integer liftingCapacityKg;      // Sức nâng (kg)
-            private String chassisType;             // Loại khung nâng
-            private Integer liftingHeightMm;        // Độ cao nâng (mm)
-            private String engineType;              // Loại động cơ
-            private String batteryInfo;             // Thông tin bình điện
-            private String batterySpecification;    // Thông số bình điện
-            private String chargerSpecification;    // Thông số bộ sạc
-            private String forkDimensions;          // Thông số càng
-            private Integer valveCount;             // Số lượng van
-            private Boolean hasSideShift;           // Có side shift không
-            private String otherDetails;            // Chi tiết khác
-        }
+        private Integer liftingCapacityKg;      // Sức nâng (kg)
+        private String chassisType;             // Loại khung nâng
+        private Integer liftingHeightMm;        // Độ cao nâng (mm)
+        private String engineType;              // Loại động cơ
+        private String batteryInfo;             // Thông tin bình điện
+        private String batterySpecification;    // Thông số bình điện
+        private String chargerSpecification;    // Thông số bộ sạc
+        private String forkDimensions;          // Thông số càng
+        private Integer valveCount;             // Số lượng van
+        private Boolean hasSideShift;           // Có side shift không
+        private String otherDetails;            // Chi tiết khác
+
 
         @Data
         @NoArgsConstructor
