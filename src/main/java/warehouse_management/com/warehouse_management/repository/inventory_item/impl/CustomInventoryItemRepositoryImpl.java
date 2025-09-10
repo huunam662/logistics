@@ -715,11 +715,22 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
 
     public Page<InventoryItemWarrantyDto> findItemForWarranty(PageOptionsDto optionsDto) {
         List<AggregationOperation> pipelines = new ArrayList<>();
+
+        // Lấy sản phẩm là loại xe đã bán
         pipelines.add(Aggregation.match(new Criteria()
                 .andOperator(
                         Criteria.where("deletedBy").is(null),
                         Criteria.where("inventoryType").is(inventoryType.VEHICLE),
                         Criteria.where("status").is(InventoryItemStatus.SOLD))));
+
+        // Lấy những sản phẩm đang không bảo hành ở warranty hoặc ở trong warranty nhưng đang không bảo hành
+        pipelines.add(Aggregation.lookup("warranty", "_id", "warrantyInventoryItem._id", "warranty"));
+        pipelines.add(
+                Aggregation.match(new Criteria().orOperator(
+                        Criteria.where("warranty").size(0),
+                        Criteria.where("warranty.status").ne(WarrantyStatus.IN_WARRANTY)
+                ))
+        );
 
         pipelines.add(Aggregation.lookup("delivery_order", "_id", "inventoryItems._id", "order"));
 
