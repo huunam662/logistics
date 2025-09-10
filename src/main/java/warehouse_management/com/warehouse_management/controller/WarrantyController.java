@@ -50,7 +50,7 @@ public class WarrantyController {
     @PatchMapping("/status")
     @Operation(
             summary = "Cập nhật trạng thái đơn bảo hành",
-            description = "Cập nhật trạng thái đơn bảo hành"
+            description = "Cập nhật trạng thái đơn bảo hành, có 3 trạng thái [IN_WARRANTY, COMPLETE, EXPIRED]"
     )
     public ApiResponse<WarrantyResponseDTO> updateStatusWarranty(@Valid @RequestBody UpdateStatusWarrantyRequestDTO updateStatusWarrantyRequestDTO) {
         return ApiResponse.success(warrantyService.updateStatus(updateStatusWarrantyRequestDTO));

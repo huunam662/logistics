@@ -185,7 +185,7 @@ public class TestDataController {
                     item.setQuantity(1);
                     item.setPoNumber(poNumber);
                     item.setProductCode(productCode);
-                    item.setItemType(ItemType.VEHICLE.getId());
+                    item.setInventoryType(inventoryType.VEHICLE.getId());
                     item.setSerialNumber("SERIAL_" + faker.number().digits(6));
 //                    item.setCategory(faker.random().nextInt(5) % 2 == 0 ? "Ngồi lái" : "Đứng lái");
                     item.setManufacturingYear(2020 + faker.random().nextInt(5));
@@ -195,7 +195,7 @@ public class TestDataController {
                     item.setPoNumber(poNumber);
                     item.setCommodityCode(String.format("CDC-%d-%d", currentYear, faker.random().nextInt(99999999)));
                     item.setDescription(descriptionSpareParts[faker.random().nextInt(descriptionSpareParts.length)]);
-                    item.setItemType(ItemType.SPARE_PART.getId());
+                    item.setInventoryType(inventoryType.SPARE_PART.getId());
                 }
                 item.setModel("Model " + faker.letterify("M-???"));
 

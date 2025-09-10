@@ -19,7 +19,7 @@ public class InventoryProductDetailsDto {
     private String serialNumber; // Số series nhà máy 8
     private String productCode;    // Mã định danh của sản phẩm (đối với sản phẩm xe & phụ kiện, phụ tùng thuộc sản phẩm này) – Bắt buộc
     private String poNumber;       // Số của Đơn đặt hàng (Purchase Order) – Bắt buộc
-    private String itemType;   // Loại hàng tồn (VD: phụ kiện, ...) - Bắt buộc
+    private String inventoryType;   // Loại hàng tồn (VD: phụ kiện, ...) - Bắt buộc
     private Boolean initialCondition;       // Mô tả nguyên trạng khi nhập kho – Không bắt buộc
     private String notes;                  // Ghi chú chung – Không bắt buộc
     private ObjectId warehouseId; // Mã kho

@@ -6,7 +6,7 @@ import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
 import warehouse_management.com.warehouse_management.dto.report.PNKPXKInventoryItemDataSetIDto;
-import warehouse_management.com.warehouse_management.enumerate.ItemType;
+import warehouse_management.com.warehouse_management.enumerate.inventoryType;
 import warehouse_management.com.warehouse_management.enumerate.TransactionModule;
 import warehouse_management.com.warehouse_management.model.Container;
 import warehouse_management.com.warehouse_management.model.Warehouse;
@@ -124,17 +124,17 @@ public class PNKGenerateReport implements GenerateReportStrategy {
         for (int i = 0; i < inventoryItems.size(); i++) {
 
             WarehouseTransaction.InventoryItemTicket item = inventoryItems.get(i);
-            ItemType type = ItemType.fromId(item.getItemType());
+            inventoryType type = inventoryType.fromId(item.getInventoryType());
             PNKPXKInventoryItemDataSetIDto dto = new PNKPXKInventoryItemDataSetIDto();
             dto.setIndex(i + 1); // STT
-            if (type == ItemType.VEHICLE || type == ItemType.ACCESSORY) {
+            if (type == inventoryType.VEHICLE || type == inventoryType.ACCESSORY) {
                 dto.setCode(item.getProductCode());
             } else {
                 dto.setCode(item.getCommodityCode());
             }
 
-            // Set Unit theo itemType
-            if (type == ItemType.VEHICLE) {
+            // Set Unit theo inventoryType
+            if (type == inventoryType.VEHICLE) {
                 dto.setUnit("Chiếc");
             } else {
                 dto.setUnit("Cái");
@@ -158,17 +158,17 @@ public class PNKGenerateReport implements GenerateReportStrategy {
         for (int i = 0; i < inventoryItems.size(); i++) {
 
             Container.InventoryItemContainer item = inventoryItems.get(i);
-            ItemType type = ItemType.fromId(item.getItemType());
+            inventoryType type = inventoryType.fromId(item.getInventoryType());
             PNKPXKInventoryItemDataSetIDto dto = new PNKPXKInventoryItemDataSetIDto();
             dto.setIndex(i + 1); // STT
-            if (type == ItemType.VEHICLE || type == ItemType.ACCESSORY) {
+            if (type == inventoryType.VEHICLE || type == inventoryType.ACCESSORY) {
                 dto.setCode(item.getProductCode());
             } else {
                 dto.setCode(item.getCommodityCode());
             }
 
-            // Set Unit theo itemType
-            if (type == ItemType.VEHICLE) {
+            // Set Unit theo inventoryType
+            if (type == inventoryType.VEHICLE) {
                 dto.setUnit("Chiếc");
             } else {
                 dto.setUnit("Cái");
@@ -187,7 +187,7 @@ public class PNKGenerateReport implements GenerateReportStrategy {
     }
 
     private String buildName(WarehouseTransaction.InventoryItemTicket item) {
-        ItemType type = ItemType.fromId(item.getItemType());
+        inventoryType type = inventoryType.fromId(item.getInventoryType());
         if (type == null) {
             return nullToEmpty(item.getModel()); // fallback nếu type null
         }
@@ -215,7 +215,7 @@ public class PNKGenerateReport implements GenerateReportStrategy {
     }
 
     private String buildName(Container.InventoryItemContainer item) {
-        ItemType type = ItemType.fromId(item.getItemType());
+        inventoryType type = inventoryType.fromId(item.getInventoryType());
         if (type == null) {
             return nullToEmpty(item.getModel()); // fallback nếu type null
         }

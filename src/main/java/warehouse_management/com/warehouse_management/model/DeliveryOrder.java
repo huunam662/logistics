@@ -69,7 +69,7 @@ public class DeliveryOrder {
         private String serialNumber;   // Số seri – Có cho xe/phụ kiện
         private String model;          // Model sản phẩm – Bắt buộc
         private String category;       // Chủng loại sản phẩm (VD: Ngồi lái) – Bắt buộc
-        private String itemType;   // Loại hàng tồn (VD: phụ kiện, ...) - Bắt buộc
+        private String inventoryType;   // Loại hàng tồn (VD: phụ kiện, ...) - Bắt buộc
         private Integer manufacturingYear; // Năm sản xuất – Không bắt buộc
         private Integer quantity;   // Số lượng hàng hóa
         private String contractNumber; // Số hợp đồng

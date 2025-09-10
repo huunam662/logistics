@@ -85,7 +85,7 @@ public class InventoryItemService {
     private InventoryItem buildSparePartItem(CreateInventorySparePartDto req, Warehouse wh, LocalDate orderDate) {
         InventoryItem item = inventoryItemMapper.toInventoryItemSparePart(req);
         item.setWarehouseId(wh.getId());
-        item.setItemType(ItemType.SPARE_PART.getId());
+        item.setInventoryType(inventoryType.SPARE_PART.getId());
         item.setStatus(InventoryItemStatus.IN_STOCK);
         if (item.getLogistics() == null) {
             item.setLogistics(new InventoryItem.Logistics());
@@ -128,16 +128,16 @@ public class InventoryItemService {
         tran.setTranType(tranType);
         WarehouseSubTranType subTranType = null;
         if (inStockWh.getType().equals(WarehouseType.PRODUCTION)) {
-            if (item.getItemType().equals(ItemType.SPARE_PART.getId())) {
+            if (item.getInventoryType().equals(inventoryType.SPARE_PART.getId())) {
                 subTranType = WarehouseSubTranType.FORM_TO_PRODUCTION_SPARE_PART;
-            } else if (item.getItemType().equals(ItemType.VEHICLE.getId()) || item.getItemType().equals(ItemType.ACCESSORY.getId())) {
+            } else if (item.getInventoryType().equals(inventoryType.VEHICLE.getId()) || item.getInventoryType().equals(inventoryType.ACCESSORY.getId())) {
                 subTranType = WarehouseSubTranType.FORM_TO_PRODUCTION_PRODUCT;
             }
 
         } else if (inStockWh.getType().equals(WarehouseType.DESTINATION)) {
-            if (item.getItemType().equals(ItemType.SPARE_PART.getId())) {
+            if (item.getInventoryType().equals(inventoryType.SPARE_PART.getId())) {
                 subTranType = WarehouseSubTranType.FORM_TO_DEST_SPARE_PART;
-            } else if (item.getItemType().equals(ItemType.VEHICLE.getId()) || item.getItemType().equals(ItemType.ACCESSORY.getId())) {
+            } else if (item.getInventoryType().equals(inventoryType.VEHICLE.getId()) || item.getInventoryType().equals(inventoryType.ACCESSORY.getId())) {
                 subTranType = WarehouseSubTranType.FORM_TO_DEST_PRODUCT;
             }
         }
@@ -228,7 +228,7 @@ public class InventoryItemService {
         // Tạo ObjectId cho item cha
         ObjectId parentId = new ObjectId();
         parentItem.setId(parentId);
-        parentItem.setItemType(ItemType.VEHICLE.getId());
+        parentItem.setInventoryType(inventoryType.VEHICLE.getId());
         parentItem.setStatus(InventoryItemStatus.IN_STOCK);
         dataToSave.add(parentItem);
 
@@ -246,7 +246,7 @@ public class InventoryItemService {
             liftingFrame = mapper.cloneToLiftingFrame(parentItem);
             liftingFrameId = new ObjectId();
             liftingFrame.setId(liftingFrameId);
-            liftingFrame.setItemType(ItemType.ACCESSORY.getId());
+            liftingFrame.setInventoryType(inventoryType.ACCESSORY.getId());
             liftingFrame.setVehicleId(parentId);   // gán cha
             liftingFrame.setAccessoryType(AccessoryType.LIFTING_FRAME);
 
@@ -259,7 +259,7 @@ public class InventoryItemService {
             batterId = new ObjectId();
             battery.setId(batterId);
             battery.setVehicleId(parentId);
-            battery.setItemType(ItemType.ACCESSORY.getId());
+            battery.setInventoryType(inventoryType.ACCESSORY.getId());
             battery.setAccessoryType(AccessoryType.BATTERY);
             dataToSave.add(battery);
         }
@@ -269,7 +269,7 @@ public class InventoryItemService {
             chargerId = new ObjectId();
             charger.setId(chargerId);
             charger.setVehicleId(parentId);
-            charger.setItemType(ItemType.ACCESSORY.getId());
+            charger.setInventoryType(inventoryType.ACCESSORY.getId());
             charger.setAccessoryType(AccessoryType.CHARGER);
             dataToSave.add(charger);
         }
@@ -370,8 +370,8 @@ public class InventoryItemService {
         return new PageInfoDto<>(itemsPageObject);
     }
 
-    public List<InventoryPoWarehouseDto> getInventoryInStockPoNumbers(List<String> itemTypes, String poNumber, String model, String warehouseId, String warehouseType) {
-        return inventoryItemRepository.findPoNumbersOfInventoryInStock(warehouseType, itemTypes, poNumber, model, warehouseId);
+    public List<InventoryPoWarehouseDto> getInventoryInStockPoNumbers(List<String> inventoryTypes, String poNumber, String model, String warehouseId, String warehouseType) {
+        return inventoryItemRepository.findPoNumbersOfInventoryInStock(warehouseType, inventoryTypes, poNumber, model, warehouseId);
     }
 
     public List<InventoryItemPoNumberDto> getInventoryInStockByPoNumber(String warehouseType, String warehouseId, String poNumber, String filter) {
@@ -508,7 +508,7 @@ public class InventoryItemService {
         List<InventoryItem> itemsSparePartInTransitContainer = List.of();
         if (container != null) {
             List<String> commodityCodes = itemsToTransfer.stream()
-                    .filter(i -> i.getItemType().equals(ItemType.SPARE_PART.getId()) && i.getCommodityCode() != null)
+                    .filter(i -> i.getInventoryType().equals(inventoryType.SPARE_PART.getId()) && i.getCommodityCode() != null)
                     .map(InventoryItem::getCommodityCode)
                     .toList();
             // Lấy các phụ tùng đang tồn tại trong container (nếu có)
@@ -517,7 +517,7 @@ public class InventoryItemService {
         List<InventoryItem> itemsSparePartToNew = new ArrayList<>();
         List<InventoryItem> itemsResults = new ArrayList<>();
         for (var item : itemsToTransfer) {
-            if (item.getItemType().equals(ItemType.SPARE_PART.getId())) {
+            if (item.getInventoryType().equals(inventoryType.SPARE_PART.getId())) {
                 int quantityToTransfer = itemIdQualityMap.get(item.getId());
                 if (quantityToTransfer <= 0) throw LogicErrException.of("Số lượng hàng hóa cần chuyển phải lớn hơn 0.");
                 if (item.getQuantity() == 0)
@@ -611,9 +611,9 @@ public class InventoryItemService {
         }
     }
 
-    public List<InventoryItemModelDto> getAllModels(List<String> itemTypes, List<String> warehouseIds, String model) {
+    public List<InventoryItemModelDto> getAllModels(List<String> inventoryTypes, List<String> warehouseIds, String model) {
         List<ObjectId> ids = warehouseIds.stream().map(ObjectId::new).toList();
-        return inventoryItemRepository.findAllModelsAndItems(itemTypes, ids, model);
+        return inventoryItemRepository.findAllModelsAndItems(inventoryTypes, ids, model);
     }
 
     public List<InventoryProductDetailsDto> getProductsByWarehouseId(String warehouseId, String poNumber) {

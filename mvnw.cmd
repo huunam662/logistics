@@ -97,7 +97,7 @@ if (! $distributionUrlNameMain -or ($distributionUrlName -eq $distributionUrlNam
 
 # prepare tmp dir
 $TMP_DOWNLOAD_DIR_HOLDER = New-TemporaryFile
-$TMP_DOWNLOAD_DIR = New-Item -Itemtype Directory -Path "$TMP_DOWNLOAD_DIR_HOLDER.dir"
+$TMP_DOWNLOAD_DIR = New-Item -inventoryType Directory -Path "$TMP_DOWNLOAD_DIR_HOLDER.dir"
 $TMP_DOWNLOAD_DIR_HOLDER.Delete() | Out-Null
 trap {
   if ($TMP_DOWNLOAD_DIR.Exists) {
@@ -106,7 +106,7 @@ trap {
   }
 }
 
-New-Item -Itemtype Directory -Path "$MAVEN_HOME_PARENT" -Force | Out-Null
+New-Item -inventoryType Directory -Path "$MAVEN_HOME_PARENT" -Force | Out-Null
 
 # Download and Install Apache Maven
 Write-Verbose "Couldn't find MAVEN_HOME, downloading and installing it ..."
