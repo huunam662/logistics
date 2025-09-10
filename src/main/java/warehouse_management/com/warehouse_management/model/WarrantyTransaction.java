@@ -26,14 +26,16 @@ public class WarrantyTransaction {
     private String sparePartWarranty;   // Bộ phận cần bảo hành
     private String reason;              // Lý do bảo hành
 
-    @CreatedBy
-    private String createdBy;
-    @LastModifiedBy
-    private String updatedBy;
-    private ObjectId deletedBy;
     @CreatedDate
     private LocalDateTime createdAt;
+    @CreatedBy
+    private String createdBy;
+
     @LastModifiedDate
     private LocalDateTime updatedAt;
+    @LastModifiedBy
+    private String updatedBy;
+
     private LocalDateTime deletedAt;
+    private ObjectId deletedBy;
 }
