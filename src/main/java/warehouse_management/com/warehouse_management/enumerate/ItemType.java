@@ -4,7 +4,7 @@ import lombok.Getter;
 import org.springframework.lang.Nullable;
 
 @Getter
-public enum InventoryType {
+public enum ItemType {
 
     SPARE_PART("SPARE_PART"),                   // Phụ tùng
 //    VEHICLE_ACCESSORY("VEHICLE_ACCESSORY"), // XE PHỤ KIỆN
@@ -14,13 +14,13 @@ public enum InventoryType {
 
     private final String id;
 
-    InventoryType(final String id) {
+    ItemType(final String id) {
         this.id = id;
     }
 
     @Nullable
-    public static InventoryType fromId(String id) {
-        for (InventoryType at : InventoryType.values()) {
+    public static ItemType fromId(String id) {
+        for (ItemType at : ItemType.values()) {
             if (at.getId().equals(id)) {
                 return at;
             }

@@ -60,4 +60,8 @@ public interface InventoryItemRepository extends MongoRepository<InventoryItem, 
             "{$project: {_id: 1}}"
     })
     List<ObjectId> findIdsByContainerIdAndStatus(ObjectId containerId, String status);
+
+    Optional<InventoryItem> findByVehicleIdAndAccessoryType(ObjectId vehicleId, String accessoryType);
+
+
 }

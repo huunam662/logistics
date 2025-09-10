@@ -1,15 +1,13 @@
 package warehouse_management.com.warehouse_management.integration.auth.client;
 
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
-import warehouse_management.com.warehouse_management.integration.IntegrationException;
 import warehouse_management.com.warehouse_management.integration.IntegrationUtils;
 import warehouse_management.com.warehouse_management.integration.auth.dto.request.AuthLoginRequest;
 import warehouse_management.com.warehouse_management.integration.auth.dto.response.AuthGetInfoResponse;
 import warehouse_management.com.warehouse_management.integration.auth.dto.response.AuthGetPermissionResponse;
 import warehouse_management.com.warehouse_management.integration.auth.dto.response.AuthLoginResponse;
 import warehouse_management.com.warehouse_management.integration.auth.exceptions.AuthIntegrationException;
-import warehouse_management.com.warehouse_management.utils.GeneralResource;
+import warehouse_management.com.warehouse_management.utils.GeneralUtil;
 
 
 import java.util.Map;
@@ -26,7 +24,7 @@ public class AuthIntegrationClient {
     public AuthLoginResponse login(AuthLoginRequest loginRequest) {
         try {
             Map<String, String> paramsMap = integrationUtils.toParamMap(loginRequest);
-            String url = integrationUtils.getConnectUrl(GeneralResource.AUTH_LOGIN);
+            String url = integrationUtils.getConnectUrl(GeneralUtil.AUTH_LOGIN);
             AuthLoginResponse rs = integrationUtils.performPost(integrationUtils.buildUrlWithParams(url, paramsMap), integrationUtils.buildDefaultHeader(), AuthLoginResponse.class);
             if (!rs.getSuccess()) throw AuthIntegrationException.of("Lỗi tích hợp AUTH_LOGIN ");
             return rs;
@@ -37,7 +35,7 @@ public class AuthIntegrationClient {
 
     public AuthGetInfoResponse getInfo(String token) {
         try {
-            String url = integrationUtils.getConnectUrl(GeneralResource.AUTH_GET_INFO);
+            String url = integrationUtils.getConnectUrl(GeneralUtil.AUTH_GET_INFO);
             AuthGetInfoResponse rs = integrationUtils.performGet(url, token, AuthGetInfoResponse.class);
             if (!rs.getSuccess()) throw AuthIntegrationException.of("Lỗi tích hợp AUTH_GET_INFO ");
             return rs;
@@ -48,7 +46,7 @@ public class AuthIntegrationClient {
 
     public AuthGetPermissionResponse getPermission(String token) {
         try {
-            String url = integrationUtils.getConnectUrl(GeneralResource.AUTH_GET_PERMISSION);
+            String url = integrationUtils.getConnectUrl(GeneralUtil.AUTH_GET_PERMISSION);
             AuthGetPermissionResponse rs = integrationUtils.performGet(url, token, AuthGetPermissionResponse.class);
             if (!rs.getSuccess()) throw AuthIntegrationException.of("Lỗi tích hợp AUTH_GET_PERMISSION ");
             return rs;
