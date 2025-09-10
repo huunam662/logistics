@@ -13,9 +13,4 @@ public interface WarrantyRepository extends MongoRepository<Warranty, String>, C
 
     @Query("{'warrantyInventoryItem._id': ?0, 'status': ?1, 'deletedBy': { '$exists': false }}")
     Optional<Warranty> findWarrantyByItemAndEqualStatus(ObjectId itemId, WarrantyStatus status);
-
-    @Query(value = "{ '_id': ?0 }")
-    @Update(value = "{ '$set' : { 'status' : ?1 } }")
-    void updateStatus(ObjectId id, WarrantyStatus status);
-
 }
