@@ -8,5 +8,4 @@ public class CreateWarrantyTransactionDTO {
     private ObjectId warrantyId;        // Đơn bảo hành cha
     private String sparePartWarranty;   // Bộ phận cần bảo hành
     private String reason;              // Lý do bảo hành
-    private String createByName;        // Tên người bảo hành
 }
