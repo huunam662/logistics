@@ -619,11 +619,14 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                                     )
                                     .otherwise(0)
                     ).as("daysLate");
-            project = project.andInclude("containerCode", "containerStatus", "departureDate", "arrivalDate", "daysLate");
+            project = project.andInclude("containerCode", "containerStatus", "departureDate", "arrivalDate", "daysLate")
+                    .andExpression("'" + params.getTypeReport() + "'").as("reportType");
         } else {
             lookups.add(Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"));
             lookups.add(Aggregation.unwind("warehouse"));
             filter.add(Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()));
+            group = group.first("warehouse.type").as("reportType");
+            project = project.andInclude("reportType");
         }
 
         List<AggregationOperation> pipelines = new ArrayList<>();
