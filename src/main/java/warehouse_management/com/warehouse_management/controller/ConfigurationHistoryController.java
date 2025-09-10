@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@Tag(name = "Report inventory items")
+@Tag(name = "Configurations Vehicle")
 @RequestMapping("/v1/configurations")
 
 public class ConfigurationHistoryController {
