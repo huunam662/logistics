@@ -6,7 +6,7 @@ import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
 import warehouse_management.com.warehouse_management.dto.report.PNKPXKInventoryItemDataSetIDto;
-import warehouse_management.com.warehouse_management.enumerate.inventoryType;
+import warehouse_management.com.warehouse_management.enumerate.InventoryType;
 import warehouse_management.com.warehouse_management.enumerate.TransactionModule;
 import warehouse_management.com.warehouse_management.model.Container;
 import warehouse_management.com.warehouse_management.model.Warehouse;
@@ -119,17 +119,17 @@ public class PXKGenerateReport implements GenerateReportStrategy {
         for (int i = 0; i < inventoryItems.size(); i++) {
 
             WarehouseTransaction.InventoryItemTicket item = inventoryItems.get(i);
-            inventoryType type = inventoryType.fromId(item.getInventoryType());
+            InventoryType type = InventoryType.fromId(item.getInventoryType());
             PNKPXKInventoryItemDataSetIDto dto = new PNKPXKInventoryItemDataSetIDto();
             dto.setIndex(i + 1); // STT
-            if (type == inventoryType.VEHICLE || type == inventoryType.ACCESSORY) {
+            if (type == InventoryType.VEHICLE || type == InventoryType.ACCESSORY) {
                 dto.setCode(item.getProductCode());
             } else {
                 dto.setCode(item.getCommodityCode());
             }
 
-            // Set Unit theo inventoryType
-            if (type == inventoryType.VEHICLE) {
+            // Set Unit theo InventoryType
+            if (type == InventoryType.VEHICLE) {
                 dto.setUnit("Chiếc");
             } else {
                 dto.setUnit("Cái");
@@ -153,17 +153,17 @@ public class PXKGenerateReport implements GenerateReportStrategy {
         for (int i = 0; i < inventoryItems.size(); i++) {
 
             Container.InventoryItemContainer item = inventoryItems.get(i);
-            inventoryType type = inventoryType.fromId(item.getInventoryType());
+            InventoryType type = InventoryType.fromId(item.getInventoryType());
             PNKPXKInventoryItemDataSetIDto dto = new PNKPXKInventoryItemDataSetIDto();
             dto.setIndex(i + 1); // STT
-            if (type == inventoryType.VEHICLE || type == inventoryType.ACCESSORY) {
+            if (type == InventoryType.VEHICLE || type == InventoryType.ACCESSORY) {
                 dto.setCode(item.getProductCode());
             } else {
                 dto.setCode(item.getCommodityCode());
             }
 
-            // Set Unit theo inventoryType
-            if (type == inventoryType.VEHICLE) {
+            // Set Unit theo InventoryType
+            if (type == InventoryType.VEHICLE) {
                 dto.setUnit("Chiếc");
             } else {
                 dto.setUnit("Cái");
@@ -182,7 +182,7 @@ public class PXKGenerateReport implements GenerateReportStrategy {
     }
 
     private String buildName(WarehouseTransaction.InventoryItemTicket item) {
-        inventoryType type = inventoryType.fromId(item.getInventoryType());
+        InventoryType type = InventoryType.fromId(item.getInventoryType());
         if (type == null) {
             return nullToEmpty(item.getModel()); // fallback nếu type null
         }
@@ -210,7 +210,7 @@ public class PXKGenerateReport implements GenerateReportStrategy {
     }
 
     private String buildName(Container.InventoryItemContainer item) {
-    inventoryType type = inventoryType.fromId(item.getInventoryType());
+    InventoryType type = InventoryType.fromId(item.getInventoryType());
         if (type == null) {
             return nullToEmpty(item.getModel()); // fallback nếu type null
         }

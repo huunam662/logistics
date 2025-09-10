@@ -10,7 +10,6 @@ import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.mapping.FieldType;
 import warehouse_management.com.warehouse_management.enumerate.AccessoryType;
 import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
-import warehouse_management.com.warehouse_management.enumerate.inventoryType;
 import warehouse_management.com.warehouse_management.enumerate.SparePartType;
 
 import java.math.BigDecimal;
@@ -23,7 +22,7 @@ import java.time.LocalDateTime;
 public class InventoryItem {
     @Id
     private ObjectId id; // _id – Khóa chính tự động tạo bởi MongoDB
-    private String inventoryType;   //inventoryType
+    private String inventoryType;   //InventoryType
     private String accessoryType; // AccessoryType
     private String sparePartType; // SparePartType
     private String poNumber;       // Số của Đơn đặt hàng (Purchase Order) – Bắt buộc
