@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -15,8 +15,10 @@ import org.springframework.web.bind.annotation.RestController;
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.warranty.request.CreateWarrantyDTO;
+import warehouse_management.com.warehouse_management.dto.warranty.request.CreateWarrantyTransactionDTO;
 import warehouse_management.com.warehouse_management.dto.warranty.request.UpdateStatusWarrantyRequestDTO;
 import warehouse_management.com.warehouse_management.dto.warranty.response.WarrantyResponseDTO;
+import warehouse_management.com.warehouse_management.model.WarrantyTransaction;
 import warehouse_management.com.warehouse_management.service.WarrantyService;
 
 import java.util.List;
@@ -26,15 +28,14 @@ import java.util.List;
 @RequestMapping("/v1/warranty")
 @RequiredArgsConstructor
 public class WarrantyController {
-    @Autowired
-    private WarrantyService warrantyService;
+    private final WarrantyService warrantyService;
 
     @GetMapping
     @Operation(
             summary = "GET danh sách đơn bảo hành",
             description = "GET danh sách đơn bảo hành"
     )
-    public ApiResponse<?> getListWarranty(@ModelAttribute PageOptionsDto pageOptionsDto) {
+    public ApiResponse<Page<WarrantyResponseDTO>> getListWarranty(@ModelAttribute PageOptionsDto pageOptionsDto) {
         return ApiResponse.success(warrantyService.getListWarranty(pageOptionsDto));
     }
 
@@ -45,6 +46,15 @@ public class WarrantyController {
     )
     public ApiResponse<List<WarrantyResponseDTO>> saveWarranty(@Valid @RequestBody List<CreateWarrantyDTO> listCreateWarrantyDTO) {
         return ApiResponse.success(warrantyService.createWarranty(listCreateWarrantyDTO));
+    }
+
+    @PostMapping("/transaction")
+    @Operation(
+            summary = "Tạo phiếu bảo hành",
+            description = "Tạo phiếu bảo hành"
+    )
+    public ApiResponse<WarrantyTransaction> saveWarrantyTransaction(@Valid @RequestBody CreateWarrantyTransactionDTO createWarrantyTransactionDTO) {
+        return ApiResponse.success(warrantyService.createWarrantyTransaction(createWarrantyTransactionDTO));
     }
 
     @PatchMapping("/status")
