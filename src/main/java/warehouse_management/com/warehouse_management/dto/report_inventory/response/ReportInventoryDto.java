@@ -11,6 +11,7 @@ public class ReportInventoryDto {
     private String poNumber;
     private String model;
     private String agent;
+    private String reportType;
     private String inventoryType;
     private String containerCode;
     private String containerStatus;
