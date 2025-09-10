@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 public class ExcelImportProductionProductDto {
     // Thông tin ràng buộc khóa
     private ObjectId warehouseId;
-    private String itemType;
+    private String inventoryType;
     // ====== Thông tin cơ bản ======
 
     @Validation(label = "PO", required = true)

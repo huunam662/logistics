@@ -25,7 +25,7 @@ public class InventoryDepartureDto {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDateTime containerArrivalDate;    // Ngày đến
     private String model;          // Model
-    private String itemType;           // Loại
+    private String inventoryType;           // Loại
     private String category;       // Chủng loại
     private Boolean hasSideShift;           // SS (Side Shift)
     private String serialNumber;   // Số seri

@@ -97,7 +97,7 @@ public class WarehouseTransaction {
         private ObjectId id; // _id – Khóa chính
         private String poNumber;       // Số của Đơn đặt hàng (Purchase Order) – Bắt buộc
         private String productCode;    // Mã định danh của sản phẩm (đối với sản phẩm xe & phụ kiện, phụ tùng thuộc sản phẩm này) – Bắt buộc
-        private String itemType;   // Loại hàng tồn (VD: phụ kiện, ...) - Bắt buộc
+        private String inventoryType;   // Loại hàng tồn (VD: phụ kiện, ...) - Bắt buộc
         //   XE/PK
         private String serialNumber;   // Số seri – Có cho xe/phụ kiện
         private String model;          // Model sản phẩm – Bắt buộc

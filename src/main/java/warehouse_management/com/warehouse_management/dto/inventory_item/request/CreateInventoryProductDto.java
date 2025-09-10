@@ -15,7 +15,7 @@ public class CreateInventoryProductDto {
     // ====== Thông tin cơ bản ======
 
     private String poNumber; // Số của Đơn đặt hàng (Purchase Order) 1
-    private String itemType;
+    private String inventoryType;
     private String productCode; // ID duy nhất cho từng xe/phụ kiện 4
     private String model; // Model kỹ thuật 5
     private String category; // Ví dụ: Reach Truck, Pallet Truck...7

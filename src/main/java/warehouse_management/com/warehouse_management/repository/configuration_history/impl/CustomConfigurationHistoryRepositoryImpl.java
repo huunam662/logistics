@@ -12,7 +12,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryDepartureDto;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
-import warehouse_management.com.warehouse_management.enumerate.ItemType;
+import warehouse_management.com.warehouse_management.enumerate.inventoryType;
 import warehouse_management.com.warehouse_management.enumerate.WarehouseStatus;
 import warehouse_management.com.warehouse_management.model.ConfigurationHistory;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
