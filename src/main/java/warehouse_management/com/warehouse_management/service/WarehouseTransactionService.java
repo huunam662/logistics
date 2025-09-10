@@ -11,7 +11,7 @@ import warehouse_management.com.warehouse_management.dto.warehouse_transaction.r
 import warehouse_management.com.warehouse_management.dto.warehouse_transaction.request.CreateWarehouseTransactionDto;
 import warehouse_management.com.warehouse_management.dto.warehouse_transaction.response.WarehouseTransactionPageDto;
 import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
-import warehouse_management.com.warehouse_management.enumerate.ItemType;
+import warehouse_management.com.warehouse_management.enumerate.inventoryType;
 import warehouse_management.com.warehouse_management.enumerate.WarehouseTranType;
 import warehouse_management.com.warehouse_management.enumerate.WarehouseTransactionStatus;
 import warehouse_management.com.warehouse_management.exceptions.LogicErrException;
@@ -102,7 +102,7 @@ public class WarehouseTransactionService {
         // Update items nếu giao dịch được duyệt
         // Nếu ở kho được chỉ định đã tồn tại phụ tùng với trạng thái đang IN_STOCK thì cập nhập số lượng
         Map<String, WarehouseTransaction.InventoryItemTicket> inventoryTicketSparePartMap = ticket.getInventoryItems().stream()
-                .filter(item -> item.getItemType().equals(ItemType.SPARE_PART.getId()) && item.getCommodityCode() != null)
+                .filter(item -> item.getInventoryType().equals(inventoryType.SPARE_PART.getId()) && item.getCommodityCode() != null)
                 .collect(Collectors.toMap(WarehouseTransaction.InventoryItemTicket::getCommodityCode, item -> item));
         // Lấy ra các phụ tùng với mã sản phẩm đã tồn tại ở kho được chỉ định và trạng thái đang IN_STOCK
         List<InventoryItem> sparePartsInStockToWarehouse = inventoryItemRepository.findSparePartByCommodityCodeIn(inventoryTicketSparePartMap.keySet(), warehouseId, InventoryItemStatus.IN_STOCK.getId());

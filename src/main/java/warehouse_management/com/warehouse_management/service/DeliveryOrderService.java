@@ -10,7 +10,7 @@ import warehouse_management.com.warehouse_management.dto.delivery_order.response
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.enumerate.DeliveryOrderStatus;
 import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
-import warehouse_management.com.warehouse_management.enumerate.ItemType;
+import warehouse_management.com.warehouse_management.enumerate.inventoryType;
 import warehouse_management.com.warehouse_management.enumerate.WarehouseType;
 import warehouse_management.com.warehouse_management.exceptions.LogicErrException;
 import warehouse_management.com.warehouse_management.mapper.DeliveryOrderMapper;
@@ -98,11 +98,11 @@ public class DeliveryOrderService {
 
             if (isSparePart) {
                 inventoryItemDeliveries = deliveryOrder.getInventoryItems().stream()
-                        .filter(e -> e.getItemType().equals(ItemType.SPARE_PART.getId()))
+                        .filter(e -> e.getInventoryType().equals(inventoryType.SPARE_PART.getId()))
                         .toList();
             } else {
                 inventoryItemDeliveries = deliveryOrder.getInventoryItems().stream()
-                        .filter(e -> !e.getItemType().equals(ItemType.SPARE_PART.getId()))
+                        .filter(e -> !e.getInventoryType().equals(inventoryType.SPARE_PART.getId()))
                         .toList();
             }
             List<DeliveryItemModelDto> itemsDto = new ArrayList<>();
@@ -131,7 +131,7 @@ public class DeliveryOrderService {
         DeliveryOrder deliveryOrder = getDeliveryOrderToId(deliveryOrderId);
         if(deliveryOrder.getInventoryItems() == null) return null;
         return deliveryOrder.getInventoryItems().stream()
-                .filter(e -> !e.getItemType().equals(ItemType.SPARE_PART.getId()))
+                .filter(e -> !e.getInventoryType().equals(inventoryType.SPARE_PART.getId()))
                 .map(deliveryOrderMapper::toDeliveryProductDetailsDto)
                 .toList();
     }
@@ -140,7 +140,7 @@ public class DeliveryOrderService {
         DeliveryOrder deliveryOrder = getDeliveryOrderToId(deliveryOrderId);
         if(deliveryOrder.getInventoryItems() == null) return null;
         return deliveryOrder.getInventoryItems().stream()
-                .filter(e -> e.getItemType().equals(ItemType.SPARE_PART.getId()))
+                .filter(e -> e.getInventoryType().equals(inventoryType.SPARE_PART.getId()))
                 .map(deliveryOrderMapper::toDeliverySparePartDetailsDto)
                 .toList();
     }
@@ -220,7 +220,7 @@ public class DeliveryOrderService {
                 .map(e -> new ObjectId(e.getId())).toList();
         List<InventoryItem> itemsToDelivery = inventoryItemRepository.findByIdIn(pushItemIds);
         Map<ObjectId, InventoryItem> itemsToDeliveryMap = itemsToDelivery.stream().collect(Collectors.toMap(InventoryItem::getId, e -> e));
-        List<String> commodityCodes = itemsToDelivery.stream().filter(e -> e.getItemType().equals(ItemType.SPARE_PART.getId()) && e.getCommodityCode() != null).map(InventoryItem::getCommodityCode).toList();
+        List<String> commodityCodes = itemsToDelivery.stream().filter(e -> e.getInventoryType().equals(inventoryType.SPARE_PART.getId()) && e.getCommodityCode() != null).map(InventoryItem::getCommodityCode).toList();
         List<InventoryItem> itemsHoldingInWarehouse = inventoryItemRepository.findSparePartByCommodityCodeIn(commodityCodes, InventoryItemStatus.HOLD.getId());
         Map<String, InventoryItem> itemsHoldingInWarehouseMap = itemsHoldingInWarehouse.stream().collect(Collectors.toMap(InventoryItem::getCommodityCode, e -> e));
         List<InventoryItem> sparePartToNew = new ArrayList<>();
@@ -249,11 +249,11 @@ public class DeliveryOrderService {
             if(warehouse.getType() == null) throw LogicErrException.of("Kho "+warehouse.getName()+" không tồn tại loại kho.");
 
             if(WarehouseType.DEPARTURE.getId().equals(warehouse.getTypeString()) && itemToPush.getIsDelivered()){
-                if(!item.getItemType().equals(ItemType.SPARE_PART.getId()))
+                if(!item.getInventoryType().equals(inventoryType.SPARE_PART.getId()))
                     throw LogicErrException.of("Sản phẩm "+item.getProductCode()+" thuộc kho "+warehouse.getName()+" không được phép chọn đã giao.");
                 else throw LogicErrException.of("Hàng "+item.getCommodityCode()+" thuộc kho "+warehouse.getName()+" không được phép chọn đã giao.");
             }
-            if(item.getItemType().equals(ItemType.SPARE_PART.getId())){
+            if(item.getInventoryType().equals(inventoryType.SPARE_PART.getId())){
                 pushSparePartToDeliveryOrderLogic(deliveryOrder, itemToPush, item, sparePartToNew, itemsHoldingInWarehouseMap);
             }
             else{
@@ -269,7 +269,7 @@ public class DeliveryOrderService {
         List<ObjectId> sparePartHoldingZero = new ArrayList<>();
         itemsToUpdateStatusAndQuantity = itemsToUpdateStatusAndQuantity.stream().filter(
                 o -> {
-                    if(o.getItemType().equals(ItemType.SPARE_PART.getId()) && o.getStatus().equals(InventoryItemStatus.HOLD) && o.getQuantity() == 0){
+                    if(o.getInventoryType().equals(inventoryType.SPARE_PART.getId()) && o.getStatus().equals(InventoryItemStatus.HOLD) && o.getQuantity() == 0){
                         sparePartHoldingZero.add(o.getId());
                         return false;
                     }
@@ -322,7 +322,7 @@ public class DeliveryOrderService {
         }
         else{
             Optional<DeliveryOrder.InventoryItemDelivery> sparePartInOrderOp = deliveryOrder.getInventoryItems().stream().filter(
-                    s -> s.getItemType().equals(ItemType.SPARE_PART.getId()) && s.getCommodityCode().equals(item.getCommodityCode()) && s.getIsDelivered()
+                    s -> s.getInventoryType().equals(inventoryType.SPARE_PART.getId()) && s.getCommodityCode().equals(item.getCommodityCode()) && s.getIsDelivered()
             ).findFirst();
             if(sparePartInOrderOp.isEmpty()){
                 DeliveryOrder.InventoryItemDelivery sparePartDelivery = inventoryItemMapper.toInventoryItemDelivery(item);
@@ -335,7 +335,7 @@ public class DeliveryOrderService {
                 sparePartInOrder.setQuantity(sparePartInOrder.getQuantity() + quantityToDelivery);
             }
             DeliveryOrder.InventoryItemDelivery sparePartHoldingInOrder = deliveryOrder.getInventoryItems()
-                    .stream().filter(o -> o.getItemType().equals(ItemType.SPARE_PART.getId()) && o.getCommodityCode().equals(item.getCommodityCode()) && !o.getIsDelivered())
+                    .stream().filter(o -> o.getInventoryType().equals(inventoryType.SPARE_PART.getId()) && o.getCommodityCode().equals(item.getCommodityCode()) && !o.getIsDelivered())
                     .findFirst().orElse(null);
             if(sparePartHoldingInOrder != null){
                 sparePartHoldingInOrder.setQuantity(sparePartHoldingInOrder.getQuantity() - quantityToDelivery);
@@ -400,7 +400,7 @@ public class DeliveryOrderService {
                 continue;
             }
 
-            if(!item.getItemType().equals(ItemType.SPARE_PART.getId())) {
+            if(!item.getInventoryType().equals(inventoryType.SPARE_PART.getId())) {
                 item.setStatus(InventoryItemStatus.IN_STOCK.getId());
                 inventoryItemRepository.save(item);
             }
@@ -491,12 +491,12 @@ public class DeliveryOrderService {
             if(warehouse.getType() == null) throw LogicErrException.of("Kho "+warehouse.getName()+" không tồn tại loại kho.");
 
             if(WarehouseType.DEPARTURE.getId().equals(warehouse.getTypeString()) && itemToUpdateReq.getIsDelivered()){
-                if(!deliveryItem.getItemType().equals(ItemType.SPARE_PART.getId()))
+                if(!deliveryItem.getInventoryType().equals(inventoryType.SPARE_PART.getId()))
                     throw LogicErrException.of("Sản phẩm "+deliveryItem.getProductCode()+" thuộc kho "+warehouse.getName()+" không được phép chọn đã giao.");
                 else throw LogicErrException.of("Hàng "+deliveryItem.getCommodityCode()+" thuộc kho "+warehouse.getName()+" không được phép chọn đã giao.");
             }
             // - Nếu là xe & phụ kiện
-            if (!deliveryItem.getItemType().equals(ItemType.SPARE_PART.getId())) {
+            if (!deliveryItem.getInventoryType().equals(inventoryType.SPARE_PART.getId())) {
                 if (itemToUpdateReq.getQuantity() != 1)
                     throw LogicErrException.of("Số lượng sản phẩm mã '" + deliveryItem.getProductCode() + "' mặc định luôn là 1.");
                 // - Đối với sản phẩm xe & phụ kiện thì chỉ xóa hoặc thêm mới hoặc cho phép đổi trạng thái "chưa giao" sang "đã giao"
@@ -634,7 +634,7 @@ public class DeliveryOrderService {
         else {
             ObjectId itemInHoldingId = itemInHolding.getId();
             DeliveryOrder.InventoryItemDelivery itemHoldingInDelivery = deliveryOrder.getInventoryItems()
-                    .stream().filter(o -> o.getItemType().equals(ItemType.SPARE_PART.getId()) && o.getId().equals(itemInHoldingId))
+                    .stream().filter(o -> o.getInventoryType().equals(inventoryType.SPARE_PART.getId()) && o.getId().equals(itemInHoldingId))
                     .findFirst().orElse(null);
             boolean notEnoughQuantityInStock = false;
             if(itemHoldingInDelivery == null){
@@ -668,7 +668,7 @@ public class DeliveryOrderService {
 
     private void updateItemSoldInDeliveryLogic(PushItemToDeliveryDto itemToUpdateReq, DeliveryOrder deliveryOrder, InventoryItem itemInStockOrSold, String commodityCode) {
         DeliveryOrder.InventoryItemDelivery itemSoldInDeliveryOrder = deliveryOrder.getInventoryItems().stream()
-                .filter(e -> e.getItemType().equals(ItemType.SPARE_PART.getId()) && e.getCommodityCode().equals(commodityCode) && e.getIsDelivered())
+                .filter(e -> e.getInventoryType().equals(inventoryType.SPARE_PART.getId()) && e.getCommodityCode().equals(commodityCode) && e.getIsDelivered())
                 .findFirst().orElse(null);
         if(itemSoldInDeliveryOrder != null) itemSoldInDeliveryOrder.setQuantity(itemSoldInDeliveryOrder.getQuantity() + itemToUpdateReq.getQuantity());
         else {

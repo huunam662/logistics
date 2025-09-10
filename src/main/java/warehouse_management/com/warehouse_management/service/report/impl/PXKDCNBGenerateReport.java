@@ -6,7 +6,7 @@ import org.bson.types.ObjectId;
 import org.springframework.stereotype.Component;
 
 import warehouse_management.com.warehouse_management.dto.report.PXKDCNBInventoryItemDatasetIDto;
-import warehouse_management.com.warehouse_management.enumerate.ItemType;
+import warehouse_management.com.warehouse_management.enumerate.inventoryType;
 
 import warehouse_management.com.warehouse_management.enumerate.TransactionModule;
 import warehouse_management.com.warehouse_management.model.WarehouseTransaction;
@@ -92,9 +92,9 @@ public class PXKDCNBGenerateReport implements GenerateReportStrategy {
             dto.setIndex(i + 1); // STT
             dto.setSerialNumber(item.getSerialNumber());
 
-            // Set Unit theo itemType
-            ItemType type = ItemType.fromId(item.getItemType());
-            if (type == ItemType.VEHICLE) {
+            // Set Unit theo inventoryType
+            inventoryType type = inventoryType.fromId(item.getInventoryType());
+            if (type == inventoryType.VEHICLE) {
                 dto.setUnit("Chiếc");
             } else {
                 dto.setUnit("Cái");
@@ -113,7 +113,7 @@ public class PXKDCNBGenerateReport implements GenerateReportStrategy {
     }
 
     private String buildName(WarehouseTransaction.InventoryItemTicket item) {
-        ItemType type = ItemType.fromId(item.getItemType());
+        inventoryType type = inventoryType.fromId(item.getInventoryType());
         if (type == null) {
             return nullToEmpty(item.getModel()); // fallback nếu type null
         }

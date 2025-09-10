@@ -118,7 +118,7 @@ public class InventoryItemController {
     )
     public ApiResponse<?> getInventoryInStockPoNumbers(
             @Parameter(description = "[VEHICLE, ACCESSORY, SPARE_PART]")
-            @RequestParam("itemType") List<String> itemTypes,
+            @RequestParam("inventoryType") List<String> inventoryTypes,
             @Parameter(description = "Tìm kiếm theo mã Po number (Nếu cần).")
             @RequestParam(value = "poNumber", required = false, defaultValue = "") String poNumber,
             @RequestParam(value = "model", required = false) String model,
@@ -126,7 +126,7 @@ public class InventoryItemController {
             @Parameter(description = "[PRODUCTION, DEPARTURE, DESTINATION, CONSIGNMENT]")
             @RequestParam(value = "warehouseType", required = false) String warehouseType
     ){
-        List<InventoryPoWarehouseDto> poNumbers = inventoryItemService.getInventoryInStockPoNumbers(itemTypes, poNumber, model, warehouseId, warehouseType);
+        List<InventoryPoWarehouseDto> poNumbers = inventoryItemService.getInventoryInStockPoNumbers(inventoryTypes, poNumber, model, warehouseId, warehouseType);
         return ApiResponse.success(poNumbers);
     }
 
@@ -250,11 +250,11 @@ public class InventoryItemController {
     public ResponseEntity<?> getModels(
             @RequestParam("warehouseIds") List<String> warehouseIds,
             @Parameter(description = "[VEHICLE, ACCESSORY, SPARE_PART]")
-            @RequestParam("itemTypes") List<String> itemTypes,
+            @RequestParam("inventoryTypes") List<String> inventoryTypes,
             @Parameter(description = "Tìm kiếm theo mã Model (Nếu cần).")
             @RequestParam(value = "model", required = false, defaultValue = "") String model
     ){
-        List<InventoryItemModelDto> models = inventoryItemService.getAllModels(itemTypes, warehouseIds, model);
+        List<InventoryItemModelDto> models = inventoryItemService.getAllModels(inventoryTypes, warehouseIds, model);
         return ResponseEntity.ok().body(ApiResponse.success(models));
     }
 }
