@@ -24,7 +24,9 @@ public interface DeliveryOrderMapper {
     @Mapping(target = "isDelivered", source = "isDelivered")
     DeliveryItemModelDto toDeliveryOrderItemsDto(DeliveryOrder.InventoryItemDelivery inventoryItemDelivery);
 
+    @Mapping(target = "warehouseId", source="warehouseId")
     DeliveryProductDetailsDto toDeliveryProductDetailsDto(DeliveryOrder.InventoryItemDelivery inventoryItemDelivery);
 
+    @Mapping(target = "warehouseId", source="warehouseId")
     DeliverySparePartDetailsDto toDeliverySparePartDetailsDto(DeliveryOrder.InventoryItemDelivery inventoryItemDelivery);
 }

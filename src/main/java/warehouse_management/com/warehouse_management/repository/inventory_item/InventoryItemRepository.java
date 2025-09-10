@@ -16,6 +16,7 @@ import java.util.Optional;
 public interface InventoryItemRepository extends MongoRepository<InventoryItem, ObjectId>,
         CustomInventoryItemRepository {
 
+    Optional<InventoryItem> findByProductCode(String productCode);
     Optional<InventoryItem> findBySerialNumber(String serialNumber);
 
     boolean existsBySerialNumber(String serialNumber);
