@@ -18,6 +18,7 @@ import warehouse_management.com.warehouse_management.dto.warranty.request.Create
 import warehouse_management.com.warehouse_management.dto.warranty.request.CreateWarrantyTransactionDTO;
 import warehouse_management.com.warehouse_management.dto.warranty.request.UpdateStatusWarrantyRequestDTO;
 import warehouse_management.com.warehouse_management.dto.warranty.response.WarrantyResponseDTO;
+import warehouse_management.com.warehouse_management.dto.warranty.response.WarrantyTransactionResponseDTO;
 import warehouse_management.com.warehouse_management.model.WarrantyTransaction;
 import warehouse_management.com.warehouse_management.service.WarrantyService;
 
@@ -53,7 +54,7 @@ public class WarrantyController {
             summary = "Tạo phiếu bảo hành",
             description = "Tạo phiếu bảo hành"
     )
-    public ApiResponse<WarrantyTransaction> saveWarrantyTransaction(@Valid @RequestBody CreateWarrantyTransactionDTO createWarrantyTransactionDTO) {
+    public ApiResponse<WarrantyTransactionResponseDTO> saveWarrantyTransaction(@Valid @RequestBody CreateWarrantyTransactionDTO createWarrantyTransactionDTO) {
         return ApiResponse.success(warrantyService.createWarrantyTransaction(createWarrantyTransactionDTO));
     }
 

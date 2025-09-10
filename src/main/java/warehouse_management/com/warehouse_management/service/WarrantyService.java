@@ -9,6 +9,7 @@ import warehouse_management.com.warehouse_management.dto.pagination.request.Page
 import warehouse_management.com.warehouse_management.dto.warranty.request.CreateWarrantyTransactionDTO;
 import warehouse_management.com.warehouse_management.dto.warranty.request.UpdateStatusWarrantyRequestDTO;
 import warehouse_management.com.warehouse_management.dto.warranty.response.WarrantyResponseDTO;
+import warehouse_management.com.warehouse_management.dto.warranty.response.WarrantyTransactionResponseDTO;
 import warehouse_management.com.warehouse_management.enumerate.DeliveryOrderStatus;
 import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
 import warehouse_management.com.warehouse_management.enumerate.WarrantyStatus;
@@ -130,10 +131,13 @@ public class WarrantyService {
      * @return phiếu bảo hành
      */
     @Transactional
-    public WarrantyTransaction createWarrantyTransaction(CreateWarrantyTransactionDTO createWarrantyTransactionDTO) {
+    public WarrantyTransactionResponseDTO createWarrantyTransaction(CreateWarrantyTransactionDTO createWarrantyTransactionDTO) {
         checkExistWarrantyAndGet(createWarrantyTransactionDTO.getWarrantyId().toString());
 
-        return warrantyTransactionRepository.save(warrantyTransactionMapper.toWarrantyTransaction(createWarrantyTransactionDTO));
+        return warrantyTransactionMapper.toWarrantyTransactionResponseDTO(
+                warrantyTransactionRepository
+                        .save(warrantyTransactionMapper
+                                .toWarrantyTransaction(createWarrantyTransactionDTO)));
     }
 
     /**
