@@ -22,9 +22,10 @@ import java.time.LocalDateTime;
 public class WarrantyTransaction {
     @Id
     private ObjectId id;
-    private ObjectId warranty;          // Phiếu bảo hành cha
+    private ObjectId warrantyId;        // Phiếu bảo hành cha
     private String sparePartWarranty;   // Bộ phận cần bảo hành
     private String reason;              // Lý do bảo hành
+    private String createByName;        // Username của người tạo phiếu bảo hành
 
     @CreatedDate
     private LocalDateTime createdAt;
