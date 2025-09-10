@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import warehouse_management.com.warehouse_management.app.CustomAuthentication;
 import warehouse_management.com.warehouse_management.dto.warranty.request.CreateWarrantyDTO;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.warranty.request.CreateWarrantyTransactionDTO;
@@ -43,6 +44,8 @@ public class WarrantyService {
 
     private final WarrantyMapper warrantyMapper;
     private final WarrantyTransactionMapper warrantyTransactionMapper;
+
+    private final CustomAuthentication customAuthentication;
 
     /**
      * Lấy danh sách đơn bảo hành để show trên datagrid
@@ -134,10 +137,12 @@ public class WarrantyService {
     public WarrantyTransactionResponseDTO createWarrantyTransaction(CreateWarrantyTransactionDTO createWarrantyTransactionDTO) {
         checkExistWarrantyAndGet(createWarrantyTransactionDTO.getWarrantyId().toString());
 
+        WarrantyTransaction warrantyTransaction = warrantyTransactionMapper
+                .toWarrantyTransaction(createWarrantyTransactionDTO);
+        warrantyTransaction.setCreateByName(customAuthentication.getUser().getFullName());
+
         return warrantyTransactionMapper.toWarrantyTransactionResponseDTO(
-                warrantyTransactionRepository
-                        .save(warrantyTransactionMapper
-                                .toWarrantyTransaction(createWarrantyTransactionDTO)));
+                warrantyTransactionRepository.save(warrantyTransaction));
     }
 
     /**
