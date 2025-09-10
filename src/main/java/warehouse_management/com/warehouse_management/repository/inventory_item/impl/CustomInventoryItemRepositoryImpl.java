@@ -738,7 +738,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
 
         pipelines.add(Aggregation.lookup("client", "order.customerId", "_id", "client"));
 
-        pipelines.add(Aggregation.project("serialNumber","model", "id")
+        pipelines.add(Aggregation.project("serialNumber","model", "id", "productCode")
                 .and("logistics.arrivalDate").as("arrivalDate")
                 .and("client.name").as("clientName"));
 
