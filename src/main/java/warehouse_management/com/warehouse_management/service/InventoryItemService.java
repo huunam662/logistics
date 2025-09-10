@@ -601,6 +601,9 @@ public class InventoryItemService {
         return itemsResults;
     }
 
+    public Page<InventoryItemWarrantyDto> getInventoryItemForWarranty(PageOptionsDto pageOptionsDto) {
+        return inventoryItemRepository.findItemForWarranty(pageOptionsDto);
+    }
 
     @AuditAction(action = "testMethod")
     public void approve(Integer approved) {
@@ -623,7 +626,6 @@ public class InventoryItemService {
     public List<InventorySparePartDetailsDto> getSparePartByWarehouseId(String warehouseId, String poNumber) {
         return inventoryItemRepository.findSparePartByWarehouseId(new ObjectId(warehouseId), poNumber);
     }
-
 
     public InventoryItem findByIdOrThrow(String id) {
         return inventoryItemRepository.findById(new ObjectId(id)).orElseThrow(() -> LogicErrException.of("Không tồn tại"));

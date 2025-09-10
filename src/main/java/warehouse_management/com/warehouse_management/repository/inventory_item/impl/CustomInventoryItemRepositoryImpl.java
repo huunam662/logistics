@@ -23,9 +23,11 @@ import warehouse_management.com.warehouse_management.dto.pagination.request.Page
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
 import warehouse_management.com.warehouse_management.dto.report_inventory.request.ReportParamsDto;
 import warehouse_management.com.warehouse_management.dto.report_inventory.response.ReportInventoryDto;
+import warehouse_management.com.warehouse_management.dto.warranty.response.WarrantyResponseDTO;
 import warehouse_management.com.warehouse_management.enumerate.*;
 import warehouse_management.com.warehouse_management.exceptions.LogicErrException;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
+import warehouse_management.com.warehouse_management.model.Warranty;
 import warehouse_management.com.warehouse_management.repository.inventory_item.CustomInventoryItemRepository;
 import warehouse_management.com.warehouse_management.utils.MongoRsqlUtils;
 
@@ -709,6 +711,29 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 mapper,
                 options
         );
+    }
+
+    public Page<InventoryItemWarrantyDto> findItemForWarranty(PageOptionsDto optionsDto) {
+        List<AggregationOperation> pipelines = new ArrayList<>();
+        pipelines.add(Aggregation.match(new Criteria()
+                .andOperator(
+                        Criteria.where("deletedBy").is(null),
+                        Criteria.where("inventoryType").is(inventoryType.VEHICLE),
+                        Criteria.where("status").is(InventoryItemStatus.SOLD))));
+
+        pipelines.add(Aggregation.lookup("delivery_order", "_id", "inventoryItems._id", "order"));
+
+        pipelines.add(Aggregation.unwind("order"));
+
+        pipelines.add(Aggregation.lookup("client", "order.customerId", "_id", "client"));
+
+        pipelines.add(Aggregation.project("serialNumber","model", "id")
+                .and("logistics.arrivalDate").as("arrivalDate")
+                .and("client.name").as("clientName"));
+
+        Aggregation agg = Aggregation.newAggregation(pipelines);
+
+        return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryItemWarrantyDto.class, agg, optionsDto);
     }
 
 }
