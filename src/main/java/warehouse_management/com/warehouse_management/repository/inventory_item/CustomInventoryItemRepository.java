@@ -67,6 +67,7 @@ public interface CustomInventoryItemRepository {
 
     List<InventorySparePartDetailsDto> findSparePartByWarehouseId(ObjectId warehouseId, String poNumber);
 
-
     List<InventoryProductDetailsDto> findVehicles(PageOptionsDto optionsReq);
+
+    Page<InventoryItemWarrantyDto> findItemForWarranty(PageOptionsDto optionsDto);
 }

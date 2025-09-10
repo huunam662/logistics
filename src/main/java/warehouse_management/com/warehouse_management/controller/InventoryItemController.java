@@ -257,4 +257,13 @@ public class InventoryItemController {
         List<InventoryItemModelDto> models = inventoryItemService.getAllModels(inventoryTypes, warehouseIds, model);
         return ResponseEntity.ok().body(ApiResponse.success(models));
     }
+
+    @GetMapping("/warranty")
+    @Operation(
+            summary = "GET sản phẩm thuộc loại xe cho bảo hành",
+            description = "GET sản phẩm thuộc loại xe cho bảo hành"
+    )
+    public ApiResponse<?> getInventoryItemForWarranty(@ModelAttribute PageOptionsDto pageOptionsDto) {
+        return ApiResponse.success(inventoryItemService.getInventoryItemForWarranty(pageOptionsDto));
+    }
 }
