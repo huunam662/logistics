@@ -733,10 +733,12 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         );
 
         pipelines.add(Aggregation.lookup("delivery_order", "_id", "inventoryItems._id", "order"));
-
         pipelines.add(Aggregation.unwind("order"));
-
         pipelines.add(Aggregation.match(Criteria.where("order.status").ne(DeliveryOrderStatus.REJECTED)));
+
+        pipelines.add(Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"));
+        pipelines.add(Aggregation.unwind("warehouse"));
+        pipelines.add(Aggregation.match(Criteria.where("warehouse.type").is(WarehouseType.DESTINATION)));
 
         pipelines.add(Aggregation.lookup("client", "order.customerId", "_id", "client"));
 
