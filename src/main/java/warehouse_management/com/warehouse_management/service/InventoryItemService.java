@@ -214,7 +214,7 @@ public class InventoryItemService {
             String warehouseId,
             List<T> dtos,
             Function<T, InventoryItem> toInventoryItem,
-            Function<T, WarehouseTransaction.InventoryItemTicket> toInventoryItemTicket,
+
             WarehouseSubTranType importType
     ) {
         if (dtos == null || dtos.isEmpty()) {
@@ -226,10 +226,16 @@ public class InventoryItemService {
         for (T dto : dtos) {
             InventoryItem item = toInventoryItem.apply(dto);
             itemToLog.add(item);
-            buildProductItems(item, importType, itemsToInsert, confsToInsert);
+            if (importType.equals(WarehouseSubTranType.EXCEL_TO_PRODUCTION_PRODUCT)) {
+                buildProductItems(item, importType, itemsToInsert, confsToInsert);
+            } else {
+                itemsToInsert.add(item);
+            }
         }
-//
-        configurationHistoryRepository.bulkInsert(confsToInsert);
+
+        if (!confsToInsert.isEmpty()) {
+            configurationHistoryRepository.bulkInsert(confsToInsert);
+        }
         List<InventoryItem> saved = inventoryItemRepository.bulkInsert(itemsToInsert);
 
         List<WarehouseTransaction.InventoryItemTicket> itemTicketToLog = itemToLog.stream().map(mapper::toInventoryItemTicket).collect(Collectors.toList());
@@ -335,7 +341,7 @@ public class InventoryItemService {
                 warehouseId,
                 dtos,
                 mapper::toInventoryItem,
-                mapper::toInventoryItemTicket,
+
                 WarehouseSubTranType.EXCEL_TO_PRODUCTION_PRODUCT);
     }
 
@@ -345,7 +351,7 @@ public class InventoryItemService {
                 warehouseId,
                 dtos,
                 mapper::toInventoryItem,
-                mapper::toInventoryItemTicket,
+
                 WarehouseSubTranType.EXCEL_TO_PRODUCTION_SPARE_PART);
     }
 
