@@ -575,7 +575,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     @Override
     public Page<ReportInventoryDto> findPageReportInventoryToDashBoard(ReportParamsDto params) {
 
-        GroupOperation group = Aggregation.group("poNumber", "model", "createdAt")
+        GroupOperation group = Aggregation.group("poNumber", "model", "createdAt", "inventoryType")
                 .first("pricing.agent").as("agent")
                 .sum(
                         ConditionalOperators.when(Criteria.where("inventoryType").is(inventoryType.VEHICLE.getId()))
@@ -593,7 +593,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                                 .otherwise(0)
                 ).as("totalSparePart");
 
-        ProjectionOperation project = Aggregation.project("agent", "totalVehicle", "totalAccessory", "totalSparePart")
+        ProjectionOperation project = Aggregation.project("agent", "totalVehicle", "totalAccessory", "totalSparePart", "inventoryType")
                 .and("_id.poNumber").as("poNumber")
                 .and("_id.model").as("model")
                 .and("_id.createdAt").as("loadToWarehouseDate");
