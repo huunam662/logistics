@@ -13,5 +13,5 @@ public class InventoryItemPoNumberDto {
     private String model;
     private Integer quantity;
     private String description;
-    private String inventoryType;
+    private String itemType;
 }

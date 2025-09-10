@@ -15,8 +15,7 @@ public class ExcelImportProductionSparePartDto {
     // Thông tin ràng buộc khóa
     private ObjectId warehouseId;
 
-    private String inventoryType;
-
+    private String itemType;
 
     @Validation(label = "PO", required = true)
     private String poNumber;

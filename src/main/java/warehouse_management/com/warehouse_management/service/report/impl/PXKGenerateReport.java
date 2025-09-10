@@ -6,17 +6,16 @@ import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
 import warehouse_management.com.warehouse_management.dto.report.PNKPXKInventoryItemDataSetIDto;
-import warehouse_management.com.warehouse_management.enumerate.InventoryType;
+import warehouse_management.com.warehouse_management.enumerate.ItemType;
 import warehouse_management.com.warehouse_management.enumerate.TransactionModule;
 import warehouse_management.com.warehouse_management.model.Container;
-import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.model.WarehouseTransaction;
 import warehouse_management.com.warehouse_management.repository.container.ContainerRepository;
 import warehouse_management.com.warehouse_management.repository.warehouse.WarehouseRepository;
 import warehouse_management.com.warehouse_management.repository.warehouse_transaction.WarehouseTransactionRepository;
 import warehouse_management.com.warehouse_management.service.report.GenerateReportStrategy;
-import warehouse_management.com.warehouse_management.utils.GeneralResource;
+import warehouse_management.com.warehouse_management.utils.GeneralUtil;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -108,7 +107,7 @@ public class PXKGenerateReport implements GenerateReportStrategy {
         List<?> items = (List<?>) context.get("dataset"); // Lấy danh sách item từ context
         if (items != null && items.size() > 1) {
             Sheet sheet = workbook.getSheetAt(0);
-            int datasetRowIdx = GeneralResource.PXK_PNK_DATASET_ROW_IDX;
+            int datasetRowIdx = GeneralUtil.PXK_PNK_DATASET_ROW_IDX;
             sheet.shiftRows(datasetRowIdx, sheet.getLastRowNum(), items.size() - 1);
         }
     }
@@ -120,17 +119,17 @@ public class PXKGenerateReport implements GenerateReportStrategy {
         for (int i = 0; i < inventoryItems.size(); i++) {
 
             WarehouseTransaction.InventoryItemTicket item = inventoryItems.get(i);
-            InventoryType type = InventoryType.fromId(item.getInventoryType());
+            ItemType type = ItemType.fromId(item.getItemType());
             PNKPXKInventoryItemDataSetIDto dto = new PNKPXKInventoryItemDataSetIDto();
             dto.setIndex(i + 1); // STT
-            if (type == InventoryType.VEHICLE || type == InventoryType.ACCESSORY) {
+            if (type == ItemType.VEHICLE || type == ItemType.ACCESSORY) {
                 dto.setCode(item.getProductCode());
             } else {
                 dto.setCode(item.getCommodityCode());
             }
 
-            // Set Unit theo inventoryType
-            if (type == InventoryType.VEHICLE) {
+            // Set Unit theo itemType
+            if (type == ItemType.VEHICLE) {
                 dto.setUnit("Chiếc");
             } else {
                 dto.setUnit("Cái");
@@ -154,17 +153,17 @@ public class PXKGenerateReport implements GenerateReportStrategy {
         for (int i = 0; i < inventoryItems.size(); i++) {
 
             Container.InventoryItemContainer item = inventoryItems.get(i);
-            InventoryType type = InventoryType.fromId(item.getInventoryType());
+            ItemType type = ItemType.fromId(item.getItemType());
             PNKPXKInventoryItemDataSetIDto dto = new PNKPXKInventoryItemDataSetIDto();
             dto.setIndex(i + 1); // STT
-            if (type == InventoryType.VEHICLE || type == InventoryType.ACCESSORY) {
+            if (type == ItemType.VEHICLE || type == ItemType.ACCESSORY) {
                 dto.setCode(item.getProductCode());
             } else {
                 dto.setCode(item.getCommodityCode());
             }
 
-            // Set Unit theo inventoryType
-            if (type == InventoryType.VEHICLE) {
+            // Set Unit theo itemType
+            if (type == ItemType.VEHICLE) {
                 dto.setUnit("Chiếc");
             } else {
                 dto.setUnit("Cái");
@@ -183,7 +182,7 @@ public class PXKGenerateReport implements GenerateReportStrategy {
     }
 
     private String buildName(WarehouseTransaction.InventoryItemTicket item) {
-        InventoryType type = InventoryType.fromId(item.getInventoryType());
+        ItemType type = ItemType.fromId(item.getItemType());
         if (type == null) {
             return nullToEmpty(item.getModel()); // fallback nếu type null
         }
@@ -199,10 +198,10 @@ public class PXKGenerateReport implements GenerateReportStrategy {
                 }
 
                 // specs xuống dòng
-                sb.append(buildSpecs(item.getSpecifications()));
+                sb.append(buildSpecs(item));
                 return sb.toString();
             case ACCESSORY:
-                return "PHỤ KIỆN " + nullToEmpty(item.getCategory()) + buildSpecs(item.getSpecifications());
+                return "PHỤ KIỆN " + nullToEmpty(item.getCategory()) + buildSpecs(item);
             case SPARE_PART:
                 return "PHỤ TÙNG " + nullToEmpty(item.getNotes());
             default:
@@ -211,7 +210,7 @@ public class PXKGenerateReport implements GenerateReportStrategy {
     }
 
     private String buildName(Container.InventoryItemContainer item) {
-        InventoryType type = InventoryType.fromId(item.getInventoryType());
+    ItemType type = ItemType.fromId(item.getItemType());
         if (type == null) {
             return nullToEmpty(item.getModel()); // fallback nếu type null
         }
@@ -227,10 +226,10 @@ public class PXKGenerateReport implements GenerateReportStrategy {
                 }
 
                 // specs xuống dòng
-                sb.append(buildSpecs(item.getSpecifications()));
+                sb.append(buildSpecs(item));
                 return sb.toString();
             case ACCESSORY:
-                return "PHỤ KIỆN " + nullToEmpty(item.getCategory()) + buildSpecs(item.getSpecifications());
+                return "PHỤ KIỆN " + nullToEmpty(item.getCategory()) + buildSpecs(item);
             case SPARE_PART:
                 return "PHỤ TÙNG " + nullToEmpty(item.getNotes());
             default:
@@ -241,7 +240,7 @@ public class PXKGenerateReport implements GenerateReportStrategy {
     /**
      * In tất cả field specs, field nào != null thì show
      */
-    private String buildSpecs(WarehouseTransaction.InventoryItemTicket.Specifications specs) {
+    private String buildSpecs(WarehouseTransaction.InventoryItemTicket specs) {
         if (specs == null) return "";
 
         StringBuilder sb = new StringBuilder();
@@ -286,7 +285,7 @@ public class PXKGenerateReport implements GenerateReportStrategy {
     /**
      * In tất cả field specs, field nào != null thì show
      */
-    private String buildSpecs(Container.InventoryItemContainer.Specifications specs) {
+    private String buildSpecs(Container.InventoryItemContainer specs) {
         if (specs == null) return "";
 
         StringBuilder sb = new StringBuilder();
