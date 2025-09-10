@@ -736,6 +736,8 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
 
         pipelines.add(Aggregation.unwind("order"));
 
+        pipelines.add(Aggregation.match(Criteria.where("order.status").ne(DeliveryOrderStatus.REJECTED)));
+
         pipelines.add(Aggregation.lookup("client", "order.customerId", "_id", "client"));
 
         pipelines.add(Aggregation.project("serialNumber","model", "id", "productCode")
