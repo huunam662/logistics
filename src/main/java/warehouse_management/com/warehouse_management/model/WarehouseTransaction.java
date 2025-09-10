@@ -43,7 +43,7 @@ public class WarehouseTransaction {
 
     @CreatedBy
     private String createdBy;
-     @LastModifiedBy
+    @LastModifiedBy
     private String updatedBy;
     private ObjectId deletedBy;
 
@@ -71,7 +71,7 @@ public class WarehouseTransaction {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class ShipUnitInfo{
+    public static class ShipUnitInfo {
         private String fullName;    // Họ tên
         private String licensePlate;    // Biển số xe
         private String phone;   // Số điện thoại
@@ -83,7 +83,7 @@ public class WarehouseTransaction {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class Department{
+    public static class Department {
         private String name; // Tên bộ phận
         private String address; // Địa chỉ
         private String phone;   // Số điện thoại
@@ -93,42 +93,52 @@ public class WarehouseTransaction {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class InventoryItemTicket{
+    public static class InventoryItemTicket {
         private ObjectId id; // _id – Khóa chính
         private String poNumber;       // Số của Đơn đặt hàng (Purchase Order) – Bắt buộc
         private String productCode;    // Mã định danh của sản phẩm (đối với sản phẩm xe & phụ kiện, phụ tùng thuộc sản phẩm này) – Bắt buộc
-        private String commodityCode;  // Mã hàng hóa (đôi với phụ tùng)
+        private String itemType;   // Loại hàng tồn (VD: phụ kiện, ...) - Bắt buộc
+        //   XE/PK
         private String serialNumber;   // Số seri – Có cho xe/phụ kiện
         private String model;          // Model sản phẩm – Bắt buộc
         private String category;       // Chủng loại sản phẩm (VD: Ngồi lái) – Bắt buộc
-        private String inventoryType;   // Loại hàng tồn (VD: phụ kiện, ...) - Bắt buộc
         private Integer manufacturingYear; // Năm sản xuất – Không bắt buộc
-        private Integer quantity;   // Số lượng hàng hóa
         private String contractNumber; // Số hợp đồng
         private String warehouseType;  // Loại kho (kho bảo quản dành cho hàng hóa)
         private Boolean initialCondition;       // Mô tả nguyên trạng khi nhập kho – Không bắt buộc
         private String notes;                  // Ghi chú chung – Không bắt buộc
-        private String description;         // Mô tả
-        private Specifications specifications;
-        private Pricing pricing;
-        private Logistics logistics;
 
-        @Data
-        @NoArgsConstructor
-        @AllArgsConstructor
-        public static class Specifications {
-            private Integer liftingCapacityKg;      // Sức nâng (kg)
-            private String chassisType;             // Loại khung nâng
-            private Integer liftingHeightMm;        // Độ cao nâng (mm)
-            private String engineType;              // Loại động cơ
-            private String batteryInfo;             // Thông tin bình điện
-            private String batterySpecification;    // Thông số bình điện
-            private String chargerSpecification;    // Thông số bộ sạc
-            private String forkDimensions;          // Thông số càng
-            private Integer valveCount;             // Số lượng van
-            private Boolean hasSideShift;           // Có side shift không
-            private String otherDetails;            // Chi tiết khác
-        }
+        private String otherDetails;            // Chi tiết khác
+
+
+        //    PT
+        private String commodityCode;  // Mã hàng hóa (đôi với phụ tùng)
+        private String description;         // Mô tả
+        private Integer quantity;   // Số lượng hàng hóa
+
+        // --- PK PT ---
+        private ObjectId vehicleId; // PK/PT
+        //PK-KN
+        private Integer liftingCapacityKg;      // Sức nâng (kg)
+        private String chassisType;             // Loại khung nâng
+        private Integer liftingHeightMm;        // Độ cao nâng (mm)
+        //PK-BINHDIEN
+        private String batteryInfo;             // Thông tin bình điện
+        private String batterySpecification;    // Thông số bình điện
+
+        //PK-SAC
+        private String chargerSpecification;    // Thông số bộ sạc
+
+        //PT
+        private String engineType;              // Loại động cơ
+        private String forkDimensions;          // Thông số càng
+        private Integer valveCount;             // Số lượng van
+        private Boolean hasSideShift;           // Có side shift không
+
+        //===PK PT===
+
+
+        private Pricing pricing;
 
         @Data
         @NoArgsConstructor
@@ -138,6 +148,8 @@ public class WarehouseTransaction {
             private BigDecimal purchasePrice;       // Giá mua vào
             private String agent;                   // Đại lý (nếu có)
         }
+
+        private Logistics logistics;
 
         @Data
         @NoArgsConstructor

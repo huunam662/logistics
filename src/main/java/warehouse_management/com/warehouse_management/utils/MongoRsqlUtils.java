@@ -4,6 +4,7 @@ import cz.jirutka.rsql.parser.RSQLParser;
 import cz.jirutka.rsql.parser.ast.*;
 import lombok.NonNull;
 import org.bson.Document;
+import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -17,6 +18,7 @@ import org.springframework.data.mongodb.core.aggregation.CountOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -29,10 +31,10 @@ public class MongoRsqlUtils {
             @NonNull Query query,
             @NonNull Map<String, String> rsqlPropertyMapper,
             @NonNull PageOptionsDto optionsReq
-    ){
+    ) {
         MongoTemplate mongoTemplate = SpringContext.getBean(MongoTemplate.class);
         String filter = optionsReq.getFilter();
-        if(filter != null && !filter.isBlank()){
+        if (filter != null && !filter.isBlank()) {
             Criteria filterCriteria = RsqlParser.parse(filter, rsqlPropertyMapper);
             query.addCriteria(filterCriteria);
         }
@@ -47,7 +49,7 @@ public class MongoRsqlUtils {
             @NonNull Class<?> inputType,
             @NonNull Class<T> outputType,
             @NonNull PageOptionsDto optionsReq
-    ){
+    ) {
         return queryPage(inputType, outputType, new Query(), Map.of(), optionsReq);
     }
 
@@ -56,7 +58,7 @@ public class MongoRsqlUtils {
             @NonNull Class<T> outputType,
             @NonNull Query query,
             @NonNull PageOptionsDto optionsReq
-    ){
+    ) {
         return queryPage(inputType, outputType, query, Map.of(), optionsReq);
     }
 
@@ -65,7 +67,7 @@ public class MongoRsqlUtils {
             @NonNull Class<T> outputType,
             @NonNull Map<String, String> propertyMapper,
             @NonNull PageOptionsDto optionsReq
-    ){
+    ) {
         return queryPage(inputType, outputType, new Query(), propertyMapper, optionsReq);
     }
 
@@ -75,11 +77,11 @@ public class MongoRsqlUtils {
             @NonNull Aggregation agg,
             @NonNull Map<String, String> rsqlPropertyMapper,
             @NonNull PageOptionsDto optionsReq
-    ){
+    ) {
         MongoTemplate mongoTemplate = SpringContext.getBean(MongoTemplate.class);
         String filter = optionsReq.getFilter();
         List<AggregationOperation> aggOp = new ArrayList<>(agg.getPipeline().getOperations());
-        if(filter != null && !filter.isBlank()){
+        if (filter != null && !filter.isBlank()) {
             Criteria filterCriteria = RsqlParser.parse(filter, rsqlPropertyMapper);
             aggOp.add(Aggregation.match(filterCriteria));
         }
@@ -91,7 +93,7 @@ public class MongoRsqlUtils {
         long totalT = resultsCount.isEmpty() ? 0L : Optional.ofNullable(resultsCount.getFirst().get("count", Number.class)).orElse(0L).longValue();
         aggOp.remove(countOp);
         Pageable pageable = rsqlPropertyMapper.isEmpty() ? optionsReq.getPageable() : buildSortProperty(optionsReq.getPageable(), rsqlPropertyMapper);
-        if(!pageable.getSort().isEmpty()){
+        if (!pageable.getSort().isEmpty()) {
             aggOp.add(Aggregation.sort(pageable.getSort()));
         }
         aggOp.add(Aggregation.skip(pageable.getOffset()));
@@ -107,19 +109,19 @@ public class MongoRsqlUtils {
             @NonNull Class<T> outputType,
             @NonNull Aggregation agg,
             @NonNull PageOptionsDto optionsReq
-    ){
+    ) {
         return queryAggregatePage(inputType, outputType, agg, Map.of(), optionsReq);
     }
 
     public static Pageable buildSortProperty(
             @NonNull Pageable pageable,
             @NonNull Map<String, String> propertyMapper
-    ){
-        if(pageable.getSort().isEmpty()) return pageable;
+    ) {
+        if (pageable.getSort().isEmpty()) return pageable;
         Sort newSort = Sort.by(pageable.getSort().stream()
                 .map(order -> {
                     String newProperty = order.getProperty();
-                    if(propertyMapper.containsKey(newProperty))
+                    if (propertyMapper.containsKey(newProperty))
                         newProperty = propertyMapper.get(newProperty);
                     return new Sort.Order(
                             order.getDirection(),
@@ -144,10 +146,11 @@ public class MongoRsqlUtils {
             operators.add(new ComparisonOperator("=notnull=", false));
             return operators;
         }
+
         public static Criteria parse(
                 @NonNull String filter,
                 @NonNull Map<String, String> rsqlPropertyMapper
-        ){
+        ) {
             return new RSQLParser(customOperators()).parse(filter).accept(new MongoRsqlVisitor(rsqlPropertyMapper));
         }
     }
@@ -183,7 +186,7 @@ public class MongoRsqlUtils {
             String field = node.getSelector();
             List<String> args = node.getArguments();
             String op = node.getOperator().getSymbol();
-            if(rsqlPropertyMapper.containsKey(field))
+            if (rsqlPropertyMapper.containsKey(field))
                 field = rsqlPropertyMapper.get(field);
             return switch (op) {
                 case "=isnull=" -> Criteria.where(field).isNull();
@@ -191,7 +194,7 @@ public class MongoRsqlUtils {
                 case "==", "!=" -> {
                     String val = args.getFirst();
                     Criteria result = Criteria.where(field);
-                    if(op.equals("!=")) result.not();
+                    if (op.equals("!=")) result.not();
 
                     if (val.startsWith("*") && val.endsWith("*"))
                         yield result.regex(val.substring(0, val.length() - 1).substring(1), "i");
@@ -200,7 +203,7 @@ public class MongoRsqlUtils {
                     else if (val.endsWith("*"))
                         yield result.regex(val.substring(0, val.length() - 1) + "$", "i");
                     else {
-                        if(op.equals("==")) yield result.is(parseTypeValue(val));
+                        if (op.equals("==")) yield result.is(parseTypeValue(val));
                         else yield Criteria.where(field).ne(parseTypeValue(val));
                     }
                 }
@@ -210,21 +213,71 @@ public class MongoRsqlUtils {
                 case "=le=", "<=" -> Criteria.where(field).lte(parseTypeValue(args.getFirst()));
                 case "=in=", "=out=" -> {
                     List<Object> argsParsed = args.stream().map(this::parseTypeValue).toList();
-                    if(op.equals("=in=")) yield Criteria.where(field).in(argsParsed);
+                    if (op.equals("=in=")) yield Criteria.where(field).in(argsParsed);
                     else yield Criteria.where(field).nin(argsParsed);
                 }
                 default -> throw new IllegalArgumentException("Unsupported operator: " + op);
             };
         }
 
-        private Object parseTypeValue(String value){
-            if(value == null) return null;
-            if(value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false"))
-                try{return Boolean.parseBoolean(value);} catch(Exception ignored){}
-            if(value.contains(".")) try{return Double.parseDouble(value);} catch(Exception ignored){}
-            else try{return Long.parseLong(value);} catch(Exception ignored){}
-            try{return LocalDateTime.parse(value, DateTimeFormatter.ISO_LOCAL_DATE_TIME);} catch(Exception ignored){}
+        private Object parseTypeValue(String value) {
+            if (value == null) return null;
+            // Ké 1 line, k ảnh hưởng đâu :)))
+            if (ObjectId.isValid(value)) return new ObjectId(value);
+            // ___ Ké 1 line, k ảnh hưởng đâu :)))
+            if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false"))
+                try {
+                    return Boolean.parseBoolean(value);
+                } catch (Exception ignored) {
+                }
+            if (value.contains(".")) try {
+                return Double.parseDouble(value);
+            } catch (Exception ignored) {
+            }
+            else try {
+                return Long.parseLong(value);
+            } catch (Exception ignored) {
+            }
+            try {
+                return LocalDateTime.parse(value, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            } catch (Exception ignored) {
+            }
             return value;
         }
     }
+
+
+    public static <T> List<T> queryAggregateList(
+            @NonNull Class<?> inputType,
+            @NonNull Class<T> outputType,
+            @NonNull Aggregation agg,
+            @NonNull Map<String, String> rsqlPropertyMapper,
+            @NonNull PageOptionsDto optionsReq
+    ) {
+        MongoTemplate mongoTemplate = SpringContext.getBean(MongoTemplate.class);
+
+        List<AggregationOperation> aggOp = new ArrayList<>(agg.getPipeline().getOperations());
+
+        // Apply filter từ frontend (nếu có)
+        String filter = optionsReq.getFilter();
+        if (filter != null && !filter.isBlank()) {
+            Criteria filterCriteria = RsqlParser.parse(filter, rsqlPropertyMapper);
+            aggOp.add(Aggregation.match(filterCriteria));
+        }
+
+        // Apply sort (nếu có)
+        Pageable pageable = rsqlPropertyMapper.isEmpty()
+                ? optionsReq.getPageable()
+                : buildSortProperty(optionsReq.getPageable(), rsqlPropertyMapper);
+
+        if (!pageable.getSort().isEmpty()) {
+            aggOp.add(Aggregation.sort(pageable.getSort()));
+        }
+
+        // KHÔNG skip/limit => trả hết list
+        Aggregation listAgg = Aggregation.newAggregation(aggOp);
+
+        return mongoTemplate.aggregate(listAgg, inputType, outputType).getMappedResults();
+    }
+
 }

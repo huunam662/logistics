@@ -35,7 +35,7 @@ public interface CustomInventoryItemRepository {
 
     Page<InventoryCentralWarehouseSparePartDto> findPageInventoryCentralWarehouseSparePart(PageOptionsDto optionsReq);
 
-    List<InventoryPoWarehouseDto> findPoNumbersOfInventoryInStock(String warehouseType, List<String> inventoryTypes, String poNumber, String model, String warehouseId);
+    List<InventoryPoWarehouseDto> findPoNumbersOfInventoryInStock(String warehouseType, List<String> itemTypes, String poNumber, String model, String warehouseId);
 
     List<InventoryItemPoNumberDto> findInventoryInStockByPoNumber(String warehouseType, String warehouseId, String poNumber, String filter);
 
@@ -59,11 +59,14 @@ public interface CustomInventoryItemRepository {
 
     long bulkHardDelete(Collection<ObjectId> ids);
 
-    List<InventoryItemModelDto> findAllModelsAndItems(List<String> inventoryTypes, List<ObjectId> warehouseIds, String model);
+    List<InventoryItemModelDto> findAllModelsAndItems(List<String> itemTypes, List<ObjectId> warehouseIds, String model);
 
     Page<ReportInventoryDto> findPageReportInventoryToDashBoard(ReportParamsDto params);
 
     List<InventoryProductDetailsDto> findProductsByWarehouseId(ObjectId warehouseId, String poNumber);
 
     List<InventorySparePartDetailsDto> findSparePartByWarehouseId(ObjectId warehouseId, String poNumber);
+
+
+    List<InventoryProductDetailsDto> findVehicles(PageOptionsDto optionsReq);
 }

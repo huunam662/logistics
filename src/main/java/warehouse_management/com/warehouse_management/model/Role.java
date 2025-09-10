@@ -9,8 +9,8 @@ import java.util.List;
 @Document(collection = "role")
 @Getter
 public class Role {
-    @Id
-    private String id;
-    private String name;
-    private List<Permission> permissions;
+//    @Id
+//    private String id;
+//    private String name;
+//    private List<Permission> permissions;
 }

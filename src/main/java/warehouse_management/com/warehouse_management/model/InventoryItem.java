@@ -8,7 +8,11 @@ import org.springframework.data.annotation.*;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.mapping.FieldType;
+import warehouse_management.com.warehouse_management.enumerate.AccessoryType;
 import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
+import warehouse_management.com.warehouse_management.enumerate.ItemType;
+import warehouse_management.com.warehouse_management.enumerate.SparePartType;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -19,60 +23,48 @@ import java.time.LocalDateTime;
 public class InventoryItem {
     @Id
     private ObjectId id; // _id – Khóa chính tự động tạo bởi MongoDB
-
+    private String itemType;   //ItemType
+    private String accessoryType; // AccessoryType
+    private String sparePartType; // SparePartType
     private String poNumber;       // Số của Đơn đặt hàng (Purchase Order) – Bắt buộc
+
+    //   XE/PK
     private String productCode;    // Mã định danh của sản phẩm (đối với sản phẩm xe & phụ kiện, phụ tùng thuộc sản phẩm này) – Bắt buộc
-    private String commodityCode;  // Mã hàng hóa (đôi với phụ tùng)
     private String serialNumber;   // Số seri – Có cho xe/phụ kiện
     private String model;          // Model sản phẩm – Bắt buộc
-    private String category;       // Chủng loại sản phẩm (VD: Ngồi lái) – Bắt buộc
-    private String inventoryType;   // Loại hàng tồn (VD: phụ kiện, ...) - Bắt buộc
+    //
     private Integer manufacturingYear; // Năm sản xuất – Không bắt buộc
-    private Integer quantity;   // Số lượng hàng hóa
     private String status;         // Trạng thái hiện tại (IN_STOCK, IN_TRANSIT...) – Bắt buộc
     private String contractNumber; // Số hợp đồng
-    private String warehouseType;  // Loại kho (kho bảo quản dành cho hàng hóa)
-    private ObjectId warehouseId;  // _id của warehouse – Có nếu đang ở kho
-    private ObjectId containerId;  // _id của container – Có nếu đang trong container
-
-    private Specifications specifications; // Thông số kỹ thuật – Không bắt buộc
-    private Pricing pricing;               // Giá cả – Không bắt buộc
-    private Logistics logistics;           // Thông tin vận chuyển – Không bắt buộc
 
     private Boolean initialCondition;       // Mô tả nguyên trạng khi nhập kho – Không bắt buộc
     private String notes;                  // Ghi chú chung – Không bắt buộc
+    private String otherDetails;
+
+    // --- PK PT ---
+    private ObjectId vehicleId; // PK/PT không dùng
+    //PK-KN
+    private Integer liftingCapacityKg;      // Sức nâng (kg)
+    private String chassisType;             // Loại khung nâng
+    private Integer liftingHeightMm;        // Độ cao nâng (mm)
+    //PK-BINHDIEN
+    private String batteryInfo;             // Thông tin bình điện
+    private String batterySpecification;    // Thông số bình điện
+
+    //PK-SAC
+    private String chargerSpecification;    // Thông số bộ sạc
+
+    //PT
+    private String commodityCode;  // Mã hàng hóa (đôi với phụ tùng)
     private String description;         // Mô tả
+    private Integer quantity;   // Số lượng hàng hóa
+    private String engineType;              // Loại động cơ
+    private String forkDimensions;          // Thông số càng
+    private Integer valveCount;             // Số lượng van
+    private Boolean hasSideShift;           // Có side shift không
 
-    @CreatedBy
-    private String createdBy;
-     @LastModifiedBy
-    private String updatedBy;
-    private ObjectId deletedBy;
-
-    @CreatedDate
-    private LocalDateTime createdAt;
-    @LastModifiedDate
-    private LocalDateTime updatedAt;
-    private LocalDateTime deletedAt;
-
-    // --- Inner Classes ---
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class Specifications {
-        private Integer liftingCapacityKg;      // Sức nâng (kg)
-        private String chassisType;             // Loại khung nâng
-        private Integer liftingHeightMm;        // Độ cao nâng (mm)
-        private String engineType;              // Loại động cơ
-        private String batteryInfo;             // Thông tin bình điện
-        private String batterySpecification;    // Thông số bình điện
-        private String chargerSpecification;    // Thông số bộ sạc
-        private String forkDimensions;          // Thông số càng
-        private Integer valveCount;             // Số lượng van
-        private Boolean hasSideShift;           // Có side shift không
-        private String otherDetails;            // Chi tiết khác
-    }
+    //===PK PT===
+    private Pricing pricing;               // Giá cả – Không bắt buộc
 
     @Data
     @NoArgsConstructor
@@ -89,6 +81,8 @@ public class InventoryItem {
         private String agent;                   // Đại lý (nếu có)
     }
 
+    private Logistics logistics;           // Thông tin vận chuyển – Không bắt buộc
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -101,6 +95,23 @@ public class InventoryItem {
         private LocalDateTime estimateCompletionDate; // Ngày dự kiến sản xuất xong
     }
 
+    //    REF
+    private String warehouseType;  // Loại kho (kho bảo quản dành cho hàng hóa)
+    private ObjectId warehouseId;  // _id của warehouse – Có nếu đang ở kho
+    private ObjectId containerId;  // _id của container – Có nếu đang trong container
+    // ===REF===
+    @CreatedBy
+    private String createdBy;
+    @LastModifiedBy
+    private String updatedBy;
+    private ObjectId deletedBy;
+
+    @CreatedDate
+    private LocalDateTime createdAt;
+    @LastModifiedDate
+    private LocalDateTime updatedAt;
+    private LocalDateTime deletedAt;
+
     public InventoryItemStatus getStatus() {
         return status == null ? null : InventoryItemStatus.fromId(status);
     }
@@ -111,6 +122,20 @@ public class InventoryItem {
 
     public void setStatus(InventoryItemStatus inventoryItemStatus) {
         this.status = inventoryItemStatus == null ? null : inventoryItemStatus.getId();
+    }
+
+    public void setSparePartType(String sparePartType) {
+        this.sparePartType = sparePartType;
+    }
+    public void setAccessoryType(String accessoryType) {
+        this.accessoryType = accessoryType;
+    }
+
+    public void setSparePartType(SparePartType sparePartType) {
+        this.sparePartType = sparePartType.getId();
+    }
+    public void setAccessoryType(AccessoryType accessoryType) {
+        this.accessoryType = accessoryType.getId();
     }
 }
 
