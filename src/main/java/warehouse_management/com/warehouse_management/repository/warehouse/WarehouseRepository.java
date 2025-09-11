@@ -25,6 +25,12 @@ CustomWarehouseRepository {
     String findTypeById(ObjectId id);
 
     @Aggregation(pipeline = {
+            "{$match:  {_id: {$in: ?0}}}",
+            "{$project: {type: 1, _id: 0}}"
+    })
+    List<String> findAllTypeInIds(List<ObjectId> ids);
+
+    @Aggregation(pipeline = {
             "{$match: {type: ?0, deletedAt: null}}",
             "{$project: {id: '$_id', name: 1}}"
     })
