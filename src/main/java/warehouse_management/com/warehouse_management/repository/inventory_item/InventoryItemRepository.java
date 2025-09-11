@@ -65,7 +65,7 @@ public interface InventoryItemRepository extends MongoRepository<InventoryItem, 
 
     Optional<InventoryItem> findByVehicleIdAndAccessoryType(ObjectId vehicleId, String accessoryType);
 
-    @Query(value = "{'_id': ?0}")
-    @Update(value = "{ '$set' : { 'inventoryItems.$.status' : ?1 } }")
-    void updateStatusInventoryItem(ObjectId itemId, InventoryItemStatus status);
+    @Query("{ '_id': { $in: ?0 } }")
+    @Update("{ '$set': { 'status': ?1 } }")
+    void updateBulkStatusInventoryItem(List<ObjectId> itemIdList, InventoryItemStatus status);
 }
