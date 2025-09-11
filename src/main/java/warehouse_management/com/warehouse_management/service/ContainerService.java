@@ -219,11 +219,11 @@ public class ContainerService {
             if(container.getInventoryItems() == null) container.setInventoryItems(new ArrayList<>());
             final int itemsContSize = container.getInventoryItems().size();
             for(var itemPush : itemsPushToCont){
-                if(itemPush.getInventoryType().equals(inventoryType.SPARE_PART.getId())){
+                if(itemPush.getInventoryType().equals(InventoryType.SPARE_PART.getId())){
                     boolean isExistsInCont = false;
                     for(int i = 0; i < itemsContSize; i++){
                         Container.InventoryItemContainer itemInCont = container.getInventoryItems().get(i);
-                        if(!itemInCont.getInventoryType().equals(inventoryType.SPARE_PART.getId()))
+                        if(!itemInCont.getInventoryType().equals(InventoryType.SPARE_PART.getId()))
                             continue;
                         if(itemInCont.getCommodityCode().equals(itemPush.getCommodityCode())){
                             itemInCont.setQuantity(itemPush.getQuantity());
@@ -253,7 +253,7 @@ public class ContainerService {
         Container container = getContainerToId(new ObjectId(containerId));
         if (container.getInventoryItems() == null) container.setInventoryItems(List.of());
         List<InventoryProductDetailsDto> dtos = new ArrayList<>();
-        List<String> vehicleAccessory = List.of(inventoryType.VEHICLE.getId(), inventoryType.ACCESSORY.getId());
+        List<String> vehicleAccessory = List.of(InventoryType.VEHICLE.getId(), InventoryType.ACCESSORY.getId());
         BigDecimal totalAmounts = BigDecimal.ZERO;
         for(var item : container.getInventoryItems()){
             if(vehicleAccessory.contains(item.getInventoryType())){
@@ -273,7 +273,7 @@ public class ContainerService {
         List<InventorySparePartDetailsDto> dtos = new ArrayList<>();
         BigDecimal totalAmounts = BigDecimal.ZERO;
         for(var item : container.getInventoryItems()){
-            if(item.getInventoryType().equals(inventoryType.SPARE_PART.getId())){
+            if(item.getInventoryType().equals(InventoryType.SPARE_PART.getId())){
                 totalAmounts = totalAmounts.add(item.getPricing().getPurchasePrice().multiply(BigDecimal.valueOf(item.getQuantity())));
                 dtos.add(inventoryItemMapper.toInventorySparePartDetailsDto(item));
             }
@@ -311,7 +311,7 @@ public class ContainerService {
         // Update items nếu là trạng thái hoàn tất giao hàng
         // Nếu ở kho được chỉ định đã tồn tại phụ tùng với trạng thái đang IN_STOCK thì cập nhập số lượng
         Map<String, Container.InventoryItemContainer> inventoryContainerSparePartMap = container.getInventoryItems().stream()
-                .filter(item -> item.getInventoryType().equals(inventoryType.SPARE_PART.getId()) && item.getCommodityCode() != null)
+                .filter(item -> item.getInventoryType().equals(InventoryType.SPARE_PART.getId()) && item.getCommodityCode() != null)
                 .collect(Collectors.toMap(Container.InventoryItemContainer::getCommodityCode, item -> item));
         // Lấy ra các phụ tùng với mã sản phẩm đã tồn tại ở kho được chỉ định và trạng thái đang IN_STOCK
         List<InventoryItem> sparePartsInStockWarehouse = inventoryItemRepository.findSparePartByCommodityCodeIn(inventoryContainerSparePartMap.keySet(), warehouseId, InventoryItemStatus.IN_STOCK.getId());
@@ -335,13 +335,13 @@ public class ContainerService {
         List<DeliveryOrder> deliveryOrdersUpdate = new ArrayList<>();
         List<Container.InventoryItemContainer> products = container.getInventoryItems()
                 .stream()
-                .filter(o -> !o.getInventoryType().equals(inventoryType.SPARE_PART.getId()))
+                .filter(o -> !o.getInventoryType().equals(InventoryType.SPARE_PART.getId()))
                 .toList();
         for(var p : products){
             DeliveryOrder deliveryOrder = deliveryOrderRepository.findByProductCode(p.getProductCode(), container.getFromWareHouseId());
             if(deliveryOrder == null) continue;
             DeliveryOrder.InventoryItemDelivery productDelivery = deliveryOrder.getInventoryItems().stream()
-                    .filter(o -> !o.getInventoryType().equals(inventoryType.SPARE_PART.getId())
+                    .filter(o -> !o.getInventoryType().equals(InventoryType.SPARE_PART.getId())
                             && o.getProductCode().equals(p.getProductCode())
                             && o.getWarehouseId().equals(container.getFromWareHouseId()))
                     .findFirst()

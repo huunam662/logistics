@@ -6,9 +6,10 @@ import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
 import warehouse_management.com.warehouse_management.dto.report.PNKPXKInventoryItemDataSetIDto;
-import warehouse_management.com.warehouse_management.enumerate.inventoryType;
+import warehouse_management.com.warehouse_management.enumerate.InventoryType;
 import warehouse_management.com.warehouse_management.enumerate.TransactionModule;
 import warehouse_management.com.warehouse_management.model.Container;
+import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.model.WarehouseTransaction;
 import warehouse_management.com.warehouse_management.repository.container.ContainerRepository;
@@ -119,17 +120,17 @@ public class PXKGenerateReport implements GenerateReportStrategy {
         for (int i = 0; i < inventoryItems.size(); i++) {
 
             WarehouseTransaction.InventoryItemTicket item = inventoryItems.get(i);
-            inventoryType type = inventoryType.fromId(item.getInventoryType());
+            InventoryType type = InventoryType.fromId(item.getInventoryType());
             PNKPXKInventoryItemDataSetIDto dto = new PNKPXKInventoryItemDataSetIDto();
             dto.setIndex(i + 1); // STT
-            if (type == inventoryType.VEHICLE || type == inventoryType.ACCESSORY) {
+            if (type == InventoryType.VEHICLE || type == InventoryType.ACCESSORY) {
                 dto.setCode(item.getProductCode());
             } else {
                 dto.setCode(item.getCommodityCode());
             }
 
-            // Set Unit theo inventoryType
-            if (type == inventoryType.VEHICLE) {
+            // Set Unit theo InventoryType
+            if (type == InventoryType.VEHICLE) {
                 dto.setUnit("Chiếc");
             } else {
                 dto.setUnit("Cái");
@@ -153,17 +154,17 @@ public class PXKGenerateReport implements GenerateReportStrategy {
         for (int i = 0; i < inventoryItems.size(); i++) {
 
             Container.InventoryItemContainer item = inventoryItems.get(i);
-            inventoryType type = inventoryType.fromId(item.getInventoryType());
+            InventoryType type = InventoryType.fromId(item.getInventoryType());
             PNKPXKInventoryItemDataSetIDto dto = new PNKPXKInventoryItemDataSetIDto();
             dto.setIndex(i + 1); // STT
-            if (type == inventoryType.VEHICLE || type == inventoryType.ACCESSORY) {
+            if (type == InventoryType.VEHICLE || type == InventoryType.ACCESSORY) {
                 dto.setCode(item.getProductCode());
             } else {
                 dto.setCode(item.getCommodityCode());
             }
 
-            // Set Unit theo inventoryType
-            if (type == inventoryType.VEHICLE) {
+            // Set Unit theo InventoryType
+            if (type == InventoryType.VEHICLE) {
                 dto.setUnit("Chiếc");
             } else {
                 dto.setUnit("Cái");
@@ -182,7 +183,7 @@ public class PXKGenerateReport implements GenerateReportStrategy {
     }
 
     private String buildName(WarehouseTransaction.InventoryItemTicket item) {
-        inventoryType type = inventoryType.fromId(item.getInventoryType());
+        InventoryType type = InventoryType.fromId(item.getInventoryType());
         if (type == null) {
             return nullToEmpty(item.getModel()); // fallback nếu type null
         }
@@ -198,10 +199,10 @@ public class PXKGenerateReport implements GenerateReportStrategy {
                 }
 
                 // specs xuống dòng
-                sb.append(buildSpecs(item));
+                sb.append(buildSpecs(item.getSpecifications()));
                 return sb.toString();
             case ACCESSORY:
-                return "PHỤ KIỆN " + nullToEmpty(item.getCategory()) + buildSpecs(item);
+                return "PHỤ KIỆN " + nullToEmpty(item.getCategory()) + buildSpecs(item.getSpecifications());
             case SPARE_PART:
                 return "PHỤ TÙNG " + nullToEmpty(item.getNotes());
             default:
@@ -210,7 +211,7 @@ public class PXKGenerateReport implements GenerateReportStrategy {
     }
 
     private String buildName(Container.InventoryItemContainer item) {
-    inventoryType type = inventoryType.fromId(item.getInventoryType());
+        InventoryType type = InventoryType.fromId(item.getInventoryType());
         if (type == null) {
             return nullToEmpty(item.getModel()); // fallback nếu type null
         }
@@ -226,10 +227,10 @@ public class PXKGenerateReport implements GenerateReportStrategy {
                 }
 
                 // specs xuống dòng
-                sb.append(buildSpecs(item));
+                sb.append(buildSpecs(item.getSpecifications()));
                 return sb.toString();
             case ACCESSORY:
-                return "PHỤ KIỆN " + nullToEmpty(item.getCategory()) + buildSpecs(item);
+                return "PHỤ KIỆN " + nullToEmpty(item.getCategory()) + buildSpecs(item.getSpecifications());
             case SPARE_PART:
                 return "PHỤ TÙNG " + nullToEmpty(item.getNotes());
             default:
@@ -240,7 +241,7 @@ public class PXKGenerateReport implements GenerateReportStrategy {
     /**
      * In tất cả field specs, field nào != null thì show
      */
-    private String buildSpecs(WarehouseTransaction.InventoryItemTicket specs) {
+    private String buildSpecs(WarehouseTransaction.InventoryItemTicket.Specifications specs) {
         if (specs == null) return "";
 
         StringBuilder sb = new StringBuilder();
@@ -285,7 +286,7 @@ public class PXKGenerateReport implements GenerateReportStrategy {
     /**
      * In tất cả field specs, field nào != null thì show
      */
-    private String buildSpecs(Container.InventoryItemContainer specs) {
+    private String buildSpecs(Container.InventoryItemContainer.Specifications specs) {
         if (specs == null) return "";
 
         StringBuilder sb = new StringBuilder();

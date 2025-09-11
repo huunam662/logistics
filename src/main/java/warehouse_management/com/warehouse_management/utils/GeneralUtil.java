@@ -16,16 +16,16 @@ public class GeneralUtil {
     public static final String secretKey = "rO0ABXNyABFqYXZhLnV0aWwuUmFuZG9tU3RyZWFtVmFsdWVxPGRG1ZYr6g6B8u8fFw==";
 
     public String buildLiftingFrameLabel(InventoryItem item) {
-        return item.getChassisType() + "-" + item.getLiftingCapacityKg() + "-" + item.getLiftingHeightMm();
+        return item.getSpecifications().getChassisType() + "-" + item.getSpecifications().getLiftingCapacityKg() + "-" + item.getSpecifications().getLiftingHeightMm();
 
     }
 
     public String buildBatteryLabel(InventoryItem item) {
-        return item.getBatteryInfo() + "-" + item.getBatterySpecification();
+        return item.getSpecifications().getBatteryInfo() + "-" + item.getSpecifications().getBatterySpecification();
     }
 
     public String buildChargerLabel(InventoryItem item) {
-        return item.getChargerSpecification();
+        return item.getSpecifications().getChargerSpecification();
     }
 
     public String buildVehicleMetaData(InventoryItem item) {

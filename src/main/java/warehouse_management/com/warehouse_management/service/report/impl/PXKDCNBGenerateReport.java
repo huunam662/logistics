@@ -6,7 +6,7 @@ import org.bson.types.ObjectId;
 import org.springframework.stereotype.Component;
 
 import warehouse_management.com.warehouse_management.dto.report.PXKDCNBInventoryItemDatasetIDto;
-import warehouse_management.com.warehouse_management.enumerate.inventoryType;
+import warehouse_management.com.warehouse_management.enumerate.InventoryType;
 
 import warehouse_management.com.warehouse_management.enumerate.TransactionModule;
 import warehouse_management.com.warehouse_management.model.WarehouseTransaction;
@@ -93,8 +93,8 @@ public class PXKDCNBGenerateReport implements GenerateReportStrategy {
             dto.setSerialNumber(item.getSerialNumber());
 
             // Set Unit theo inventoryType
-            inventoryType type = inventoryType.fromId(item.getInventoryType());
-            if (type == inventoryType.VEHICLE) {
+            InventoryType type = InventoryType.fromId(item.getInventoryType());
+            if (type == InventoryType.VEHICLE) {
                 dto.setUnit("Chiếc");
             } else {
                 dto.setUnit("Cái");
@@ -113,7 +113,7 @@ public class PXKDCNBGenerateReport implements GenerateReportStrategy {
     }
 
     private String buildName(WarehouseTransaction.InventoryItemTicket item) {
-        inventoryType type = inventoryType.fromId(item.getInventoryType());
+        InventoryType type = InventoryType.fromId(item.getInventoryType());
         if (type == null) {
             return nullToEmpty(item.getModel()); // fallback nếu type null
         }
@@ -129,10 +129,10 @@ public class PXKDCNBGenerateReport implements GenerateReportStrategy {
                 }
 
                 // specs xuống dòng
-                sb.append(buildSpecs(item));
+                sb.append(buildSpecs(item.getSpecifications()));
                 return sb.toString();
             case ACCESSORY:
-                return "PHỤ KIỆN " + nullToEmpty(item.getCategory()) + buildSpecs(item);
+                return "PHỤ KIỆN " + nullToEmpty(item.getCategory()) + buildSpecs(item.getSpecifications());
             case SPARE_PART:
                 return "PHỤ TÙNG " + nullToEmpty(item.getNotes());
             default:
@@ -143,7 +143,7 @@ public class PXKDCNBGenerateReport implements GenerateReportStrategy {
     /**
      * In tất cả field specs, field nào != null thì show
      */
-    private String buildSpecs(WarehouseTransaction.InventoryItemTicket specs) {
+    private String buildSpecs(WarehouseTransaction.InventoryItemTicket.Specifications specs) {
         if (specs == null) return "";
 
         StringBuilder sb = new StringBuilder();
