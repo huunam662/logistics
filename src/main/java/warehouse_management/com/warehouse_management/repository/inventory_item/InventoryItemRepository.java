@@ -5,6 +5,7 @@ import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
+import org.springframework.data.mongodb.repository.Update;
 import org.springframework.data.repository.query.Param;
 import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
@@ -64,5 +65,7 @@ public interface InventoryItemRepository extends MongoRepository<InventoryItem, 
 
     Optional<InventoryItem> findByVehicleIdAndAccessoryType(ObjectId vehicleId, String accessoryType);
 
-
+    @Query(value = "{'_id': ?0}")
+    @Update(value = "{ '$set' : { 'inventoryItems.$.status' : ?1 } }")
+    void updateStatusInventoryItem(ObjectId itemId, InventoryItemStatus status);
 }
