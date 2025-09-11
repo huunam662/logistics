@@ -18,8 +18,8 @@ public enum WarrantyStatus implements EnumClass<String>  {
     }
 
     @Nullable
-    public static ActiveStatus fromId(String id) {
-        for (ActiveStatus at : ActiveStatus.values()) {
+    public static WarrantyStatus fromId(String id) {
+        for (WarrantyStatus at : WarrantyStatus.values()) {
             if (at.getId().equals(id)) {
                 return at;
             }
