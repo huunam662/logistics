@@ -23,6 +23,8 @@ import warehouse_management.com.warehouse_management.dto.warehouse.response.IdAn
 import warehouse_management.com.warehouse_management.repository.delivery_order.DeliveryOrderRepository;
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
 import warehouse_management.com.warehouse_management.repository.warehouse.WarehouseRepository;
+
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -681,11 +683,15 @@ public class DeliveryOrderService {
                 .filter(e -> e.getInventoryType().equals(InventoryType.SPARE_PART.getId()) && e.getCommodityCode().equals(commodityCode) && e.getIsDelivered())
                 .findFirst().orElse(null);
 
-        if(itemSoldInDeliveryOrder != null) itemSoldInDeliveryOrder.setQuantity(itemSoldInDeliveryOrder.getQuantity() + itemToUpdateReq.getQuantity());
+        if(itemSoldInDeliveryOrder != null) {
+            itemSoldInDeliveryOrder.setQuantity(itemSoldInDeliveryOrder.getQuantity() + itemToUpdateReq.getQuantity());
+            itemSoldInDeliveryOrder.getLogistics().setArrivalDate(LocalDateTime.now());
+        }
         else {
             DeliveryOrder.InventoryItemDelivery itemSold = inventoryItemMapper.toInventoryItemDelivery(itemInStockOrSold);
             itemSold.setQuantity(itemToUpdateReq.getQuantity());
             itemSold.setIsDelivered(true);
+            itemSold.getLogistics().setArrivalDate(LocalDateTime.now());
             deliveryOrder.getInventoryItems().add(itemSold);
         }
     }
