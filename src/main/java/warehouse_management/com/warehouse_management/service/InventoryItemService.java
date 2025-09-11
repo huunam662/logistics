@@ -627,6 +627,10 @@ public class InventoryItemService {
         return inventoryItemRepository.findItemForWarranty(pageOptionsDto);
     }
 
+    public Page<InventoryItemRepairDto> getInventoryItemForRepair(PageOptionsDto pageOptionsDto) {
+        return inventoryItemRepository.findItemForRepair(pageOptionsDto);
+    }
+
     @AuditAction(action = "testMethod")
     public void approve(Integer approved) {
         if (approved > 0) {
