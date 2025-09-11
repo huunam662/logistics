@@ -58,7 +58,7 @@ public class InventoryItemService {
         // 1. Chuyển đổi DTO sang InventoryItem
         InventoryItem newItem = buildSparePartItem(req, inStockWh, orderDate);
         if (newItem.getCommodityCode() != null) {
-            Optional<InventoryItem> existing = inventoryItemRepository.findByCommodityCode(newItem.getCommodityCode());
+            Optional<InventoryItem> existing = inventoryItemRepository.findByCommodityCodeAndWarehouseId(newItem.getCommodityCode(), newItem.getWarehouseId(), InventoryItemStatus.IN_STOCK.getId());
             if (existing.isPresent()) {
                 throw LogicErrException.of("Mã hàng hóa đã tồn tại: " + newItem.getCommodityCode());
             }
