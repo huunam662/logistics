@@ -44,30 +44,39 @@ public class InventoryItem {
 
     private Boolean initialCondition;       // Mô tả nguyên trạng khi nhập kho – Không bắt buộc
     private String notes;                  // Ghi chú chung – Không bắt buộc
-    private String otherDetails;
+
 
     // --- PK PT ---
-    private ObjectId vehicleId; // PK/PT không dùng
-    //PK-KN
-    private Integer liftingCapacityKg;      // Sức nâng (kg)
-    private String chassisType;             // Loại khung nâng
-    private Integer liftingHeightMm;        // Độ cao nâng (mm)
-    //PK-BINHDIEN
-    private String batteryInfo;             // Thông tin bình điện
-    private String batterySpecification;    // Thông số bình điện
-
-    //PK-SAC
-    private String chargerSpecification;    // Thông số bộ sạc
-
     //PT
     @Indexed(unique = true)
     private String commodityCode;  // Mã hàng hóa (đôi với phụ tùng)
     private String description;         // Mô tả
     private Integer quantity;   // Số lượng hàng hóa
-    private String engineType;              // Loại động cơ
-    private String forkDimensions;          // Thông số càng
-    private Integer valveCount;             // Số lượng van
-    private Boolean hasSideShift;           // Có side shift không
+    private ObjectId vehicleId; // PK/PT không dùng
+
+    private Specifications specifications;
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Specifications {
+        //PK-KN
+        private Integer liftingCapacityKg;      // Sức nâng (kg)
+        private String chassisType;             // Loại khung nâng
+        private Integer liftingHeightMm;        // Độ cao nâng (mm)
+        //PK-BINHDIEN
+        private String batteryInfo;             // Thông tin bình điện
+        private String batterySpecification;    // Thông số bình điện
+
+        //PK-SAC
+        private String chargerSpecification;    // Thông số bộ sạc
+
+
+        private String engineType;              // Loại động cơ
+        private String forkDimensions;          // Thông số càng
+        private Integer valveCount;             // Số lượng van
+        private Boolean hasSideShift;           // Có side shift không
+        private String otherDetails;
+    }
 
     //===PK PT===
     private Pricing pricing;               // Giá cả – Không bắt buộc
@@ -133,6 +142,7 @@ public class InventoryItem {
     public void setSparePartType(String sparePartType) {
         this.sparePartType = sparePartType;
     }
+
     public void setAccessoryType(String accessoryType) {
         this.accessoryType = accessoryType;
     }
@@ -140,6 +150,7 @@ public class InventoryItem {
     public void setSparePartType(SparePartType sparePartType) {
         this.sparePartType = sparePartType.getId();
     }
+
     public void setAccessoryType(AccessoryType accessoryType) {
         this.accessoryType = accessoryType.getId();
     }

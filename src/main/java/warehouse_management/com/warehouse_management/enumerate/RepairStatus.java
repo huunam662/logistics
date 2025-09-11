@@ -2,14 +2,14 @@ package warehouse_management.com.warehouse_management.enumerate;
 
 import org.springframework.lang.Nullable;
 
-public enum WarrantyStatus implements EnumClass<String>  {
-    IN_WARRANTY("IN_WARRANTY"),
+public enum RepairStatus {
+    IN_REPAIR("IN_REPAIR"),
     COMPLETE("COMPLETE"),
     EXPIRED("EXPIRED");
 
     private final String id;
 
-    WarrantyStatus(String id) {
+    RepairStatus(String id) {
         this.id = id;
     }
 
@@ -18,8 +18,8 @@ public enum WarrantyStatus implements EnumClass<String>  {
     }
 
     @Nullable
-    public static WarrantyStatus fromId(String id) {
-        for (WarrantyStatus at : WarrantyStatus.values()) {
+    public static RepairStatus fromId(String id) {
+        for (RepairStatus at : RepairStatus.values()) {
             if (at.getId().equals(id)) {
                 return at;
             }

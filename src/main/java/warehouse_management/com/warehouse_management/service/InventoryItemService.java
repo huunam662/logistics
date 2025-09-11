@@ -229,6 +229,7 @@ public class InventoryItemService {
             if (importType.equals(WarehouseSubTranType.EXCEL_TO_PRODUCTION_PRODUCT)) {
                 buildProductItems(item, importType, itemsToInsert, confsToInsert);
             } else {
+                item.setStatus(InventoryItemStatus.IN_STOCK);
                 itemsToInsert.add(item);
             }
         }
@@ -262,9 +263,9 @@ public class InventoryItemService {
         ObjectId chargerId = null;
         ObjectId batterId = null;
 
-        if (parentItem.getLiftingHeightMm() != null
-                && parentItem.getChassisType() != null
-                && parentItem.getLiftingCapacityKg() != null) {
+        if (parentItem.getSpecifications().getLiftingHeightMm() != null
+                && parentItem.getSpecifications().getChassisType() != null
+                && parentItem.getSpecifications().getLiftingCapacityKg() != null) {
             liftingFrame = mapper.cloneToLiftingFrame(parentItem);
             liftingFrameId = new ObjectId();
             liftingFrame.setId(liftingFrameId);
@@ -275,8 +276,8 @@ public class InventoryItemService {
             dataToSave.add(liftingFrame);
         }
 
-        if (parentItem.getBatteryInfo() != null
-                && parentItem.getBatterySpecification() != null) {
+        if (parentItem.getSpecifications().getBatteryInfo() != null
+                && parentItem.getSpecifications().getBatterySpecification() != null) {
             battery = mapper.cloneToBattery(parentItem);
             batterId = new ObjectId();
             battery.setId(batterId);
@@ -286,7 +287,7 @@ public class InventoryItemService {
             dataToSave.add(battery);
         }
 
-        if (parentItem.getChargerSpecification() != null) {
+        if (parentItem.getSpecifications().getChargerSpecification() != null) {
             charger = mapper.cloneToCharger(parentItem);
             chargerId = new ObjectId();
             charger.setId(chargerId);
@@ -318,10 +319,10 @@ public class InventoryItemService {
             hist.setChargerLabel(generalUtil.buildChargerLabel(charger));
         }
 
-        hist.setEngineType(parentItem.getEngineType());
-        hist.setForkDimensions(parentItem.getForkDimensions());
-        hist.setValveCount(parentItem.getValveCount());
-        hist.setHasSideShift(parentItem.getHasSideShift());
+        hist.setEngineType(parentItem.getSpecifications().getEngineType());
+        hist.setForkDimensions(parentItem.getSpecifications().getForkDimensions());
+        hist.setValveCount(parentItem.getSpecifications().getValveCount());
+        hist.setHasSideShift(parentItem.getSpecifications().getHasSideShift());
 
 
         hist.setNote("Bulk import " + importType.name());
@@ -625,6 +626,10 @@ public class InventoryItemService {
 
     public Page<InventoryItemWarrantyDto> getInventoryItemForWarranty(PageOptionsDto pageOptionsDto) {
         return inventoryItemRepository.findItemForWarranty(pageOptionsDto);
+    }
+
+    public Page<InventoryItemRepairDto> getInventoryItemForRepair(PageOptionsDto pageOptionsDto) {
+        return inventoryItemRepository.findItemForRepair(pageOptionsDto);
     }
 
     @AuditAction(action = "testMethod")

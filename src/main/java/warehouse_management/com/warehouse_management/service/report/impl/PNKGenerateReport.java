@@ -133,7 +133,7 @@ public class PNKGenerateReport implements GenerateReportStrategy {
                 dto.setCode(item.getCommodityCode());
             }
 
-            // Set Unit theo InventoryType
+            // Set Unit theo inventoryType
             if (type == InventoryType.VEHICLE) {
                 dto.setUnit("Chiếc");
             } else {
@@ -167,7 +167,7 @@ public class PNKGenerateReport implements GenerateReportStrategy {
                 dto.setCode(item.getCommodityCode());
             }
 
-            // Set Unit theo InventoryType
+            // Set Unit theo inventoryType
             if (type == InventoryType.VEHICLE) {
                 dto.setUnit("Chiếc");
             } else {
@@ -203,10 +203,10 @@ public class PNKGenerateReport implements GenerateReportStrategy {
                 }
 
                 // specs xuống dòng
-                sb.append(buildSpecs(item));
+                sb.append(buildSpecs(item.getSpecifications()));
                 return sb.toString();
             case ACCESSORY:
-                return "PHỤ KIỆN " + nullToEmpty(item.getCategory()) + buildSpecs(item);
+                return "PHỤ KIỆN " + nullToEmpty(item.getCategory()) + buildSpecs(item.getSpecifications());
             case SPARE_PART:
                 return "PHỤ TÙNG " + nullToEmpty(item.getNotes());
             default:
@@ -231,10 +231,10 @@ public class PNKGenerateReport implements GenerateReportStrategy {
                 }
 
                 // specs xuống dòng
-                sb.append(buildSpecs(item));
+                sb.append(buildSpecs(item.getSpecifications()));
                 return sb.toString();
             case ACCESSORY:
-                return "PHỤ KIỆN " + nullToEmpty(item.getCategory()) + buildSpecs(item);
+                return "PHỤ KIỆN " + nullToEmpty(item.getCategory()) + buildSpecs(item.getSpecifications());
             case SPARE_PART:
                 return "PHỤ TÙNG " + nullToEmpty(item.getNotes());
             default:
@@ -245,7 +245,7 @@ public class PNKGenerateReport implements GenerateReportStrategy {
     /**
      * In tất cả field specs, field nào != null thì show
      */
-    private String buildSpecs(WarehouseTransaction.InventoryItemTicket specs) {
+    private String buildSpecs(WarehouseTransaction.InventoryItemTicket.Specifications specs) {
         if (specs == null) return "";
 
         StringBuilder sb = new StringBuilder();
@@ -287,7 +287,7 @@ public class PNKGenerateReport implements GenerateReportStrategy {
         return sb.toString();
     }
 
-    private String buildSpecs(Container.InventoryItemContainer specs) {
+    private String buildSpecs(Container.InventoryItemContainer.Specifications specs) {
         if (specs == null) return "";
 
         StringBuilder sb = new StringBuilder();

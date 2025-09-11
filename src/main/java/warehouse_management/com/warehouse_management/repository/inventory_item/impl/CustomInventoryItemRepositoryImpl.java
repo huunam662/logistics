@@ -555,7 +555,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("inventoryType").in(inventoryTypes),
                         Criteria.where("status").in(statusIns),
-                        Criteria.where("model").regex(model, "i"),
+//                        Criteria.where("model").regex(model, "i"),
                         Criteria.where("warehouseId").in(warehouseIds),
                         Criteria.where("deletedAt").isNull()
                 )),
@@ -565,7 +565,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         if (inventoryTypes.contains(InventoryType.SPARE_PART.getId())) {
             pipelines.add(Aggregation.match(Criteria.where("warehouse.type").ne(WarehouseType.DEPARTURE.getId())));
         }
-        ProjectionOperation projection = Aggregation.project("warehouseId", "model", "productCode", "commodityCode", "quantity", "specifications", "warehouse.type")
+        ProjectionOperation projection = Aggregation.project("warehouseId", "model", "productCode", "commodityCode", "quantity", "specifications", "pricing", "warehouse.type")
                 .and("_id").as("inventoryItemId")
                 .and("warehouse.type").as("warehouseType");
         pipelines.add(projection);
@@ -684,8 +684,9 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("deletedAt").isNull(),
                         Criteria.where("poNumber").regex(poNumber, "i")
                 )),
-                Aggregation.project("commodityCode", "poNumber", "quantity", "orderDate", "description", "inventoryType", "notes", "contractNumber", "pricing")
+                Aggregation.project("commodityCode", "poNumber", "quantity", "description", "inventoryType", "contractNumber", "pricing")
                         .and("_id").as("id")
+                        .and("logistics.orderDate").as("orderDate")
         ));
         Aggregation agg = Aggregation.newAggregation(pipelines);
         return mongoTemplate.aggregate(agg, InventoryItem.class, InventorySparePartDetailsDto.class).getMappedResults();
@@ -748,13 +749,43 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
 
         pipelines.add(Aggregation.lookup("client", "order.customerId", "_id", "client"));
 
-        pipelines.add(Aggregation.project("serialNumber","model", "id", "productCode")
+        pipelines.add(Aggregation.project("serialNumber", "model", "id", "productCode")
                 .and("logistics.arrivalDate").as("arrivalDate")
                 .and("client.name").as("clientName"));
 
         Aggregation agg = Aggregation.newAggregation(pipelines);
 
         return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryItemWarrantyDto.class, agg, optionsDto);
+    }
+
+    public Page<InventoryItemRepairDto> findItemForRepair(PageOptionsDto optionsDto) {
+        List<AggregationOperation> pipelines = new ArrayList<>();
+
+        // Lấy sản phẩm là loại xe đã bán
+        pipelines.add(Aggregation.match(new Criteria()
+                .andOperator(
+                        Criteria.where("deletedBy").is(null),
+                        Criteria.where("inventoryType").is(InventoryType.VEHICLE),
+                        Criteria.where("status").is(InventoryItemStatus.IN_STOCK))));
+
+        // Lấy những sản phẩm đang không sửa
+        pipelines.add(Aggregation.lookup("repair", "_id", "repairInventoryItem._id", "repair"));
+        pipelines.add(
+                Aggregation.match(new Criteria().orOperator(
+                        Criteria.where("repair").size(0),
+                        Criteria.where("repair.status").ne(RepairStatus.IN_REPAIR)
+                ))
+        );
+
+        pipelines.add(Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"));
+        pipelines.add(Aggregation.unwind("warehouse"));
+        pipelines.add(Aggregation.match(Criteria.where("warehouse.type").is(WarehouseType.DESTINATION)));
+
+        pipelines.add(Aggregation.project("serialNumber","model", "id", "productCode"));
+
+        Aggregation agg = Aggregation.newAggregation(pipelines);
+
+        return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryItemRepairDto.class, agg, optionsDto);
     }
 
 }
