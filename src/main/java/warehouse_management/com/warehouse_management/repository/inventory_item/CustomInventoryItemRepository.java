@@ -70,4 +70,6 @@ public interface CustomInventoryItemRepository {
     List<InventoryProductDetailsDto> findVehicles(PageOptionsDto optionsReq);
 
     Page<InventoryItemWarrantyDto> findItemForWarranty(PageOptionsDto optionsDto);
+
+    Page<InventoryItemRepairDto> findItemForRepair(PageOptionsDto optionsDto);
 }
