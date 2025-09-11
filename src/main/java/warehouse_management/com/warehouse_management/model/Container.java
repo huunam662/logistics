@@ -75,28 +75,26 @@ public class Container {
         private Boolean initialCondition;       // Mô tả nguyên trạng khi nhập kho – Không bắt buộc
         private String notes;                  // Ghi chú chung – Không bắt buộc
         private String description;         // Mô tả
-
+        private Specifications specifications;
         private Pricing pricing;
         private Logistics logistics;
 
-
-        private Integer liftingCapacityKg;      // Sức nâng (kg)
-        private String chassisType;             // Loại khung nâng
-        private Integer liftingHeightMm;        // Độ cao nâng (mm)
-
-
-
-        private String batteryInfo;             // Thông tin bình điện
-        private String batterySpecification;    // Thông số bình điện
-
-        private String chargerSpecification;    // Thông số bộ sạc
-
-        private String engineType;              // Loại động cơ
-        private String forkDimensions;          // Thông số càng
-        private Integer valveCount;             // Số lượng van
-        private Boolean hasSideShift;           // Có side shift không
-        private String otherDetails;            // Chi tiết khác
-
+        @Data
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static class Specifications {
+            private Integer liftingCapacityKg;      // Sức nâng (kg)
+            private String chassisType;             // Loại khung nâng
+            private Integer liftingHeightMm;        // Độ cao nâng (mm)
+            private String engineType;              // Loại động cơ
+            private String batteryInfo;             // Thông tin bình điện
+            private String batterySpecification;    // Thông số bình điện
+            private String chargerSpecification;    // Thông số bộ sạc
+            private String forkDimensions;          // Thông số càng
+            private Integer valveCount;             // Số lượng van
+            private Boolean hasSideShift;           // Có side shift không
+            private String otherDetails;            // Chi tiết khác
+        }
 
         @Data
         @NoArgsConstructor

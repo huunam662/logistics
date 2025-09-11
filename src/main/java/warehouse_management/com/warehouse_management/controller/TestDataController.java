@@ -25,7 +25,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Random;
 
 @Hidden
 @RestController
@@ -185,7 +184,7 @@ public class TestDataController {
                     item.setQuantity(1);
                     item.setPoNumber(poNumber);
                     item.setProductCode(productCode);
-                    item.setInventoryType(inventoryType.VEHICLE.getId());
+                    item.setInventoryType(InventoryType.VEHICLE.getId());
                     item.setSerialNumber("SERIAL_" + faker.number().digits(6));
 //                    item.setCategory(faker.random().nextInt(5) % 2 == 0 ? "Ngồi lái" : "Đứng lái");
                     item.setManufacturingYear(2020 + faker.random().nextInt(5));
@@ -195,7 +194,7 @@ public class TestDataController {
                     item.setPoNumber(poNumber);
                     item.setCommodityCode(String.format("CDC-%d-%d", currentYear, faker.random().nextInt(99999999)));
                     item.setDescription(descriptionSpareParts[faker.random().nextInt(descriptionSpareParts.length)]);
-                    item.setInventoryType(inventoryType.SPARE_PART.getId());
+                    item.setInventoryType(InventoryType.SPARE_PART.getId());
                 }
                 item.setModel("Model " + faker.letterify("M-???"));
 

@@ -1,22 +1,13 @@
 package warehouse_management.com.warehouse_management.repository.configuration_history.impl;
 
-import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.aggregation.Aggregation;
-import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
-import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryDepartureDto;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
-import warehouse_management.com.warehouse_management.enumerate.inventoryType;
-import warehouse_management.com.warehouse_management.enumerate.WarehouseStatus;
 import warehouse_management.com.warehouse_management.model.ConfigurationHistory;
-import warehouse_management.com.warehouse_management.model.InventoryItem;
-import warehouse_management.com.warehouse_management.repository.configuration_history.ConfigurationHistoryRepository;
 import warehouse_management.com.warehouse_management.repository.configuration_history.CustomConfigurationHistoryRepository;
 import warehouse_management.com.warehouse_management.utils.MongoRsqlUtils;
 
