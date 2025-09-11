@@ -13,8 +13,10 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.repair.response.RepairResponseDTO;
+import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
 import warehouse_management.com.warehouse_management.enumerate.RepairStatus;
 import warehouse_management.com.warehouse_management.model.Repair;
+import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
 import warehouse_management.com.warehouse_management.repository.repair.CustomRepairRepository;
 import warehouse_management.com.warehouse_management.utils.MongoRsqlUtils;
 
@@ -26,6 +28,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CustomRepairRepositoryImpl implements CustomRepairRepository {
     private final MongoTemplate mongoTemplate;
+    private final InventoryItemRepository inventoryItemRepository;
 
     @Override
     public Page<RepairResponseDTO> findItemWithFilter(PageOptionsDto optionsDto) {
@@ -53,6 +56,25 @@ public class CustomRepairRepositoryImpl implements CustomRepairRepository {
 
         if (status == RepairStatus.COMPLETE) {
             update.set("completedDate", LocalDateTime.now());
+            // Chỉnh trạng thái của xe lại là đang sữa chữa
+            inventoryItemRepository.updateBulkStatusInventoryItem(List.of(), InventoryItemStatus.IN_REPAIR);
+        }
+
+        return mongoTemplate.findAndModify(query,
+                update,
+                FindAndModifyOptions.options().returnNew(true),
+                Repair.class);
+    }
+
+    @Override
+    public Repair updateStatus(ObjectId id, RepairStatus status, ObjectId itemId) {
+        Query query = new Query(Criteria.where("_id").is(id));
+        Update update = new Update().set("status", status);
+
+        if (status == RepairStatus.COMPLETE) {
+            update.set("completedDate", LocalDateTime.now());
+            // Chỉnh trạng thái của xe lại là đang sữa chữa
+            inventoryItemRepository.updateBulkStatusInventoryItem(List.of(itemId), InventoryItemStatus.IN_STOCK);
         }
 
         return mongoTemplate.findAndModify(query,
