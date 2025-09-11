@@ -3,8 +3,6 @@ package warehouse_management.com.warehouse_management.service;
 import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PostMapping;
-import warehouse_management.com.warehouse_management.dto.ApiResponse;
 import warehouse_management.com.warehouse_management.dto.configuration_history.request.DropPartRequest;
 import warehouse_management.com.warehouse_management.dto.configuration_history.request.VehiclePartSwapRequest;
 import warehouse_management.com.warehouse_management.enumerate.AccessoryType;
@@ -19,7 +17,7 @@ import warehouse_management.com.warehouse_management.utils.GeneralUtil;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+
 
 @Service
 public class ConfigurationHistoryService {
@@ -112,31 +110,31 @@ public class ConfigurationHistoryService {
     private void swapVehicleAccessory(InventoryItem leftVeh, InventoryItem rightVeh, AccessoryType accessoryType) {
         switch (accessoryType) {
             case LIFTING_FRAME -> {
-                Integer tmpHeight = leftVeh.getLiftingHeightMm();
-                leftVeh.setLiftingHeightMm(rightVeh.getLiftingHeightMm());
-                rightVeh.setLiftingHeightMm(tmpHeight);
+                Integer tmpHeight = leftVeh.getSpecifications().getLiftingHeightMm();
+                leftVeh.getSpecifications().setLiftingHeightMm(rightVeh.getSpecifications().getLiftingHeightMm());
+                rightVeh.getSpecifications().setLiftingHeightMm(tmpHeight);
 
-                Integer tmpCapacity = leftVeh.getLiftingCapacityKg();
-                leftVeh.setLiftingCapacityKg(rightVeh.getLiftingCapacityKg());
-                rightVeh.setLiftingCapacityKg(tmpCapacity);
+                Integer tmpCapacity = leftVeh.getSpecifications().getLiftingCapacityKg();
+                leftVeh.getSpecifications().setLiftingCapacityKg(rightVeh.getSpecifications().getLiftingCapacityKg());
+                rightVeh.getSpecifications().setLiftingCapacityKg(tmpCapacity);
 
-                String tmpChassis = leftVeh.getChassisType();
-                leftVeh.setChassisType(rightVeh.getChassisType());
-                rightVeh.setChassisType(tmpChassis);
+                String tmpChassis = leftVeh.getSpecifications().getChassisType();
+                leftVeh.getSpecifications().setChassisType(rightVeh.getSpecifications().getChassisType());
+                rightVeh.getSpecifications().setChassisType(tmpChassis);
             }
             case BATTERY -> {
-                String tmpInfo = leftVeh.getBatteryInfo();
-                leftVeh.setBatteryInfo(rightVeh.getBatteryInfo());
-                rightVeh.setBatteryInfo(tmpInfo);
+                String tmpInfo = leftVeh.getSpecifications().getBatteryInfo();
+                leftVeh.getSpecifications().setBatteryInfo(rightVeh.getSpecifications().getBatteryInfo());
+                rightVeh.getSpecifications().setBatteryInfo(tmpInfo);
 
-                String tmpSpec = leftVeh.getBatterySpecification();
-                leftVeh.setBatterySpecification(rightVeh.getBatterySpecification());
-                rightVeh.setBatterySpecification(tmpSpec);
+                String tmpSpec = leftVeh.getSpecifications().getBatterySpecification();
+                leftVeh.getSpecifications().setBatterySpecification(rightVeh.getSpecifications().getBatterySpecification());
+                rightVeh.getSpecifications().setBatterySpecification(tmpSpec);
             }
             case CHARGER -> {
-                String tmpSpec = leftVeh.getChargerSpecification();
-                leftVeh.setChargerSpecification(rightVeh.getChargerSpecification());
-                rightVeh.setChargerSpecification(tmpSpec);
+                String tmpSpec = leftVeh.getSpecifications().getChargerSpecification();
+                leftVeh.getSpecifications().setChargerSpecification(rightVeh.getSpecifications().getChargerSpecification());
+                rightVeh.getSpecifications().setChargerSpecification(tmpSpec);
             }
         }
     }
@@ -144,24 +142,24 @@ public class ConfigurationHistoryService {
     private void swapVehicleSparePart(InventoryItem leftVeh, InventoryItem rightVeh, SparePartType sparePartType) {
         switch (sparePartType) {
             case ENGINE -> {
-                String tmpEngine = leftVeh.getEngineType();
-                leftVeh.setEngineType(rightVeh.getEngineType());
-                rightVeh.setEngineType(tmpEngine);
+                String tmpEngine = leftVeh.getSpecifications().getEngineType();
+                leftVeh.getSpecifications().setEngineType(rightVeh.getSpecifications().getEngineType());
+                rightVeh.getSpecifications().setEngineType(tmpEngine);
             }
             case FORK -> {
-                String tmpFork = leftVeh.getForkDimensions();
-                leftVeh.setForkDimensions(rightVeh.getForkDimensions());
-                rightVeh.setForkDimensions(tmpFork);
+                String tmpFork = leftVeh.getSpecifications().getForkDimensions();
+                leftVeh.getSpecifications().setForkDimensions(rightVeh.getSpecifications().getForkDimensions());
+                rightVeh.getSpecifications().setForkDimensions(tmpFork);
             }
             case SIDESHIFT -> {
-                Boolean tmpSideShift = leftVeh.getHasSideShift();
-                leftVeh.setHasSideShift(rightVeh.getHasSideShift());
-                rightVeh.setHasSideShift(tmpSideShift);
+                Boolean tmpSideShift = leftVeh.getSpecifications().getHasSideShift();
+                leftVeh.getSpecifications().setHasSideShift(rightVeh.getSpecifications().getHasSideShift());
+                rightVeh.getSpecifications().setHasSideShift(tmpSideShift);
             }
             case VALVE -> {
-                Integer tmpValve = leftVeh.getValveCount();
-                leftVeh.setValveCount(rightVeh.getValveCount());
-                rightVeh.setValveCount(tmpValve);
+                Integer tmpValve = leftVeh.getSpecifications().getValveCount();
+                leftVeh.getSpecifications().setValveCount(rightVeh.getSpecifications().getValveCount());
+                rightVeh.getSpecifications().setValveCount(tmpValve);
             }
         }
     }
@@ -266,22 +264,22 @@ public class ConfigurationHistoryService {
         // Set accessory hiện tại & trước
         switch (sparePartType) {
             case FORK -> {
-                newHist.setForkDimensions(rightVeh.getForkDimensions());
-                newHist.setPrevForkDimensions(leftVeh.getForkDimensions());
+                newHist.setForkDimensions(rightVeh.getSpecifications().getForkDimensions());
+                newHist.setPrevForkDimensions(leftVeh.getSpecifications().getForkDimensions());
             }
             case ENGINE -> {
-                newHist.setEngineType(rightVeh.getEngineType());
-                newHist.setPrevEngineType(leftVeh.getEngineType());
+                newHist.setEngineType(rightVeh.getSpecifications().getEngineType());
+                newHist.setPrevEngineType(leftVeh.getSpecifications().getEngineType());
 
             }
             case VALVE -> {
-                newHist.setValveCount(rightVeh.getValveCount());
-                newHist.setPrevValveCount(leftVeh.getValveCount());
+                newHist.setValveCount(rightVeh.getSpecifications().getValveCount());
+                newHist.setPrevValveCount(leftVeh.getSpecifications().getValveCount());
 
             }
             case SIDESHIFT -> {
-                newHist.setHasSideShift(rightVeh.getHasSideShift());
-                newHist.setPrevHasSideShift(leftVeh.getHasSideShift());
+                newHist.setHasSideShift(rightVeh.getSpecifications().getHasSideShift());
+                newHist.setPrevHasSideShift(leftVeh.getSpecifications().getHasSideShift());
             }
         }
 
@@ -376,16 +374,16 @@ public class ConfigurationHistoryService {
                                SparePartType sparePartType) {
         switch (sparePartType) {
             case ENGINE -> {
-                veh.setEngineType(null);
+                veh.getSpecifications().setEngineType(null);
             }
             case FORK -> {
-                veh.setForkDimensions(null);
+                veh.getSpecifications().setForkDimensions(null);
             }
             case SIDESHIFT -> {
-                veh.setHasSideShift(null);
+                veh.getSpecifications().setHasSideShift(null);
             }
             case VALVE -> {
-                veh.setValveCount(null);
+                veh.getSpecifications().setValveCount(null);
             }
         }
 
@@ -395,17 +393,17 @@ public class ConfigurationHistoryService {
                                AccessoryType accessoryType) {
         switch (accessoryType) {
             case LIFTING_FRAME -> {
-                veh.setLiftingHeightMm(null);
-                veh.setLiftingCapacityKg(null);
-                veh.setChassisType(null);
+                veh.getSpecifications().setLiftingHeightMm(null);
+                veh.getSpecifications().setLiftingCapacityKg(null);
+                veh.getSpecifications().setChassisType(null);
 
             }
             case BATTERY -> {
-                veh.setBatteryInfo(null);
-                veh.setBatterySpecification(null);
+                veh.getSpecifications().setBatteryInfo(null);
+                veh.getSpecifications().setBatterySpecification(null);
             }
             case CHARGER -> {
-                veh.setChargerSpecification(null);
+                veh.getSpecifications().setChargerSpecification(null);
 
             }
         }

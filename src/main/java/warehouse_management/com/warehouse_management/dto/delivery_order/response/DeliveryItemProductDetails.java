@@ -14,17 +14,16 @@ public class DeliveryItemProductDetails {
     private String category;       // Chủng loại sản phẩm (VD: Ngồi lái) – Bắt buộc
     private String notes;                  // Ghi chú chung – Không bắt buộc
     private DeliveryItemProductDetails.Pricing pricing;
-    private DeliveryItemProductDetails specifications;
+    private DeliveryItemProductDetails.Specifications specifications;
 
-
-    private Integer liftingCapacityKg;      // Sức nâng (kg)
-    private Integer liftingHeightMm;        // Độ cao nâng (mm)
-
-    private String batteryInfo;             // Thông tin bình điện
-    private String batterySpecification;    // Thông số bình điện
-
-    //PK-SAC
-    private String chargerSpecification;    // Thông số bộ sạc
+    @Data
+    public static class Specifications{
+        private Integer liftingCapacityKg;      // Sức nâng (kg)
+        private Integer liftingHeightMm;        // Độ cao nâng (mm)
+        private String engineType;              // Loại động cơ
+        private String batteryInfo;             // Thông tin bình điện
+        private String batterySpecification;    // Thông số bình điện
+    }
 
     @Data
     public static class Pricing {

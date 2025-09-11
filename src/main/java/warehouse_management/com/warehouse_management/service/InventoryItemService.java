@@ -101,7 +101,7 @@ public class InventoryItemService {
         InventoryItem item = inventoryItemMapper.toInventoryItemSparePart(req);
 
         item.setWarehouseId(wh.getId());
-        item.setInventoryType(inventoryType.SPARE_PART.getId());
+        item.setInventoryType(InventoryType.SPARE_PART.getId());
         item.setStatus(InventoryItemStatus.IN_STOCK);
         if (item.getLogistics() == null) {
             item.setLogistics(new InventoryItem.Logistics());
@@ -144,16 +144,16 @@ public class InventoryItemService {
         tran.setTranType(tranType);
         WarehouseSubTranType subTranType = null;
         if (inStockWh.getType().equals(WarehouseType.PRODUCTION)) {
-            if (item.getInventoryType().equals(inventoryType.SPARE_PART.getId())) {
+            if (item.getInventoryType().equals(InventoryType.SPARE_PART.getId())) {
                 subTranType = WarehouseSubTranType.FORM_TO_PRODUCTION_SPARE_PART;
-            } else if (item.getInventoryType().equals(inventoryType.VEHICLE.getId()) || item.getInventoryType().equals(inventoryType.ACCESSORY.getId())) {
+            } else if (item.getInventoryType().equals(InventoryType.VEHICLE.getId()) || item.getInventoryType().equals(InventoryType.ACCESSORY.getId())) {
                 subTranType = WarehouseSubTranType.FORM_TO_PRODUCTION_PRODUCT;
             }
 
         } else if (inStockWh.getType().equals(WarehouseType.DESTINATION)) {
-            if (item.getInventoryType().equals(inventoryType.SPARE_PART.getId())) {
+            if (item.getInventoryType().equals(InventoryType.SPARE_PART.getId())) {
                 subTranType = WarehouseSubTranType.FORM_TO_DEST_SPARE_PART;
-            } else if (item.getInventoryType().equals(inventoryType.VEHICLE.getId()) || item.getInventoryType().equals(inventoryType.ACCESSORY.getId())) {
+            } else if (item.getInventoryType().equals(InventoryType.VEHICLE.getId()) || item.getInventoryType().equals(InventoryType.ACCESSORY.getId())) {
                 subTranType = WarehouseSubTranType.FORM_TO_DEST_PRODUCT;
             }
         }
@@ -229,6 +229,7 @@ public class InventoryItemService {
             if (importType.equals(WarehouseSubTranType.EXCEL_TO_PRODUCTION_PRODUCT)) {
                 buildProductItems(item, importType, itemsToInsert, confsToInsert);
             } else {
+                item.setStatus(InventoryItemStatus.IN_STOCK);
                 itemsToInsert.add(item);
             }
         }
@@ -250,7 +251,7 @@ public class InventoryItemService {
         // Tạo ObjectId cho item cha
         ObjectId parentId = new ObjectId();
         parentItem.setId(parentId);
-        parentItem.setInventoryType(inventoryType.VEHICLE.getId());
+        parentItem.setInventoryType(InventoryType.VEHICLE.getId());
         parentItem.setStatus(InventoryItemStatus.IN_STOCK);
         dataToSave.add(parentItem);
 
@@ -262,36 +263,36 @@ public class InventoryItemService {
         ObjectId chargerId = null;
         ObjectId batterId = null;
 
-        if (parentItem.getLiftingHeightMm() != null
-                && parentItem.getChassisType() != null
-                && parentItem.getLiftingCapacityKg() != null) {
+        if (parentItem.getSpecifications().getLiftingHeightMm() != null
+                && parentItem.getSpecifications().getChassisType() != null
+                && parentItem.getSpecifications().getLiftingCapacityKg() != null) {
             liftingFrame = mapper.cloneToLiftingFrame(parentItem);
             liftingFrameId = new ObjectId();
             liftingFrame.setId(liftingFrameId);
-            liftingFrame.setInventoryType(inventoryType.ACCESSORY.getId());
+            liftingFrame.setInventoryType(InventoryType.ACCESSORY.getId());
             liftingFrame.setVehicleId(parentId);   // gán cha
             liftingFrame.setAccessoryType(AccessoryType.LIFTING_FRAME);
 
             dataToSave.add(liftingFrame);
         }
 
-        if (parentItem.getBatteryInfo() != null
-                && parentItem.getBatterySpecification() != null) {
+        if (parentItem.getSpecifications().getBatteryInfo() != null
+                && parentItem.getSpecifications().getBatterySpecification() != null) {
             battery = mapper.cloneToBattery(parentItem);
             batterId = new ObjectId();
             battery.setId(batterId);
             battery.setVehicleId(parentId);
-            battery.setInventoryType(inventoryType.ACCESSORY.getId());
+            battery.setInventoryType(InventoryType.ACCESSORY.getId());
             battery.setAccessoryType(AccessoryType.BATTERY);
             dataToSave.add(battery);
         }
 
-        if (parentItem.getChargerSpecification() != null) {
+        if (parentItem.getSpecifications().getChargerSpecification() != null) {
             charger = mapper.cloneToCharger(parentItem);
             chargerId = new ObjectId();
             charger.setId(chargerId);
             charger.setVehicleId(parentId);
-            charger.setInventoryType(inventoryType.ACCESSORY.getId());
+            charger.setInventoryType(InventoryType.ACCESSORY.getId());
             charger.setAccessoryType(AccessoryType.CHARGER);
             dataToSave.add(charger);
         }
@@ -318,10 +319,10 @@ public class InventoryItemService {
             hist.setChargerLabel(generalUtil.buildChargerLabel(charger));
         }
 
-        hist.setEngineType(parentItem.getEngineType());
-        hist.setForkDimensions(parentItem.getForkDimensions());
-        hist.setValveCount(parentItem.getValveCount());
-        hist.setHasSideShift(parentItem.getHasSideShift());
+        hist.setEngineType(parentItem.getSpecifications().getEngineType());
+        hist.setForkDimensions(parentItem.getSpecifications().getForkDimensions());
+        hist.setValveCount(parentItem.getSpecifications().getValveCount());
+        hist.setHasSideShift(parentItem.getSpecifications().getHasSideShift());
 
 
         hist.setNote("Bulk import " + importType.name());
@@ -530,7 +531,7 @@ public class InventoryItemService {
         List<InventoryItem> itemsSparePartInTransitContainer = List.of();
         if (container != null) {
             List<String> commodityCodes = itemsToTransfer.stream()
-                    .filter(i -> i.getInventoryType().equals(inventoryType.SPARE_PART.getId()) && i.getCommodityCode() != null)
+                    .filter(i -> i.getInventoryType().equals(InventoryType.SPARE_PART.getId()) && i.getCommodityCode() != null)
                     .map(InventoryItem::getCommodityCode)
                     .toList();
             // Lấy các phụ tùng đang tồn tại trong container (nếu có)
@@ -539,7 +540,7 @@ public class InventoryItemService {
         List<InventoryItem> itemsSparePartToNew = new ArrayList<>();
         List<InventoryItem> itemsResults = new ArrayList<>();
         for (var item : itemsToTransfer) {
-            if (item.getInventoryType().equals(inventoryType.SPARE_PART.getId())) {
+            if (item.getInventoryType().equals(InventoryType.SPARE_PART.getId())) {
                 int quantityToTransfer = itemIdQualityMap.get(item.getId());
                 if (quantityToTransfer <= 0) throw LogicErrException.of("Số lượng hàng hóa cần chuyển phải lớn hơn 0.");
                 if (item.getQuantity() == 0)
