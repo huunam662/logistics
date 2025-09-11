@@ -534,6 +534,7 @@ public class DeliveryOrderService {
                 if (itemToUpdateReq.getIsDelivered()) {
 
                     deliveryItem.setIsDelivered(true);
+                    deliveryItem.getLogistics().setArrivalDate(LocalDateTime.now());
                     InventoryItem product = inventoryInWarehouseMap.get(deliveryItem.getId());
                     product.setStatus(InventoryItemStatus.SOLD.getId());
                     inventoryItemRepository.save(product);
@@ -683,15 +684,11 @@ public class DeliveryOrderService {
                 .filter(e -> e.getInventoryType().equals(InventoryType.SPARE_PART.getId()) && e.getCommodityCode().equals(commodityCode) && e.getIsDelivered())
                 .findFirst().orElse(null);
 
-        if(itemSoldInDeliveryOrder != null) {
-            itemSoldInDeliveryOrder.setQuantity(itemSoldInDeliveryOrder.getQuantity() + itemToUpdateReq.getQuantity());
-            itemSoldInDeliveryOrder.getLogistics().setArrivalDate(LocalDateTime.now());
-        }
+        if(itemSoldInDeliveryOrder != null) itemSoldInDeliveryOrder.setQuantity(itemSoldInDeliveryOrder.getQuantity() + itemToUpdateReq.getQuantity());
         else {
             DeliveryOrder.InventoryItemDelivery itemSold = inventoryItemMapper.toInventoryItemDelivery(itemInStockOrSold);
             itemSold.setQuantity(itemToUpdateReq.getQuantity());
             itemSold.setIsDelivered(true);
-            itemSold.getLogistics().setArrivalDate(LocalDateTime.now());
             deliveryOrder.getInventoryItems().add(itemSold);
         }
     }
