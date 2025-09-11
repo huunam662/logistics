@@ -39,6 +39,8 @@ public class InventoryItem {
     private String model;          // Model sản phẩm – Bắt buộc
     //
     private Integer manufacturingYear; // Năm sản xuất – Không bắt buộc
+
+    @Indexed(unique = true)
     private String status;         // Trạng thái hiện tại (IN_STOCK, IN_TRANSIT...) – Bắt buộc
     private String contractNumber; // Số hợp đồng
 
@@ -50,6 +52,7 @@ public class InventoryItem {
     //PT
     @Indexed(unique = true)
     private String commodityCode;  // Mã hàng hóa (đôi với phụ tùng)
+
     private String description;         // Mô tả
     private Integer quantity;   // Số lượng hàng hóa
     private ObjectId vehicleId; // PK/PT không dùng
@@ -112,6 +115,8 @@ public class InventoryItem {
 
     //    REF
     private String warehouseType;  // Loại kho (kho bảo quản dành cho hàng hóa)
+
+    @Indexed(unique = true)
     private ObjectId warehouseId;  // _id của warehouse – Có nếu đang ở kho
     private ObjectId containerId;  // _id của container – Có nếu đang trong container
     // ===REF===

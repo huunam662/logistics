@@ -23,14 +23,11 @@ import warehouse_management.com.warehouse_management.dto.pagination.request.Page
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
 import warehouse_management.com.warehouse_management.dto.report_inventory.request.ReportParamsDto;
 import warehouse_management.com.warehouse_management.dto.report_inventory.response.ReportInventoryDto;
-import warehouse_management.com.warehouse_management.dto.warranty.response.WarrantyResponseDTO;
 import warehouse_management.com.warehouse_management.enumerate.*;
 import warehouse_management.com.warehouse_management.exceptions.LogicErrException;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
-import warehouse_management.com.warehouse_management.model.Warranty;
 import warehouse_management.com.warehouse_management.repository.inventory_item.CustomInventoryItemRepository;
 import warehouse_management.com.warehouse_management.utils.MongoRsqlUtils;
-
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -57,10 +54,10 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         ProjectionOperation projectStage = Aggregation.project(
                         "productCode", "serialNumber", "model", "status", "manufacturingYear"
                 )
-                .and("liftingCapacityKg").as("liftingCapacityKg")
-                .and("chassisType").as("chassisType")
-                .and("liftingHeightMm").as("liftingHeightMm")
-                .and("engineType").as("engineType")
+                .and("specifications.liftingCapacityKg").as("liftingCapacityKg")
+                .and("specifications.chassisType").as("chassisType")
+                .and("specifications.liftingHeightMm").as("liftingHeightMm")
+                .and("specifications.engineType").as("engineType")
                 .and("_id").as("id");
 
         List<AggregationOperation> pipeline = new ArrayList<>();
@@ -93,17 +90,17 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 )),
                 Aggregation.project("poNumber", "status", "productCode", "manufacturingYear", "model", "inventoryType", "category", "serialNumber", "notes", "initialCondition", "warehouseType")
                         .and("_id").as("id")
-                        .and("hasSideShift").as("hasSideShift") //
-                        .and("liftingCapacityKg").as("liftingCapacityKg")    //
-                        .and("chassisType").as("chassisType")    //
-                        .and("liftingHeightMm").as("liftingHeightMm")    //
-                        .and("engineType").as("engineType")  //
-                        .and("batteryInfo").as("batteryInfo")    //
-                        .and("batterySpecification").as("batterySpecification")  //
-                        .and("chargerSpecification").as("chargerSpecification")  //
-                        .and("forkDimensions").as("forkDimensions")  //
-                        .and("valveCount").as("valveCount")  //
-                        .and("otherDetails").as("otherDetails")  //
+                        .and("specifications.hasSideShift").as("hasSideShift") //
+                        .and("specifications.liftingCapacityKg").as("liftingCapacityKg")    //
+                        .and("specifications.chassisType").as("chassisType")    //
+                        .and("specifications.liftingHeightMm").as("liftingHeightMm")    //
+                        .and("specifications.engineType").as("engineType")  //
+                        .and("specifications.batteryInfo").as("batteryInfo")    //
+                        .and("specifications.batterySpecification").as("batterySpecification")  //
+                        .and("specifications.chargerSpecification").as("chargerSpecification")  //
+                        .and("specifications.forkDimensions").as("forkDimensions")  //
+                        .and("specifications.valveCount").as("valveCount")  //
+                        .and("specifications.otherDetails").as("otherDetails")  //
                         .and("pricing.purchasePrice").as("purchasePrice")   //
                         .and("pricing.salePriceR0").as("salePriceR0")   //
                         .and("pricing.salePriceR1").as("salePriceR1")   //
@@ -131,17 +128,17 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 Aggregation.project("poNumber", "productCode", "model", "inventoryType", "category", "serialNumber", "notes", "initialCondition", "warehouseType")
                         .and("_id").as("id")
                         .and("logistics.orderDate").as("orderDate")
-                        .and("hasSideShift").as("hasSideShift")
-                        .and("liftingCapacityKg").as("liftingCapacityKg")
-                        .and("chassisType").as("chassisType")
-                        .and("liftingHeightMm").as("liftingHeightMm")
-                        .and("engineType").as("engineType")
-                        .and("batteryInfo").as("batteryInfo")
-                        .and("batterySpecification").as("batterySpecification")
-                        .and("chargerSpecification").as("chargerSpecification")
-                        .and("forkDimensions").as("forkDimensions")
-                        .and("valveCount").as("valveCount")
-                        .and("otherDetails").as("otherDetails")
+                        .and("specifications.hasSideShift").as("hasSideShift")
+                        .and("specifications.liftingCapacityKg").as("liftingCapacityKg")
+                        .and("specifications.chassisType").as("chassisType")
+                        .and("specifications.liftingHeightMm").as("liftingHeightMm")
+                        .and("specifications.engineType").as("engineType")
+                        .and("specifications.batteryInfo").as("batteryInfo")
+                        .and("specifications.batterySpecification").as("batterySpecification")
+                        .and("specifications.chargerSpecification").as("chargerSpecification")
+                        .and("specifications.forkDimensions").as("forkDimensions")
+                        .and("specifications.valveCount").as("valveCount")
+                        .and("specifications.otherDetails").as("otherDetails")
                         .and("pricing.purchasePrice").as("purchasePrice")
                         .and("pricing.salePriceR0").as("salePriceR0")
                         .and("pricing.salePriceR1").as("salePriceR1")
@@ -174,17 +171,17 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .and("_id").as("id")
                         .and("logistics.orderDate").as("orderDate") //
                         .and("logistics.arrivalDate").as("arrivalDate") //
-                        .and("hasSideShift").as("hasSideShift")  //
-                        .and("liftingCapacityKg").as("liftingCapacityKg")    //
-                        .and("chassisType").as("chassisType")    //
-                        .and("liftingHeightMm").as("liftingHeightMm")    //
-                        .and("engineType").as("engineType")  //
-                        .and("batteryInfo").as("batteryInfo")    //
-                        .and("batterySpecification").as("batterySpecification")  //
-                        .and("chargerSpecification").as("chargerSpecification")  //
-                        .and("forkDimensions").as("forkDimensions")  //
-                        .and("valveCount").as("valveCount")  //
-                        .and("otherDetails").as("otherDetails")  //
+                        .and("specifications.hasSideShift").as("hasSideShift")  //
+                        .and("specifications.liftingCapacityKg").as("liftingCapacityKg")    //
+                        .and("specifications.chassisType").as("chassisType")    //
+                        .and("specifications.liftingHeightMm").as("liftingHeightMm")    //
+                        .and("specifications.engineType").as("engineType")  //
+                        .and("specifications.batteryInfo").as("batteryInfo")    //
+                        .and("specifications.batterySpecification").as("batterySpecification")  //
+                        .and("specifications.chargerSpecification").as("chargerSpecification")  //
+                        .and("specifications.forkDimensions").as("forkDimensions")  //
+                        .and("specifications.valveCount").as("valveCount")  //
+                        .and("specifications.otherDetails").as("otherDetails")  //
                         .and("pricing.purchasePrice").as("purchasePrice")   //
                         .and("pricing.salePriceR0").as("salePriceR0")   //
                         .and("pricing.salePriceR1").as("salePriceR1")   //
@@ -215,17 +212,17 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 )),
                 Aggregation.project("poNumber", "status", "productCode", "manufacturingYear", "model", "inventoryType", "category", "serialNumber", "notes", "initialCondition", "warehouseType")
                         .and("_id").as("id")
-                        .and("hasSideShift").as("hasSideShift") //
-                        .and("liftingCapacityKg").as("liftingCapacityKg")    //
-                        .and("chassisType").as("chassisType")    //
-                        .and("liftingHeightMm").as("liftingHeightMm")    //
-                        .and("engineType").as("engineType")  //
-                        .and("batteryInfo").as("batteryInfo")    //
-                        .and("batterySpecification").as("batterySpecification")  //
-                        .and("chargerSpecification").as("chargerSpecification")  //
-                        .and("forkDimensions").as("forkDimensions")  //
-                        .and("valveCount").as("valveCount")  //
-                        .and("otherDetails").as("otherDetails")  //
+                        .and("specifications.hasSideShift").as("hasSideShift") //
+                        .and("specifications.liftingCapacityKg").as("liftingCapacityKg")    //
+                        .and("specifications.chassisType").as("chassisType")    //
+                        .and("specifications.liftingHeightMm").as("liftingHeightMm")    //
+                        .and("specifications.engineType").as("engineType")  //
+                        .and("specifications.batteryInfo").as("batteryInfo")    //
+                        .and("specifications.batterySpecification").as("batterySpecification")  //
+                        .and("specifications.chargerSpecification").as("chargerSpecification")  //
+                        .and("specifications.forkDimensions").as("forkDimensions")  //
+                        .and("specifications.valveCount").as("valveCount")  //
+                        .and("specifications.otherDetails").as("otherDetails")  //
                         .and("pricing.purchasePrice").as("purchasePrice")   //
                         .and("pricing.salePriceR0").as("salePriceR0")   //
                         .and("pricing.salePriceR1").as("salePriceR1")   //
@@ -348,17 +345,17 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 )),
                 Aggregation.project("poNumber", "productCode", "status", "model", "category", "inventoryType", "serialNumber", "manufacturingYear", "initialCondition", "notes", "warehouseType")
                         .and("_id").as("id")
-                        .and("liftingCapacityKg").as("liftingCapacityKg")    //
-                        .and("chassisType").as("chassisType")    //
-                        .and("liftingHeightMm").as("liftingHeightMm")    //
-                        .and("engineType").as("engineType")  //
-                        .and("batteryInfo").as("batteryInfo")    //
-                        .and("batterySpecification").as("batterySpecification")  //
-                        .and("chargerSpecification").as("chargerSpecification")  //
-                        .and("forkDimensions").as("forkDimensions")  //
-                        .and("valveCount").as("valveCount")  //
-                        .and("hasSideShift").as("hasSideShift")  //
-                        .and("otherDetails").as("otherDetails")  //
+                        .and("specifications.liftingCapacityKg").as("liftingCapacityKg")    //
+                        .and("specifications.chassisType").as("chassisType")    //
+                        .and("specifications.liftingHeightMm").as("liftingHeightMm")    //
+                        .and("specifications.engineType").as("engineType")  //
+                        .and("specifications.batteryInfo").as("batteryInfo")    //
+                        .and("specifications.batterySpecification").as("batterySpecification")  //
+                        .and("specifications.chargerSpecification").as("chargerSpecification")  //
+                        .and("specifications.forkDimensions").as("forkDimensions")  //
+                        .and("specifications.valveCount").as("valveCount")  //
+                        .and("specifications.hasSideShift").as("hasSideShift")  //
+                        .and("specifications.otherDetails").as("otherDetails")  //
                         .and("pricing.purchasePrice").as("purchasePrice")   //
                         .and("pricing.salePriceR0").as("salePriceR0")   //
                         .and("pricing.salePriceR1").as("salePriceR1")   //
