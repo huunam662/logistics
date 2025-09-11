@@ -10,6 +10,9 @@ public final class LogicErrMsg {
     public static final String NOT_FOUND_BY_CODE = "logicerr.not_found_by_code";
     public static final String NOT_FOUND_BY_ID = "logicerr.not_found_by_id";
 
+    // Sản phẩm
+    public static final String INVENTORY_ITEM_NOT_FOUND = "logicerr.inventory_item.item_not_found";
+
     // Bảo hành
     public static final String WARRANTY_ITEM_HAVE_NOT_SOLD = "logicerr.warranty.item_have_not_sold";
     public static final String WARRANTY_CLIENT_NOT_FOUND = "logicerr.warranty.client_not_found";

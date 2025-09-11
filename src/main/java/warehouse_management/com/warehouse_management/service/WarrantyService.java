@@ -73,6 +73,10 @@ public class WarrantyService {
             Optional<InventoryItem> inventoryItem = inventoryItemRepository
                     .findById(createWarrantyDTO.getWarrantyInventoryItemId());
 
+            if (inventoryItem.isEmpty()) {
+                throw LogicErrException.of(Msg.get(LogicErrMsg.INVENTORY_ITEM_NOT_FOUND));
+            }
+
             inventoryItem.ifPresent((item) -> {
                 validateItemBeforeWarranty(item);
                 newWarranty.setWarrantyInventoryItem(item);

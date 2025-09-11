@@ -10,4 +10,7 @@ import warehouse_management.com.warehouse_management.model.Repair;
 public interface CustomRepairRepository {
     Page<RepairResponseDTO> findItemWithFilter(PageOptionsDto pageOptionsDto);
     Repair updateStatus(ObjectId id, RepairStatus status);
+
+    // Update complete cho đơn sửa chữa, có kèm theo item để update lại status IN_STOCK
+    Repair updateStatus(ObjectId id, RepairStatus status, ObjectId itemId);
 }

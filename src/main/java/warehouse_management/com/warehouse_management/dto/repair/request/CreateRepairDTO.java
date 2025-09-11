@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.bson.types.ObjectId;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Data
 public class CreateRepairDTO {
@@ -14,5 +14,5 @@ public class CreateRepairDTO {
     private String note;
 
     @Schema(example = "yyyy-MM-dd")
-    private LocalDateTime expectedCompletionDate;
+    private LocalDate expectedCompletionDate;
 }

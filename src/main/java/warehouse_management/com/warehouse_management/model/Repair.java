@@ -13,6 +13,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 import warehouse_management.com.warehouse_management.enumerate.RepairStatus;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -28,7 +29,7 @@ public class Repair {
     private String note;                                        // Ghi chú cho đơn bảo hành
     private RepairStatus status;                                // Trạng thái của đơn bảo hành
     private List<RepairTransaction> repairTransactions;         // Phiếu bảo hành của đơn bảo hành
-    private LocalDateTime expectedCompletionDate;               // Ngày dự kiến hoàn thành
+    private LocalDate expectedCompletionDate;                   // Ngày dự kiến hoàn thành
     private LocalDateTime completedDate;                        // Ngày hoàn thành
 
     @CreatedBy

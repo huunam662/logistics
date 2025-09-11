@@ -3,6 +3,7 @@ package warehouse_management.com.warehouse_management.mapper;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import warehouse_management.com.warehouse_management.dto.repair.request.CreateRepairDTO;
 import warehouse_management.com.warehouse_management.dto.repair.response.RepairResponseDTO;
 import warehouse_management.com.warehouse_management.model.Repair;
 
@@ -13,4 +14,6 @@ public interface RepairMapper {
     @Mapping(source = "repairInventoryItem.model", target = "repairInventoryItemModel")
     @Mapping(source = "repairInventoryItem.serialNumber", target = "repairInventoryItemSerialNumber")
     RepairResponseDTO toResponseDto(Repair entity);
+
+    Repair toEntity(CreateRepairDTO repairResponseDTO);
 }
