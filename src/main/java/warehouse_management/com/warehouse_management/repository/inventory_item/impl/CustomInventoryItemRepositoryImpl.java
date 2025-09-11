@@ -7,10 +7,12 @@ import com.mongodb.client.model.Updates;
 import com.mongodb.client.model.WriteModel;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
+import lombok.RequiredArgsConstructor;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.*;
@@ -27,20 +29,18 @@ import warehouse_management.com.warehouse_management.enumerate.*;
 import warehouse_management.com.warehouse_management.exceptions.LogicErrException;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.repository.inventory_item.CustomInventoryItemRepository;
+import warehouse_management.com.warehouse_management.repository.warehouse.WarehouseRepository;
 import warehouse_management.com.warehouse_management.utils.MongoRsqlUtils;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Repository
+@RequiredArgsConstructor(onConstructor_ = {@Lazy})
 public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRepository {
 
     private final MongoTemplate mongoTemplate;
-
-    @Autowired
-    public CustomInventoryItemRepositoryImpl(MongoTemplate mongoTemplate) {
-        this.mongoTemplate = mongoTemplate;
-    }
+    private final WarehouseRepository warehouseRepository;
 
     @Override
     public Page<InventoryItemProductionVehicleTypeDto> getItemsFromVehicleWarehouse(ObjectId warehouseId, PageOptionsDto optionsReq) {
@@ -246,6 +246,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("warehouse.deletedAt").isNull(),
                         Criteria.where("warehouseId").is(warehouseId),
                         Criteria.where("deletedAt").isNull(),
+                        Criteria.where("vehicleId").isNull(),
                         Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId())
                 )),
                 Aggregation.project("poNumber", "model", "commodityCode", "quantity", "description", "warehouseType")
@@ -268,6 +269,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("warehouse.deletedAt").isNull(),
                         Criteria.where("warehouseId").is(warehouseId),
                         Criteria.where("deletedAt").isNull(),
+                        Criteria.where("vehicleId").isNull(),
                         Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId())
                 )),
                 Aggregation.project("poNumber", "model", "commodityCode", "notes", "quantity", "description", "warehouseType")
@@ -291,6 +293,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("warehouse.deletedAt").isNull(),
                         Criteria.where("warehouseId").is(warehouseId),
                         Criteria.where("deletedAt").isNull(),
+                        Criteria.where("vehicleId").isNull(),
                         Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId())
                 )),
                 Aggregation.project("poNumber", "model", "commodityCode", "notes", "quantity", "description", "warehouseType")
@@ -314,6 +317,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("warehouse.deletedAt").isNull(),
                         Criteria.where("warehouseId").is(warehouseId),
                         Criteria.where("deletedAt").isNull(),
+                        Criteria.where("vehicleId").isNull(),
                         Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId())
                 )),
                 Aggregation.project("poNumber", "model", "commodityCode", "notes", "quantity", "description", "warehouseType")
@@ -377,6 +381,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("warehouse.status").is(WarehouseStatus.ACTIVE),
                         Criteria.where("deletedAt").isNull(),
                         Criteria.where("warehouse.deletedAt").isNull(),
+                        Criteria.where("vehicleId").isNull(),
                         Criteria.where("warehouse.type").is(WarehouseType.DESTINATION.getId()),
                         Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId())
                 )),
@@ -395,12 +400,13 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     }
 
     @Override
-    public List<InventoryPoWarehouseDto> findPoNumbersOfInventoryInStock(String warehouseType, List<String> inventoryTypes, String poNumber, String model, String warehouseId) {
+    public List<InventoryPoWarehouseDto> findPoNumbersOfInventoryInStock(String warehouseType, List<String> inventoryTypes, String model, String warehouseId) {
         List<Criteria> filters = new ArrayList<>(List.of(
                 Criteria.where("warehouse.status").is(WarehouseStatus.ACTIVE.getValue()),
                 Criteria.where("inventoryType").in(inventoryTypes),
                 Criteria.where("deletedAt").isNull(),
-                Criteria.where("poNumber").regex(poNumber, "i") // giống like '%%'
+                Criteria.where("containerId").isNull(),
+                Criteria.where("vehicleId").isNull()
         ));
         if (model != null) filters.add(Criteria.where("model").is(model));
         if (warehouseId != null) filters.add(Criteria.where("warehouseId").is(new ObjectId(warehouseId)));
@@ -424,7 +430,9 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 Criteria.where("warehouse.status").is(WarehouseStatus.ACTIVE.getValue()),
                 Criteria.where("warehouse.deletedAt").isNull(),
                 Criteria.where("deletedAt").isNull(),
-                Criteria.where("poNumber").is(poNumber)
+                Criteria.where("poNumber").is(poNumber),
+                Criteria.where("containerId").isNull(),
+                Criteria.where("vehicleId").isNull()
         ));
         if (warehouseType != null) filters.add(Criteria.where("warehouse.type").is(warehouseType));
         if (warehouseId != null) filters.add(Criteria.where("warehouseId").is(new ObjectId(warehouseId)));
@@ -546,17 +554,14 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     }
 
     @Override
-    public List<InventoryItemModelDto> findAllModelsAndItems(List<String> inventoryTypes, List<ObjectId> warehouseIds, String model) {
+    public List<InventoryItemModelDto> findAllModelsAndItems(List<String> inventoryTypes, List<ObjectId> warehouseIds) {
         List<String> statusIns = new ArrayList<>(List.of(InventoryItemStatus.IN_STOCK.getId()));
-        if (!inventoryTypes.contains(InventoryType.SPARE_PART.getId())) {
-            statusIns.add(InventoryItemStatus.IN_TRANSIT.getId());
-        }
         List<AggregationOperation> pipelines = new ArrayList<>(List.of(
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("inventoryType").in(inventoryTypes),
                         Criteria.where("status").in(statusIns),
-//                        Criteria.where("model").regex(model, "i"),
                         Criteria.where("warehouseId").in(warehouseIds),
+                        Criteria.where("vehicleId").isNull(),
                         Criteria.where("deletedAt").isNull()
                 )),
                 Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
@@ -564,6 +569,9 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         ));
         if (inventoryTypes.contains(InventoryType.SPARE_PART.getId())) {
             pipelines.add(Aggregation.match(Criteria.where("warehouse.type").ne(WarehouseType.DEPARTURE.getId())));
+        }
+        else{
+            statusIns.add(InventoryItemStatus.IN_TRANSIT.getId());
         }
         ProjectionOperation projection = Aggregation.project("warehouseId", "model", "productCode", "commodityCode", "quantity", "specifications", "pricing", "warehouse.type")
                 .and("_id").as("inventoryItemId")
@@ -664,7 +672,8 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("inventoryType").in(InventoryType.VEHICLE.getId(), InventoryType.ACCESSORY.getId()),
                         Criteria.where("vehicleId").isNull(),
                         Criteria.where("deletedAt").isNull(),
-                        Criteria.where("poNumber").regex(poNumber, "i")
+                        Criteria.where("poNumber").regex(poNumber, "i"),
+                        Criteria.where("containerId").isNull()
                 )),
                 Aggregation.project("model", "category", "serialNumber", "productCode", "poNumber", "inventoryType", "initialCondition", "notes", "specifications", "pricing", "logistics")
                         .and("_id").as("id")
@@ -682,7 +691,9 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("status").in(InventoryItemStatus.IN_STOCK.getId()),
                         Criteria.where("inventoryType").in(InventoryType.SPARE_PART.getId()),
                         Criteria.where("deletedAt").isNull(),
-                        Criteria.where("poNumber").regex(poNumber, "i")
+                        Criteria.where("poNumber").regex(poNumber, "i"),
+                        Criteria.where("vehicleId").isNull(),
+                        Criteria.where("containerId").isNull()
                 )),
                 Aggregation.project("commodityCode", "poNumber", "quantity", "description", "inventoryType", "contractNumber", "pricing")
                         .and("_id").as("id")

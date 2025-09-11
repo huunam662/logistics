@@ -119,14 +119,12 @@ public class InventoryItemController {
     public ApiResponse<?> getInventoryInStockPoNumbers(
             @Parameter(description = "[VEHICLE, ACCESSORY, SPARE_PART]")
             @RequestParam("inventoryType") List<String> inventoryTypes,
-            @Parameter(description = "Tìm kiếm theo mã Po number (Nếu cần).")
-            @RequestParam(value = "poNumber", required = false, defaultValue = "") String poNumber,
             @RequestParam(value = "model", required = false) String model,
             @RequestParam(value = "warehouseId", required = false) String warehouseId,
             @Parameter(description = "[PRODUCTION, DEPARTURE, DESTINATION, CONSIGNMENT]")
             @RequestParam(value = "warehouseType", required = false) String warehouseType
     ){
-        List<InventoryPoWarehouseDto> poNumbers = inventoryItemService.getInventoryInStockPoNumbers(inventoryTypes, poNumber, model, warehouseId, warehouseType);
+        List<InventoryPoWarehouseDto> poNumbers = inventoryItemService.getInventoryInStockPoNumbers(inventoryTypes, model, warehouseId, warehouseType);
         return ApiResponse.success(poNumbers);
     }
 
@@ -250,11 +248,9 @@ public class InventoryItemController {
     public ResponseEntity<?> getModels(
             @RequestParam("warehouseIds") List<String> warehouseIds,
             @Parameter(description = "[VEHICLE, ACCESSORY, SPARE_PART]")
-            @RequestParam("inventoryTypes") List<String> inventoryTypes,
-            @Parameter(description = "Tìm kiếm theo mã Model (Nếu cần).")
-            @RequestParam(value = "model", required = false, defaultValue = "") String model
+            @RequestParam("inventoryTypes") List<String> inventoryTypes
     ){
-        List<InventoryItemModelDto> models = inventoryItemService.getAllModels(inventoryTypes, warehouseIds, model);
+        List<InventoryItemModelDto> models = inventoryItemService.getAllModels(inventoryTypes, warehouseIds);
         return ResponseEntity.ok().body(ApiResponse.success(models));
     }
 
