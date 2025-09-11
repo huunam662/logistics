@@ -9,6 +9,5 @@ import warehouse_management.com.warehouse_management.model.Warranty;
 
 public interface CustomWarrantyRepository {
     Page<WarrantyResponseDTO> findItemWithFilter(PageOptionsDto pageOptionsDto);
-
     Warranty updateStatus(ObjectId id, WarrantyStatus status);
 }

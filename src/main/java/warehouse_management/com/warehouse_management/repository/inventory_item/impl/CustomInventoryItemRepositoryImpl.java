@@ -760,4 +760,34 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryItemWarrantyDto.class, agg, optionsDto);
     }
 
+    public Page<InventoryItemRepairDto> findItemForRepair(PageOptionsDto optionsDto) {
+        List<AggregationOperation> pipelines = new ArrayList<>();
+
+        // Lấy sản phẩm là loại xe đã bán
+        pipelines.add(Aggregation.match(new Criteria()
+                .andOperator(
+                        Criteria.where("deletedBy").is(null),
+                        Criteria.where("inventoryType").is(inventoryType.VEHICLE),
+                        Criteria.where("status").is(InventoryItemStatus.IN_STOCK))));
+
+        // Lấy những sản phẩm đang không sửa
+        pipelines.add(Aggregation.lookup("repair", "_id", "repairInventoryItem._id", "repair"));
+        pipelines.add(
+                Aggregation.match(new Criteria().orOperator(
+                        Criteria.where("repair").size(0),
+                        Criteria.where("repair.status").ne(RepairStatus.IN_REPAIR)
+                ))
+        );
+
+        pipelines.add(Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"));
+        pipelines.add(Aggregation.unwind("warehouse"));
+        pipelines.add(Aggregation.match(Criteria.where("warehouse.type").is(WarehouseType.DESTINATION)));
+
+        pipelines.add(Aggregation.project("serialNumber","model", "id", "productCode"));
+
+        Aggregation agg = Aggregation.newAggregation(pipelines);
+
+        return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryItemRepairDto.class, agg, optionsDto);
+    }
+
 }
