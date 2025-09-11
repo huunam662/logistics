@@ -266,4 +266,13 @@ public class InventoryItemController {
     public ApiResponse<?> getInventoryItemForWarranty(@ModelAttribute PageOptionsDto pageOptionsDto) {
         return ApiResponse.success(inventoryItemService.getInventoryItemForWarranty(pageOptionsDto));
     }
+
+    @GetMapping("/repair")
+    @Operation(
+            summary = "GET sản phẩm thuộc loại xe cho sửa chữa",
+            description = "GET sản phẩm thuộc loại xe cho sửa chữa"
+    )
+    public ApiResponse<?> getInventoryItemForRepair(@ModelAttribute PageOptionsDto pageOptionsDto) {
+        return ApiResponse.success(inventoryItemService.getInventoryItemForRepair(pageOptionsDto));
+    }
 }
