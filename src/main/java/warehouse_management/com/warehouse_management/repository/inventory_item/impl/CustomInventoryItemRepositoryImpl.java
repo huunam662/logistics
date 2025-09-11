@@ -585,7 +585,20 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     @Override
     public Page<ReportInventoryDto> findPageReportInventoryToDashBoard(ReportParamsDto params) {
 
-        GroupOperation group = Aggregation.group("poNumber", "model", "createdAt", "inventoryType")
+        List<AggregationOperation> pipelines = new ArrayList<>();
+
+        pipelines.add(Aggregation.addFields()
+                .addField("createdAtToDate")
+                .withValue(
+                        DateOperators.DateFromParts
+                                .dateFromParts()
+                                .year(DateOperators.Year.yearOf("createdAt"))
+                                .month(DateOperators.Month.monthOf("createdAt"))
+                                .day(DateOperators.DayOfMonth.dayOfMonth("createdAt"))
+                ).build());
+
+        GroupOperation group = Aggregation.group("poNumber", "model", "inventoryType")
+                .first("createdAtToDate").as("loadToWarehouseDate")
                 .first("pricing.agent").as("agent")
                 .sum(
                         ConditionalOperators.when(Criteria.where("inventoryType").is(InventoryType.VEHICLE.getId()))
@@ -603,23 +616,24 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                                 .otherwise(0)
                 ).as("totalSparePart");
 
-        ProjectionOperation project = Aggregation.project("agent", "totalVehicle", "totalAccessory", "totalSparePart", "inventoryType")
-                .and("_id.poNumber").as("poNumber")
-                .and("_id.model").as("model")
-                .and("_id.createdAt").as("loadToWarehouseDate");
+        ProjectionOperation project = Aggregation.project("poNumber", "model", "agent", "totalVehicle", "totalAccessory", "totalSparePart", "inventoryType", "loadToWarehouseDate");
 
         List<AggregationOperation> lookups = new ArrayList<>();
 
-        List<Criteria> filter = new ArrayList<>(List.of(Criteria.where("deletedAt").isNull()));
+        List<Criteria> filter = new ArrayList<>(List.of(
+                Criteria.where("deletedAt").isNull(),
+                Criteria.where("vehicleId").isNull()
+        ));
 
         if ("CONTAINER".equals(params.getTypeReport())) {
             lookups.add(Aggregation.lookup("container", "containerId", "_id", "container"));
             lookups.add(Aggregation.unwind("container"));
             ArithmeticOperators.Subtract dayLateOperatorsSubtract = ArithmeticOperators.Subtract.valueOf("$$NOW").subtract("container.arrivalDate");
-            group = group.first("container.containerCode").as("containerCode")
+            group = group
+                    .first("departureToDate").as("departureDate")
+                    .first("arrivalToDate").as("arrivalDate")
+                    .first("container.containerCode").as("containerCode")
                     .first("container.containerStatus").as("containerStatus")
-                    .first("container.departureDate").as("departureDate")
-                    .first("container.arrivalDate").as("arrivalDate")
                     .first(
                             ConditionalOperators.when(Criteria.where("container.arrivalDate").ne(null))
                                     .then(
@@ -639,14 +653,32 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
             project = project.andInclude("reportType");
         }
 
-        List<AggregationOperation> pipelines = new ArrayList<>();
         pipelines.add(Aggregation.match(new Criteria().andOperator(filter)));
         pipelines.addAll(lookups);
-        if ("CONTAINER".equals(params.getTypeReport()))
+        if ("CONTAINER".equals(params.getTypeReport())) {
             pipelines.add(Aggregation.match(new Criteria().andOperator(
                     Criteria.where("container.containerStatus").is(ContainerStatus.IN_TRANSIT.getId()),
                     Criteria.where("container.deletedAt").isNull()
             )));
+            pipelines.add(Aggregation.addFields()
+                    .addField("departureToDate")
+                    .withValue(
+                            DateOperators.DateFromParts
+                                    .dateFromParts()
+                                    .year(DateOperators.Year.yearOf("container.departureDate"))
+                                    .month(DateOperators.Month.monthOf("container.departureDate"))
+                                    .day(DateOperators.DayOfMonth.dayOfMonth("container.departureDate"))
+                    ).build());
+            pipelines.add(Aggregation.addFields()
+                    .addField("arrivalToDate")
+                    .withValue(
+                            DateOperators.DateFromParts
+                                    .dateFromParts()
+                                    .year(DateOperators.Year.yearOf("container.arrivalDate"))
+                                    .month(DateOperators.Month.monthOf("container.arrivalDate"))
+                                    .day(DateOperators.DayOfMonth.dayOfMonth("container.arrivalDate"))
+                    ).build());
+        }
         else {
             WarehouseType typeReport = WarehouseType.fromId(params.getTypeReport());
             if (typeReport == null) throw LogicErrException.of("Loại kho hàng cần báo cáo không hợp lệ.");
