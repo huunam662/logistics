@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import warehouse_management.com.warehouse_management.app.CustomAuthentication;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.repair.request.CreateRepairDTO;
@@ -35,6 +36,7 @@ public class RepairService {
     private final RepairRepository repairRepository;
     private final InventoryItemRepository inventoryItemRepository;
     private final RepairTransactionRepository repairTransactionRepository;
+    private final TransactionTemplate transactionTemplate;
 
     private final RepairMapper repairMapper;
     private final RepairTransactionMapper repairTransactionMapper;
@@ -59,25 +61,30 @@ public class RepairService {
      */
     @Transactional
     public List<RepairResponseDTO> createRepair(List<CreateRepairDTO> listCreateRepairDTO) {
-        List<Repair> listRepair = new ArrayList<>();
+        return transactionTemplate.execute((action) -> {
+            List<Repair> listRepair = new ArrayList<>();
 
-        for (CreateRepairDTO createRepairDTO : listCreateRepairDTO) {
-            Repair newRepair = new Repair();
+            for (CreateRepairDTO createRepairDTO : listCreateRepairDTO) {
+                Repair newRepair = new Repair();
 
-            Optional<InventoryItem> inventoryItem = inventoryItemRepository
-                    .findById(createRepairDTO.getRepairInventoryItemId());
+                Optional<InventoryItem> inventoryItem = inventoryItemRepository
+                        .findById(createRepairDTO.getRepairInventoryItemId());
 
-            inventoryItem.ifPresent((item) -> {
-                validateItemBeforeRepair(item);
-                newRepair.setRepairInventoryItem(item);
-            });
+                inventoryItem.ifPresent((item) -> {
+                    validateItemBeforeRepair(item);
+                    newRepair.setRepairInventoryItem(item);
 
-            newRepair.setNote(createRepairDTO.getNote());
+                    // Chỉnh trạng thái của xe lại là đang sữa chữa
+                    inventoryItemRepository.updateStatusInventoryItem(item.getId(), InventoryItemStatus.IN_REPAIR);
+                });
 
-            listRepair.add(newRepair);
-        }
+                newRepair.setNote(createRepairDTO.getNote());
 
-        return repairRepository.saveAll(listRepair).stream().map(repairMapper::toResponseDto).toList();
+                listRepair.add(newRepair);
+            }
+
+            return repairRepository.saveAll(listRepair).stream().map(repairMapper::toResponseDto).toList();
+        });
     }
 
     /**
