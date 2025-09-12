@@ -628,9 +628,20 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         if ("CONTAINER".equals(params.getTypeReport())) {
             lookups.add(Aggregation.lookup("container", "containerId", "_id", "container"));
             lookups.add(Aggregation.unwind("container"));
-            ArithmeticOperators.Subtract dayLateOperatorsSubtract = ArithmeticOperators.Subtract.valueOf("$$NOW").subtract("container.arrivalDate");
-            group = group
-                    .first("departureToDate").as("departureDate")
+
+            AggregationExpression nowDay = DateOperators.DateFromParts.dateFromParts()
+                    .year(DateOperators.Year.yearOf("$$NOW"))
+                    .month(DateOperators.Month.monthOf("$$NOW"))
+                    .day(DateOperators.DayOfMonth.dayOfMonth("$$NOW"));
+
+            AggregationExpression arrivalDay = DateOperators.DateFromParts.dateFromParts()
+                    .year(DateOperators.Year.yearOf("container.arrivalDate"))
+                    .month(DateOperators.Month.monthOf("container.arrivalDate"))
+                    .day(DateOperators.DayOfMonth.dayOfMonth("container.arrivalDate"));
+
+            ArithmeticOperators.Subtract dayLateOperatorsSubtract = ArithmeticOperators.Subtract.valueOf(nowDay).subtract(arrivalDay);
+
+            group = group.first("departureToDate").as("departureDate")
                     .first("arrivalToDate").as("arrivalDate")
                     .first("container.containerCode").as("containerCode")
                     .first("container.containerStatus").as("containerStatus")
