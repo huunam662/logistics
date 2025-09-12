@@ -533,6 +533,8 @@ public class DeliveryOrderService {
                 // - Đối với sản phẩm xe & phụ kiện thì chỉ xóa hoặc thêm mới hoặc cho phép đổi trạng thái "chưa giao" sang "đã giao"
                 if (itemToUpdateReq.getIsDelivered()) {
 
+                    if(deliveryItem.getLogistics() == null) deliveryItem.setLogistics(new DeliveryOrder.InventoryItemDelivery.Logistics());
+
                     deliveryItem.setIsDelivered(true);
                     deliveryItem.getLogistics().setArrivalDate(LocalDateTime.now());
                     InventoryItem product = inventoryInWarehouseMap.get(deliveryItem.getId());
