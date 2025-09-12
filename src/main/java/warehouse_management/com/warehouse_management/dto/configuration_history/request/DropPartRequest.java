@@ -7,8 +7,8 @@ import java.math.BigDecimal;
 @Data
 public class DropPartRequest {
     private String vehicleId;    // ID xe
-    private String partType;     // Loại bộ phận: frame, valve, fork, engine, wheel, battery, sideshift, charge
-    private String partCode;     // Mã sản phẩm / mã hàng hóa
+    private String productCode;
+    private String componentType;     // Loại bộ phận: frame, valve, fork, engine, wheel, battery, sideshift, charge
     private BigDecimal actualPrice; // Giá bán thực tế
     private BigDecimal priceR0;     // Giá bán R0
     private BigDecimal priceR1;     // Giá bán R1

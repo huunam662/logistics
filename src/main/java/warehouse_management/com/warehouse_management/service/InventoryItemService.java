@@ -87,15 +87,23 @@ public class InventoryItemService {
         }
 
         try {
-            InventoryItem saved = inventoryItemRepository.save(newItem);
+            List<InventoryItem> itemsToInsert = new ArrayList<>();
+            buildComponentItems(newItem, itemsToInsert);
+            inventoryItemRepository.bulkInsert(itemsToInsert);
             // Ghi phiếu nhập kho (WarehouseTransaction)
-            warehouseTransferTicketRepository.save(buildAWarehouseTransaction(inStockWh, saved));
-            return saved;
+            warehouseTransferTicketRepository.save(buildAWarehouseTransaction(inStockWh, newItem));
+            return newItem;
         } catch (DuplicateKeyException e) {
             throw new IllegalArgumentException("ProductCode already exists: " + newItem.getProductCode(), e);
         }
     }
 
+    public InventoryItem getComponentItemToVehicleIdAndType(ObjectId vehicleId, ComponentType componentType, String productCOde){
+
+        return inventoryItemRepository
+                .findByVehicleIdAndComponentType(vehicleId, componentType.getId())
+                .orElseThrow(() -> LogicErrException.of("Không tìm thấy bộ phận "+componentType.getValue()+" của xe "+productCOde));
+    }
 
     private InventoryItem buildSparePartItem(CreateInventorySparePartDto req, Warehouse wh, LocalDate orderDate) {
         InventoryItem item = inventoryItemMapper.toInventoryItemSparePart(req);
@@ -221,22 +229,18 @@ public class InventoryItemService {
             return List.of();
         }
         List<InventoryItem> itemsToInsert = new ArrayList<>();
-        List<ConfigurationHistory> confsToInsert = new ArrayList<>();
         List<InventoryItem> itemToLog = new ArrayList<>();
         for (T dto : dtos) {
             InventoryItem item = toInventoryItem.apply(dto);
             itemToLog.add(item);
             if (importType.equals(WarehouseSubTranType.EXCEL_TO_PRODUCTION_PRODUCT)) {
-                buildProductItems(item, importType, itemsToInsert, confsToInsert);
+                buildComponentItems(item, itemsToInsert);
             } else {
                 item.setStatus(InventoryItemStatus.IN_STOCK);
                 itemsToInsert.add(item);
             }
         }
 
-        if (!confsToInsert.isEmpty()) {
-            configurationHistoryRepository.bulkInsert(confsToInsert);
-        }
         List<InventoryItem> saved = inventoryItemRepository.bulkInsert(itemsToInsert);
 
         List<WarehouseTransaction.InventoryItemTicket> itemTicketToLog = itemToLog.stream().map(mapper::toInventoryItemTicket).collect(Collectors.toList());
@@ -245,93 +249,114 @@ public class InventoryItemService {
         return saved;
     }
 
-    private void buildProductItems(InventoryItem parentItem, WarehouseSubTranType importType, List<InventoryItem> itemsToInsert, List<ConfigurationHistory> confsToInsert) {
-        List<InventoryItem> dataToSave = new ArrayList<>();
+    private void buildComponentItems(
+            InventoryItem parentItem,
+            List<InventoryItem> itemsToInsert
+    ) {
 
         // Tạo ObjectId cho item cha
-        ObjectId parentId = new ObjectId();
-        parentItem.setId(parentId);
+        if(parentItem.getId() != null)
+            parentItem.setId(new ObjectId());
         parentItem.setInventoryType(InventoryType.VEHICLE.getId());
         parentItem.setStatus(InventoryItemStatus.IN_STOCK);
-        dataToSave.add(parentItem);
+        itemsToInsert.add(parentItem);
 
         // === Sinh các item con theo loại PK ===
-        InventoryItem liftingFrame = null;
-        InventoryItem battery = null;
-        InventoryItem charger = null;
-        ObjectId liftingFrameId = null;
-        ObjectId chargerId = null;
-        ObjectId batterId = null;
-
-        if (parentItem.getSpecifications().getLiftingHeightMm() != null
+        if (
+                parentItem.getSpecifications().getLiftingHeightMm() != null
                 && parentItem.getSpecifications().getChassisType() != null
-                && parentItem.getSpecifications().getLiftingCapacityKg() != null) {
-            liftingFrame = mapper.cloneToLiftingFrame(parentItem);
-            liftingFrameId = new ObjectId();
-            liftingFrame.setId(liftingFrameId);
+                && parentItem.getSpecifications().getLiftingCapacityKg() != null
+        ) {
+            InventoryItem liftingFrame = mapper.cloneToLiftingFrame(parentItem);
+            liftingFrame.setId(new ObjectId());
+            liftingFrame.setQuantity(1);
+            liftingFrame.setVehicleId(parentItem.getId());   // gán cha
             liftingFrame.setInventoryType(InventoryType.ACCESSORY.getId());
-            liftingFrame.setVehicleId(parentId);   // gán cha
-            liftingFrame.setAccessoryType(AccessoryType.LIFTING_FRAME);
+            liftingFrame.setComponentType(ComponentType.LIFTING_FRAME.getId());
+            liftingFrame.setStatus(InventoryItemStatus.OTHER);
 
-            dataToSave.add(liftingFrame);
+            itemsToInsert.add(liftingFrame);
         }
 
-        if (parentItem.getSpecifications().getBatteryInfo() != null
-                && parentItem.getSpecifications().getBatterySpecification() != null) {
-            battery = mapper.cloneToBattery(parentItem);
-            batterId = new ObjectId();
-            battery.setId(batterId);
-            battery.setVehicleId(parentId);
+        if (
+                parentItem.getSpecifications().getBatteryInfo() != null
+                && parentItem.getSpecifications().getBatterySpecification() != null
+        ) {
+            InventoryItem battery = mapper.cloneToBattery(parentItem);
+            battery.setId(new ObjectId());
+            battery.setQuantity(1);
+            battery.setVehicleId(parentItem.getId());
             battery.setInventoryType(InventoryType.ACCESSORY.getId());
-            battery.setAccessoryType(AccessoryType.BATTERY);
-            dataToSave.add(battery);
+            battery.setComponentType(ComponentType.BATTERY.getId());
+            battery.setStatus(InventoryItemStatus.OTHER);
+
+            itemsToInsert.add(battery);
         }
 
         if (parentItem.getSpecifications().getChargerSpecification() != null) {
-            charger = mapper.cloneToCharger(parentItem);
-            chargerId = new ObjectId();
-            charger.setId(chargerId);
-            charger.setVehicleId(parentId);
+            InventoryItem charger = mapper.cloneToCharger(parentItem);
+            charger.setId(new ObjectId());
+            charger.setQuantity(1);
+            charger.setVehicleId(parentItem.getId());
             charger.setInventoryType(InventoryType.ACCESSORY.getId());
-            charger.setAccessoryType(AccessoryType.CHARGER);
-            dataToSave.add(charger);
-        }
-        itemsToInsert.addAll(dataToSave);
-//        if (importType.equals(WarehouseSubTranType.EXCEL_TO_PRODUCTION_SPARE_PART)) {
-//            itemsToInsert.addAll(buildInventoryItemToOtherDestWh(itemsToInsert));
-//        }
-        // === Tạo bản ghi lịch sử cấu hình (ConfigTran) ===
-        ConfigurationHistory hist = new ConfigurationHistory();
+            charger.setComponentType(ComponentType.CHARGER.getId());
+            charger.setStatus(InventoryItemStatus.OTHER);
 
-        hist.setVehicleId(parentId);
-        hist.setProductCode(parentItem.getProductCode());
-
-        if (liftingFrame != null) {
-            hist.setLiftingFrameId(liftingFrame.getId());
-            hist.setLiftingFrameLabel(generalUtil.buildLiftingFrameLabel(liftingFrame));
-        }
-        if (battery != null) {
-            hist.setBatteryId(battery.getId());
-            hist.setBatteryLabel(generalUtil.buildBatteryLabel(battery));
-        }
-        if (charger != null) {
-            hist.setChargerId(charger.getId());
-            hist.setChargerLabel(generalUtil.buildChargerLabel(charger));
+            itemsToInsert.add(charger);
         }
 
-        hist.setEngineType(parentItem.getSpecifications().getEngineType());
-        hist.setForkDimensions(parentItem.getSpecifications().getForkDimensions());
-        hist.setValveCount(parentItem.getSpecifications().getValveCount());
-        hist.setHasSideShift(parentItem.getSpecifications().getHasSideShift());
+        if(parentItem.getSpecifications().getEngineType() != null){
+            InventoryItem engine = mapper.cloneToEngineType(parentItem);
+            engine.setId(new ObjectId());
+            engine.setQuantity(1);
+            engine.setVehicleId(parentItem.getId());
+            engine.setInventoryType(InventoryType.SPARE_PART.getId());
+            engine.setComponentType(ComponentType.ENGINE.getId());
+            engine.setStatus(InventoryItemStatus.OTHER);
+            engine.setDescription(ComponentType.ENGINE.getValue());
+
+            itemsToInsert.add(engine);
+        }
+
+        if(parentItem.getSpecifications().getForkDimensions() != null){
+            InventoryItem fork = mapper.cloneToForkDimensions(parentItem);
+            fork.setId(new ObjectId());
+            fork.setQuantity(1);
+            fork.setVehicleId(parentItem.getId());
+            fork.setInventoryType(InventoryType.SPARE_PART.getId());
+            fork.setComponentType(ComponentType.FORK.getId());
+            fork.setStatus(InventoryItemStatus.OTHER);
+            fork.setDescription(ComponentType.FORK.getValue());
+
+            itemsToInsert.add(fork);
+        }
+
+        if(parentItem.getSpecifications().getValveCount() != null && parentItem.getSpecifications().getValveCount() > 0){
+            InventoryItem valve = mapper.cloneToValveOrSideShift(parentItem);
+            valve.setId(new ObjectId());
+            valve.setQuantity(parentItem.getSpecifications().getValveCount());
+            valve.setVehicleId(parentItem.getId());
+            valve.setInventoryType(InventoryType.SPARE_PART.getId());
+            valve.setComponentType(ComponentType.VALVE.getId());
+            valve.setStatus(InventoryItemStatus.OTHER);
+            valve.setDescription(ComponentType.VALVE.getValue());
+
+            itemsToInsert.add(valve);
+        }
 
 
-        hist.setNote("Bulk import " + importType.name());
-        hist.setLatest(true);
+        if(parentItem.getSpecifications().getHasSideShift()){
+            InventoryItem sideShift = mapper.cloneToValveOrSideShift(parentItem);
+            sideShift.setId(new ObjectId());
+            sideShift.setQuantity(1);
+            sideShift.setVehicleId(parentItem.getId());
+            sideShift.setInventoryType(InventoryType.SPARE_PART.getId());
+            sideShift.setComponentType(ComponentType.SIDE_SHIFT.getId());
+            sideShift.setStatus(InventoryItemStatus.OTHER);
+            sideShift.setDescription(ComponentType.SIDE_SHIFT.getValue());
 
-        // Lưu ConfigTran
-        confsToInsert.add(hist);
-
-
+            itemsToInsert.add(sideShift);
+        }
     }
 
 

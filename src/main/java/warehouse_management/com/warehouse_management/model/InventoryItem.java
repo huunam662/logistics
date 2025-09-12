@@ -13,9 +13,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.mapping.FieldType;
 import org.springframework.data.mongodb.core.index.Indexed;
-import warehouse_management.com.warehouse_management.enumerate.AccessoryType;
 import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
-import warehouse_management.com.warehouse_management.enumerate.SparePartType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -28,8 +26,7 @@ public class InventoryItem {
     @Id
     private ObjectId id; // _id – Khóa chính tự động tạo bởi MongoDB
     private String inventoryType;   //InventoryType
-    private String accessoryType; // AccessoryType
-    private String sparePartType; // SparePartType
+    private String componentType; // Loại bộ phận của xe (theo phụ kiện hoặc phụ tùng)
     private String poNumber;       // Số của Đơn đặt hàng (Purchase Order) – Bắt buộc
 
     //   XE/PK
@@ -37,10 +34,10 @@ public class InventoryItem {
     private String productCode;    // Mã định danh của sản phẩm (đối với sản phẩm xe & phụ kiện, phụ tùng thuộc sản phẩm này) – Bắt buộc
     private String serialNumber;   // Số seri – Có cho xe/phụ kiện
     private String model;          // Model sản phẩm – Bắt buộc
+    private Boolean isFullyConfigurations;
     //
     private Integer manufacturingYear; // Năm sản xuất – Không bắt buộc
 
-    @Indexed(unique = true)
     private String status;         // Trạng thái hiện tại (IN_STOCK, IN_TRANSIT...) – Bắt buộc
     private String contractNumber; // Số hợp đồng
 
@@ -50,7 +47,6 @@ public class InventoryItem {
 
     // --- PK PT ---
     //PT
-    @Indexed(unique = true)
     private String commodityCode;  // Mã hàng hóa (đôi với phụ tùng)
 
     private String description;         // Mô tả
@@ -58,6 +54,9 @@ public class InventoryItem {
     private ObjectId vehicleId; // PK/PT không dùng
 
     private Specifications specifications;
+
+    private Specifications specificationsBase;
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -116,7 +115,6 @@ public class InventoryItem {
     //    REF
     private String warehouseType;  // Loại kho (kho bảo quản dành cho hàng hóa)
 
-    @Indexed(unique = true)
     private ObjectId warehouseId;  // _id của warehouse – Có nếu đang ở kho
     private ObjectId containerId;  // _id của container – Có nếu đang trong container
     // ===REF===
@@ -142,22 +140,6 @@ public class InventoryItem {
 
     public void setStatus(InventoryItemStatus inventoryItemStatus) {
         this.status = inventoryItemStatus == null ? null : inventoryItemStatus.getId();
-    }
-
-    public void setSparePartType(String sparePartType) {
-        this.sparePartType = sparePartType;
-    }
-
-    public void setAccessoryType(String accessoryType) {
-        this.accessoryType = accessoryType;
-    }
-
-    public void setSparePartType(SparePartType sparePartType) {
-        this.sparePartType = sparePartType.getId();
-    }
-
-    public void setAccessoryType(AccessoryType accessoryType) {
-        this.accessoryType = accessoryType.getId();
     }
 }
 
