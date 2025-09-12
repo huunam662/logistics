@@ -10,43 +10,23 @@ import java.time.LocalDateTime;
 @Document(collection = "configuration_hist")
 @Data
 public class ConfigurationHistory {
+
     @Id
     private ObjectId id;
+
     private ObjectId vehicleId;
-    private String productCode;
 
-    // PK
-    private ObjectId liftingFrameId;
-    private String liftingFrameLabel;
-    private ObjectId prevLiftingFrameId;
-    private String prevLiftingFrameLabel;
+    private ObjectId componentOldId; // Id của bộ phận cũ
+    private String componentOldSerial;  // Serial của bộ phận mới
 
-    private ObjectId batteryId;
-    private String batteryLabel;
-    private ObjectId prevBatteryId;
-    private String prevBatteryLabel;
+    private ObjectId componentReplaceId;    // Id của bộ phận được thay thế
+    private String componentReplaceSerial;  // Serial của bộ phận được thay thế
 
-    private ObjectId chargerId;
-    private String chargerLabel;
-    private ObjectId prevChargerId;
-    private String prevChargerLabel;
+    private String componentType;    // Loại bộ phận cũ
 
-    // PT
-    private String prevEngineType;        // Loại động cơ
-    private String engineType;            // Loại động cơ
+    private String configType;    // Kiểu cấu hình thay đổi
 
-    private String prevForkDimensions;    // Thông số càng
-    private String forkDimensions;        // Thông số càng
-
-    private Integer prevValveCount;       // Số lượng van
-    private Integer valveCount;           // Số lượng van
-
-    private Boolean prevHasSideShift;     // Có side shift không
-    private Boolean hasSideShift;         // Có side shift không
-
-    private String note;
-    private boolean isLatest;
-    private boolean isOrigin;
+    private String description;
 
     @CreatedBy
     private String createdBy;

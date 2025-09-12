@@ -16,6 +16,4 @@ public interface ConfigurationHistoryRepository extends CustomConfigurationHisto
     // Lấy bản cấu hình mới nhất theo vehicleId
     Optional<ConfigurationHistory> findTopByVehicleIdOrderByCreatedAtDesc(ObjectId vehicleId);
 
-    // Lấy bản cấu hình mới nhất theo vehicleId dựa trên isLatest = true
-    Optional<ConfigurationHistory> findFirstByVehicleIdAndIsLatestTrue(ObjectId vehicleId);
 }

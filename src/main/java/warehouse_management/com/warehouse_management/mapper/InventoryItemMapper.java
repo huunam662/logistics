@@ -55,70 +55,113 @@ public interface InventoryItemMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "productCode", ignore = true)
-    @Mapping(target = "serialNumber", ignore = true)
     @Mapping(target = "specifications.batteryInfo", ignore = true)
     @Mapping(target = "specifications.batterySpecification", ignore = true)
-
     @Mapping(target = "specifications.chargerSpecification", ignore = true)
-
     @Mapping(target = "commodityCode", ignore = true)
     @Mapping(target = "quantity", ignore = true)
     @Mapping(target = "specifications.engineType", ignore = true)
     @Mapping(target = "specifications.forkDimensions", ignore = true)
     @Mapping(target = "specifications.valveCount", ignore = true)
     @Mapping(target = "specifications.hasSideShift", ignore = true)
-
-
     @Mapping(target = "pricing", ignore = true)
-    @Mapping(target = "logistics", ignore = true)
     @Mapping(target = "specifications.otherDetails", ignore = true)
+    @Mapping(target = "description", ignore = true)
     InventoryItem cloneToLiftingFrame(InventoryItem inventoryItem);
 
 
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "productCode", ignore = true)
-    @Mapping(target = "serialNumber", ignore = true)
     @Mapping(target = "specifications.liftingCapacityKg", ignore = true)
     @Mapping(target = "specifications.chassisType", ignore = true)
     @Mapping(target = "specifications.liftingHeightMm", ignore = true)
-
     @Mapping(target = "specifications.chargerSpecification", ignore = true)
-
     @Mapping(target = "commodityCode", ignore = true)
     @Mapping(target = "quantity", ignore = true)
     @Mapping(target = "specifications.engineType", ignore = true)
     @Mapping(target = "specifications.forkDimensions", ignore = true)
     @Mapping(target = "specifications.valveCount", ignore = true)
     @Mapping(target = "specifications.hasSideShift", ignore = true)
-
     @Mapping(target = "pricing", ignore = true)
-    @Mapping(target = "logistics", ignore = true)
     @Mapping(target = "specifications.otherDetails", ignore = true)
+    @Mapping(target = "description", ignore = true)
     InventoryItem cloneToBattery(InventoryItem inventoryItem);
 
 
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "productCode", ignore = true)
-    @Mapping(target = "serialNumber", ignore = true)
     @Mapping(target = "specifications.liftingCapacityKg", ignore = true)
     @Mapping(target = "specifications.chassisType", ignore = true)
     @Mapping(target = "specifications.liftingHeightMm", ignore = true)
-
     @Mapping(target = "specifications.batteryInfo", ignore = true)
     @Mapping(target = "specifications.batterySpecification", ignore = true)
-
     @Mapping(target = "commodityCode", ignore = true)
     @Mapping(target = "quantity", ignore = true)
     @Mapping(target = "specifications.engineType", ignore = true)
     @Mapping(target = "specifications.forkDimensions", ignore = true)
     @Mapping(target = "specifications.valveCount", ignore = true)
     @Mapping(target = "specifications.hasSideShift", ignore = true)
-
-
     @Mapping(target = "pricing", ignore = true)
-    @Mapping(target = "logistics", ignore = true)
     @Mapping(target = "specifications.otherDetails", ignore = true)
+    @Mapping(target = "description", ignore = true)
     InventoryItem cloneToCharger(InventoryItem inventoryItem);
+
+
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "productCode", ignore = true)
+    @Mapping(target = "specifications.liftingCapacityKg", ignore = true)
+    @Mapping(target = "specifications.chassisType", ignore = true)
+    @Mapping(target = "specifications.liftingHeightMm", ignore = true)
+    @Mapping(target = "specifications.batteryInfo", ignore = true)
+    @Mapping(target = "specifications.batterySpecification", ignore = true)
+    @Mapping(target = "specifications.chargerSpecification", ignore = true)
+    @Mapping(target = "quantity", ignore = true)
+    @Mapping(target = "specifications.forkDimensions", ignore = true)
+    @Mapping(target = "specifications.valveCount", ignore = true)
+    @Mapping(target = "specifications.hasSideShift", ignore = true)
+    @Mapping(target = "pricing", ignore = true)
+    @Mapping(target = "specifications.otherDetails", ignore = true)
+    @Mapping(target = "commodityCode", source = "serialNumber")
+    @Mapping(target = "description", ignore = true)
+    InventoryItem cloneToEngineType(InventoryItem inventoryItem);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "productCode", ignore = true)
+    @Mapping(target = "specifications.liftingCapacityKg", ignore = true)
+    @Mapping(target = "specifications.chassisType", ignore = true)
+    @Mapping(target = "specifications.liftingHeightMm", ignore = true)
+    @Mapping(target = "specifications.batteryInfo", ignore = true)
+    @Mapping(target = "specifications.batterySpecification", ignore = true)
+    @Mapping(target = "specifications.chargerSpecification", ignore = true)
+    @Mapping(target = "quantity", ignore = true)
+    @Mapping(target = "specifications.engineType", ignore = true)
+    @Mapping(target = "specifications.valveCount", ignore = true)
+    @Mapping(target = "specifications.hasSideShift", ignore = true)
+    @Mapping(target = "pricing", ignore = true)
+    @Mapping(target = "specifications.otherDetails", ignore = true)
+    @Mapping(target = "commodityCode", source = "serialNumber")
+    @Mapping(target = "description", ignore = true)
+    InventoryItem cloneToForkDimensions(InventoryItem inventoryItem);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "productCode", ignore = true)
+    @Mapping(target = "specifications.liftingCapacityKg", ignore = true)
+    @Mapping(target = "specifications.chassisType", ignore = true)
+    @Mapping(target = "specifications.liftingHeightMm", ignore = true)
+    @Mapping(target = "specifications.batteryInfo", ignore = true)
+    @Mapping(target = "specifications.batterySpecification", ignore = true)
+    @Mapping(target = "specifications.chargerSpecification", ignore = true)
+    @Mapping(target = "quantity", ignore = true)
+    @Mapping(target = "specifications.engineType", ignore = true)
+    @Mapping(target = "specifications.forkDimensions", ignore = true)
+    @Mapping(target = "specifications.valveCount", ignore = true)
+    @Mapping(target = "specifications.hasSideShift", ignore = true)
+    @Mapping(target = "pricing", ignore = true)
+    @Mapping(target = "specifications.otherDetails", ignore = true)
+    @Mapping(target = "commodityCode", source = "serialNumber")
+    @Mapping(target = "description", ignore = true)
+    InventoryItem cloneToValveOrSideShift(InventoryItem inventoryItem);
 }

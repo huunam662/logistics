@@ -20,7 +20,11 @@ public interface InventoryItemRepository extends MongoRepository<InventoryItem, 
     Optional<InventoryItem> findByProductCode(String productCode);
     Optional<InventoryItem> findBySerialNumber(String serialNumber);
 
+    Optional<InventoryItem> findByCommodityCodeAndDescription(String commodityCode, String description);
+
     boolean existsBySerialNumber(String serialNumber);
+
+    boolean existsByProductCode(String productCode);
 
     // tuỳ chọn thêm
     long countByWarehouseId(ObjectId warehouseId);
@@ -63,9 +67,14 @@ public interface InventoryItemRepository extends MongoRepository<InventoryItem, 
     })
     List<ObjectId> findIdsByContainerIdAndStatus(ObjectId containerId, String status);
 
-    Optional<InventoryItem> findByVehicleIdAndAccessoryType(ObjectId vehicleId, String accessoryType);
+    @Query("{vehicleId: ?0, componentType: ?0}")
+    Optional<InventoryItem> findByVehicleIdAndComponentType(ObjectId vehicleId, String componentType);
 
     @Query("{ '_id': { $in: ?0 } }")
     @Update("{ '$set': { 'status': ?1 } }")
     void updateBulkStatusInventoryItem(List<ObjectId> itemIdList, InventoryItemStatus status);
+
+    @Query("{'_id': ?0}")
+    @Update("{'$set':  {'vehicleId': ?1}}")
+    void updateVehicleIdById(ObjectId id, ObjectId vehicleId);
 }

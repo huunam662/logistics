@@ -5,8 +5,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import warehouse_management.com.warehouse_management.dto.configuration_history.request.DropPartRequest;
 import warehouse_management.com.warehouse_management.dto.configuration_history.request.VehiclePartSwapRequest;
-import warehouse_management.com.warehouse_management.enumerate.AccessoryType;
-import warehouse_management.com.warehouse_management.enumerate.SparePartType;
+import warehouse_management.com.warehouse_management.enumerate.ChangeConfigurationType;
+import warehouse_management.com.warehouse_management.enumerate.ComponentType;
+import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
+import warehouse_management.com.warehouse_management.enumerate.InventoryType;
 import warehouse_management.com.warehouse_management.exceptions.LogicErrException;
 import warehouse_management.com.warehouse_management.mapper.ConfigurationHistoryMapper;
 import warehouse_management.com.warehouse_management.model.ConfigurationHistory;
@@ -17,6 +19,7 @@ import warehouse_management.com.warehouse_management.utils.GeneralUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 
 @Service
@@ -40,75 +43,29 @@ public class ConfigurationHistoryService {
     @Transactional
     public boolean swapItems(VehiclePartSwapRequest request) {
         // 1. Lấy vehicle và accessory tương ứng
-        InventoryItem leftVeh = inventoryItemService.findByIdOrThrow(request.getLeftVehicle());
-        InventoryItem rightVeh = inventoryItemService.findByIdOrThrow(request.getRightVehicle());
+        InventoryItem leftVeh = inventoryItemService.findByIdOrThrow(request.getLeftVehicleId());
+        InventoryItem rightVeh = inventoryItemService.findByIdOrThrow(request.getRightVehicleId());
 
-        if (AccessoryType.fromId(request.getPartType()) != null) {
-            InventoryItem leftAccessory = inventoryItemRepository
-                    .findByVehicleIdAndAccessoryType(new ObjectId(request.getLeftVehicle()), request.getPartType())
-                    .orElseThrow(() -> LogicErrException.of("Không tìm thấy accessory của xe trái"));
-            InventoryItem rightAccessory = inventoryItemRepository
-                    .findByVehicleIdAndAccessoryType(new ObjectId(request.getRightVehicle()), request.getPartType())
-                    .orElseThrow(() -> LogicErrException.of("Không tìm thấy accessory của xe phải"));
+        ComponentType componentType = ComponentType.fromId(request.getComponentType());
+        if(componentType == null) throw LogicErrException.of("Loại bộ phận cần tháo rời không hợp lệ.");
 
-            AccessoryType accessoryType = AccessoryType.fromId(request.getPartType());
+        InventoryItem leftVehComponent = inventoryItemService.getComponentItemToVehicleIdAndType(leftVeh.getId(), componentType, leftVeh.getProductCode());
+        InventoryItem rightVehComponent = inventoryItemService.getComponentItemToVehicleIdAndType(rightVeh.getId(), componentType, leftVeh.getProductCode());
+        inventoryItemRepository.updateVehicleIdById(leftVehComponent.getId(), rightVeh.getId());
+        inventoryItemRepository.updateVehicleIdById(rightVehComponent.getId(), leftVeh.getId());
 
-            List<ConfigurationHistory> histsToSave = new ArrayList<>();
-            buildHistory(leftVeh, rightAccessory, leftAccessory, accessoryType, histsToSave);
-            buildHistory(rightVeh, leftAccessory, rightAccessory, accessoryType, histsToSave);
-
-            // 2. Swap accessory ref
-            swapVehicleRef(leftAccessory, rightAccessory, leftVeh, rightVeh);
-
-            // 3. Swap thuộc tính cha nếu cần
-            swapVehicleAccessory(leftVeh, rightVeh, accessoryType);
-
-            // 4. Set giá mới từ request
-            setVehiclePrices(leftVeh, rightVeh, request);
-
-            // 5. Build history
-
-            // 6. Lưu tất cả
-            inventoryItemRepository.saveAll(List.of(leftAccessory, rightAccessory, leftVeh, rightVeh));
-            configurationHistoryRepository.saveAll(histsToSave);
-        } else if (SparePartType.fromId(request.getPartType()) != null) {
-
-
-            SparePartType sparePartType = SparePartType.fromId(request.getPartType());
-            List<ConfigurationHistory> histsToSave = new ArrayList<>();
-            buildHistory(leftVeh, rightVeh, sparePartType, histsToSave);
-            buildHistory(rightVeh, leftVeh, sparePartType, histsToSave);
-
-            // 2. Swap accessory ref
-//            swapVehicleRef(leftVeh, rightVeh, leftVeh, rightVeh);
-
-            // 3. Swap thuộc tính cha nếu cần
-            swapVehicleSparePart(leftVeh, rightVeh, sparePartType);
-
-            // 4. Set giá mới từ request
-            setVehiclePrices(leftVeh, rightVeh, request);
-
-            // 5. Build history
-
-            // 6. Lưu tất cả
-            inventoryItemRepository.saveAll(List.of(leftVeh, rightVeh));
-            configurationHistoryRepository.saveAll(histsToSave);
-        }
-
+        swapVehicleComponent(leftVeh, rightVeh, componentType);
+        setVehiclePrices(leftVeh, rightVeh, request);
+        buildSwapHistory(leftVeh, rightVeh, leftVehComponent, rightVehComponent, componentType);
+        buildSwapHistory(rightVeh, leftVeh, rightVehComponent, leftVehComponent, componentType);
 
         return true;
     }
 
 // --------------------------- Helpers ---------------------------
 
-    private void swapVehicleRef(InventoryItem leftAccessory, InventoryItem rightAccessory, InventoryItem
-            leftVeh, InventoryItem rightVeh) {
-        leftAccessory.setVehicleId(rightVeh.getId());
-        rightAccessory.setVehicleId(leftVeh.getId());
-    }
-
-    private void swapVehicleAccessory(InventoryItem leftVeh, InventoryItem rightVeh, AccessoryType accessoryType) {
-        switch (accessoryType) {
+    private void swapVehicleComponent(InventoryItem leftVeh, InventoryItem rightVeh, ComponentType componentType) {
+        switch (componentType) {
             case LIFTING_FRAME -> {
                 Integer tmpHeight = leftVeh.getSpecifications().getLiftingHeightMm();
                 leftVeh.getSpecifications().setLiftingHeightMm(rightVeh.getSpecifications().getLiftingHeightMm());
@@ -136,11 +93,6 @@ public class ConfigurationHistoryService {
                 leftVeh.getSpecifications().setChargerSpecification(rightVeh.getSpecifications().getChargerSpecification());
                 rightVeh.getSpecifications().setChargerSpecification(tmpSpec);
             }
-        }
-    }
-
-    private void swapVehicleSparePart(InventoryItem leftVeh, InventoryItem rightVeh, SparePartType sparePartType) {
-        switch (sparePartType) {
             case ENGINE -> {
                 String tmpEngine = leftVeh.getSpecifications().getEngineType();
                 leftVeh.getSpecifications().setEngineType(rightVeh.getSpecifications().getEngineType());
@@ -151,7 +103,7 @@ public class ConfigurationHistoryService {
                 leftVeh.getSpecifications().setForkDimensions(rightVeh.getSpecifications().getForkDimensions());
                 rightVeh.getSpecifications().setForkDimensions(tmpFork);
             }
-            case SIDESHIFT -> {
+            case SIDE_SHIFT -> {
                 Boolean tmpSideShift = leftVeh.getSpecifications().getHasSideShift();
                 leftVeh.getSpecifications().setHasSideShift(rightVeh.getSpecifications().getHasSideShift());
                 rightVeh.getSpecifications().setHasSideShift(tmpSideShift);
@@ -163,7 +115,6 @@ public class ConfigurationHistoryService {
             }
         }
     }
-
 
     private void setVehiclePrices(InventoryItem leftVeh, InventoryItem rightVeh, VehiclePartSwapRequest request) {
         if (request.getLeftPrice() != null) {
@@ -178,153 +129,72 @@ public class ConfigurationHistoryService {
         }
     }
 
-    private void buildHistory(
+    private ConfigurationHistory buildSwapHistory(
+            InventoryItem vehicleLeft,
+            InventoryItem vehicleRight,
+            InventoryItem componentOld,
+            InventoryItem componentReplace,
+            ComponentType componentType
+    ) {
+
+        ConfigurationHistory configHistory = new ConfigurationHistory();
+
+        configHistory.setVehicleId(vehicleLeft.getId());
+
+        configHistory.setComponentOldId(componentOld.getId());
+        configHistory.setComponentOldSerial(componentOld.getSerialNumber());
+
+        configHistory.setComponentReplaceId(componentReplace.getId());
+        configHistory.setComponentReplaceSerial(componentReplace.getSerialNumber());
+
+        configHistory.setComponentType(componentType.getId());
+        configHistory.setConfigType(ChangeConfigurationType.SWAP.getId());
+
+        configHistory.setDescription("Hoán đối " + componentType.getValue() + " với xe " + vehicleRight.getProductCode());
+
+        return configurationHistoryRepository.save(configHistory);
+    }
+
+    private ConfigurationHistory buildDisassembleHistory(
             InventoryItem vehicle,
-            InventoryItem accessory,
-            InventoryItem prevAccessory,
-            AccessoryType accessoryType,
-            List<ConfigurationHistory> histsToSave
+            InventoryItem component,
+            ComponentType componentType
     ) {
-        ConfigurationHistory latestHistOpt =
-                configurationHistoryRepository.findFirstByVehicleIdAndIsLatestTrue(vehicle.getId()).orElseThrow(() -> LogicErrException.of("K tìm thấy bản mới nhất "));
-        latestHistOpt.setLatest(false);
-        histsToSave.add(latestHistOpt);
 
-        ConfigurationHistory newHist = mapper.clone(latestHistOpt);
+        ConfigurationHistory configHistory = new ConfigurationHistory();
 
-        newHist.setLatest(true);
+        configHistory.setVehicleId(vehicle.getId());
 
+        configHistory.setComponentOldId(component.getId());
+        configHistory.setComponentOldSerial(component.getSerialNumber());;
 
-        // Set giá mới vào history
+        configHistory.setComponentType(componentType.getId());
+        configHistory.setConfigType(ChangeConfigurationType.DISASSEMBLE.getId());
 
+        configHistory.setDescription("Tháo rời " + componentType.getValue() + " ra khỏi xe " + vehicle.getProductCode());
 
-        // Set accessory hiện tại & trước
-        switch (accessoryType) {
-            case LIFTING_FRAME -> {
-                if (accessory != null) {
-                    newHist.setLiftingFrameId(accessory.getId());
-                    newHist.setLiftingFrameLabel(generalUtil.buildLiftingFrameLabel(accessory));
-                } else {
-                    newHist.setLiftingFrameId(null);
-                    newHist.setLiftingFrameLabel(null);
-                }
-                if (prevAccessory != null) {
-                    newHist.setPrevLiftingFrameId(prevAccessory.getId());
-                    newHist.setPrevLiftingFrameLabel(generalUtil.buildLiftingFrameLabel(prevAccessory));
-                }
-            }
-            case BATTERY -> {
-                if (accessory != null) {
-                    newHist.setBatteryId(accessory.getId());
-                    newHist.setBatteryLabel(generalUtil.buildBatteryLabel(accessory));
-                } else {
-                    newHist.setBatteryId(null);
-                    newHist.setBatteryLabel(null);
-                }
-                if (prevAccessory != null) {
-                    newHist.setPrevBatteryId(prevAccessory.getId());
-                    newHist.setPrevBatteryLabel(generalUtil.buildBatteryLabel(prevAccessory));
-                }
-            }
-            case CHARGER -> {
-                if (accessory != null) {
-                    newHist.setChargerId(accessory.getId());
-                    newHist.setChargerLabel(generalUtil.buildChargerLabel(accessory));
-                } else {
-                    newHist.setChargerId(null);
-                    newHist.setChargerLabel(null);
-                }
-                if (prevAccessory != null) {
-                    newHist.setPrevChargerId(prevAccessory.getId());
-                    newHist.setPrevChargerLabel(generalUtil.buildChargerLabel(prevAccessory));
-                }
-            }
-        }
-
-        newHist.setNote("TEST1");
-        histsToSave.add(newHist);
+        return configurationHistoryRepository.save(configHistory);
     }
 
-    private void buildHistory(
-            InventoryItem leftVeh,
-            InventoryItem rightVeh,
-            SparePartType sparePartType,
-            List<ConfigurationHistory> histsToSave
+    private ConfigurationHistory buildAssembleHistory(
+            InventoryItem vehicle,
+            InventoryItem component,
+            ComponentType componentType
     ) {
-        ConfigurationHistory latestHistOpt =
-                configurationHistoryRepository.findFirstByVehicleIdAndIsLatestTrue(leftVeh.getId()).orElseThrow(() -> LogicErrException.of("K tìm thấy bản mới nhất "));
-        latestHistOpt.setLatest(false);
-        histsToSave.add(latestHistOpt);
 
-        ConfigurationHistory newHist = mapper.clone(latestHistOpt);
+        ConfigurationHistory configHistory = new ConfigurationHistory();
 
-        newHist.setLatest(true);
+        configHistory.setVehicleId(vehicle.getId());
 
+        configHistory.setComponentReplaceId(component.getId());
+        configHistory.setComponentReplaceSerial(component.getSerialNumber());;
 
-        // Set accessory hiện tại & trước
-        switch (sparePartType) {
-            case FORK -> {
-                newHist.setForkDimensions(rightVeh.getSpecifications().getForkDimensions());
-                newHist.setPrevForkDimensions(leftVeh.getSpecifications().getForkDimensions());
-            }
-            case ENGINE -> {
-                newHist.setEngineType(rightVeh.getSpecifications().getEngineType());
-                newHist.setPrevEngineType(leftVeh.getSpecifications().getEngineType());
+        configHistory.setComponentType(componentType.getId());
+        configHistory.setConfigType(ChangeConfigurationType.ASSEMBLE.getId());
 
-            }
-            case VALVE -> {
-                newHist.setValveCount(rightVeh.getSpecifications().getValveCount());
-                newHist.setPrevValveCount(leftVeh.getSpecifications().getValveCount());
+        configHistory.setDescription("Lắp ráp " + componentType.getValue() + " vào xe " + vehicle.getProductCode());
 
-            }
-            case SIDESHIFT -> {
-                newHist.setHasSideShift(rightVeh.getSpecifications().getHasSideShift());
-                newHist.setPrevHasSideShift(leftVeh.getSpecifications().getHasSideShift());
-            }
-        }
-
-
-        newHist.setNote("TEST2");
-        histsToSave.add(newHist);
-    }
-
-    private void buildHistory(
-            InventoryItem veh,
-            SparePartType sparePartType,
-            List<ConfigurationHistory> histsToSave
-    ) {
-        ConfigurationHistory latestHistOpt =
-                configurationHistoryRepository.findFirstByVehicleIdAndIsLatestTrue(veh.getId()).orElseThrow(() -> LogicErrException.of("K tìm thấy bản mới nhất "));
-        latestHistOpt.setLatest(false);
-        histsToSave.add(latestHistOpt);
-
-        ConfigurationHistory newHist = mapper.clone(latestHistOpt);
-
-        newHist.setLatest(true);
-
-
-        // Set accessory hiện tại & trước
-        switch (sparePartType) {
-            case FORK -> {
-                newHist.setPrevForkDimensions(newHist.getForkDimensions());
-                newHist.setForkDimensions(null);
-            }
-            case ENGINE -> {
-                newHist.setPrevEngineType(newHist.getEngineType());
-                newHist.setEngineType(null);
-            }
-            case VALVE -> {
-                newHist.setPrevValveCount(newHist.getValveCount());
-                newHist.setValveCount(null);
-            }
-            case SIDESHIFT -> {
-                newHist.setPrevHasSideShift(newHist.getHasSideShift());
-                newHist.setHasSideShift(null);
-            }
-        }
-
-        newHist.setNote("TEST3");
-        histsToSave.add(newHist);
+        return configurationHistoryRepository.save(configHistory);
     }
 
     public ConfigurationHistory findByIdOrThrow(String id) {
@@ -333,81 +203,71 @@ public class ConfigurationHistoryService {
 
     @Transactional
     public boolean dropPart(DropPartRequest dropPartRequest) {
-        String vehId = dropPartRequest.getVehicleId();
-        InventoryItem veh = inventoryItemService.findByIdOrThrow(vehId);
-        String partType = dropPartRequest.getPartType();
-        String newCode = dropPartRequest.getPartCode();
-        if (AccessoryType.fromId(partType) != null) {
-            InventoryItem pk = inventoryItemRepository
-                    .findByVehicleIdAndAccessoryType(new ObjectId(dropPartRequest.getVehicleId()), dropPartRequest.getPartType())
-                    .orElseThrow(() -> LogicErrException.of("Không tìm thấy accessory của xe trái"));
-            AccessoryType accessoryType = AccessoryType.fromId(partType);
-            List<ConfigurationHistory> histsToSave = new ArrayList<>();
-//            drop ref
-            pk.setProductCode(newCode);
-            pk.setVehicleId(null);
 
-            inventoryItemRepository.save(pk);
-            buildHistory(veh, null, pk, accessoryType, histsToSave);
-            dropAccessory(veh, accessoryType);
+        InventoryItem vehicle = inventoryItemService.getItemToId(new ObjectId(dropPartRequest.getVehicleId()));
 
-            inventoryItemRepository.save(veh);
-            configurationHistoryRepository.saveAll(histsToSave);
-        } else if (SparePartType.fromId(partType) != null) {
-            SparePartType sparePartType = SparePartType.fromId(partType);
-            List<ConfigurationHistory> histsToSave = new ArrayList<>();
+        ComponentType componentType = ComponentType.fromId(dropPartRequest.getComponentType());
+        if(componentType == null) throw LogicErrException.of("Loại bộ phận cần tháo rời không hợp lệ.");
 
-            buildHistory(veh, sparePartType, histsToSave);
-            dropSparePart(veh, sparePartType);
+        InventoryItem component = inventoryItemService.getComponentItemToVehicleIdAndType(vehicle.getId(), componentType, vehicle.getProductCode());
+        InventoryType itemType = ComponentType.itemType(componentType);
 
-            inventoryItemRepository.save(veh);
-            configurationHistoryRepository.saveAll(histsToSave);
-            InventoryItem pt = inventoryItemRepository.findById(new ObjectId(newCode)).orElseThrow(() -> LogicErrException.of("PT not found"));
-            pt.setQuantity(pt.getQuantity() + 1);
-            inventoryItemRepository.save(pt);
+        boolean isAccessoryOrSparePartNotExists = false;
+
+        if(component.getProductCode() == null && itemType.equals(InventoryType.ACCESSORY)) {
+            component.setProductCode(dropPartRequest.getProductCode());
+            isAccessoryOrSparePartNotExists = true;
+        }
+        else if(itemType.equals(InventoryType.SPARE_PART)){
+            Optional<InventoryItem> componentExistsCodeAndDescription = inventoryItemRepository.findByCommodityCodeAndDescription(component.getCommodityCode(), component.getDescription());
+            if(componentExistsCodeAndDescription.isPresent()){
+                InventoryItem pt = componentExistsCodeAndDescription.get();
+                pt.setQuantity(pt.getQuantity() + component.getQuantity());
+                inventoryItemRepository.bulkUpdateStatusAndQuantity(List.of(pt));
+                inventoryItemRepository.deleteById(component.getId());
+            }
+            else isAccessoryOrSparePartNotExists = true;
         }
 
+        if(isAccessoryOrSparePartNotExists){
+            if(component.getPricing() == null) component.setPricing(new InventoryItem.Pricing());
+            component.getPricing().setSalePriceR0(dropPartRequest.getPriceR0());
+            component.getPricing().setSalePriceR1(dropPartRequest.getPriceR1());
+            component.getPricing().setActualSalePrice(dropPartRequest.getActualPrice());
+            component.setStatus(InventoryItemStatus.IN_STOCK.getId());
+
+            inventoryItemRepository.save(component);
+        }
+
+        dropComponent(vehicle, componentType);
+        inventoryItemRepository.save(vehicle);
+
+        buildDisassembleHistory(vehicle, component, componentType);
         return true;
     }
 
-    private void dropSparePart(InventoryItem veh,
-                               SparePartType sparePartType) {
-        switch (sparePartType) {
-            case ENGINE -> {
-                veh.getSpecifications().setEngineType(null);
-            }
-            case FORK -> {
-                veh.getSpecifications().setForkDimensions(null);
-            }
-            case SIDESHIFT -> {
-                veh.getSpecifications().setHasSideShift(null);
-            }
-            case VALVE -> {
-                veh.getSpecifications().setValveCount(null);
-            }
-        }
 
-    }
-
-    private void dropAccessory(InventoryItem veh,
-                               AccessoryType accessoryType) {
-        switch (accessoryType) {
+    private void dropComponent(InventoryItem veh, ComponentType componentType) {
+        switch (componentType) {
             case LIFTING_FRAME -> {
                 veh.getSpecifications().setLiftingHeightMm(null);
                 veh.getSpecifications().setLiftingCapacityKg(null);
                 veh.getSpecifications().setChassisType(null);
-
             }
             case BATTERY -> {
                 veh.getSpecifications().setBatteryInfo(null);
                 veh.getSpecifications().setBatterySpecification(null);
             }
-            case CHARGER -> {
-                veh.getSpecifications().setChargerSpecification(null);
+            case CHARGER -> veh.getSpecifications().setChargerSpecification(null);
 
-            }
+            case ENGINE -> veh.getSpecifications().setEngineType(null);
+
+            case FORK -> veh.getSpecifications().setForkDimensions(null);
+
+            case SIDE_SHIFT -> veh.getSpecifications().setHasSideShift(false);
+
+            case VALVE -> veh.getSpecifications().setValveCount(0);
         }
-
     }
 
 }
