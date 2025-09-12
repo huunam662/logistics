@@ -7,9 +7,9 @@ import java.math.BigDecimal;
 @Data
 public class VehiclePartSwapRequest {
 
-    private String leftVehicle;
-    private String rightVehicle;
-    private String partType;
+    private String leftVehicleId;
+    private String rightVehicleId;
+    private String componentType;
 
     private VehiclePrice leftPrice;
     private VehiclePrice rightPrice;
