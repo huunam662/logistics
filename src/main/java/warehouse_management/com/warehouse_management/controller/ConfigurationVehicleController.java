@@ -60,7 +60,7 @@ public class ConfigurationVehicleController {
         return ApiResponse.success(configurationHistoryService.dropComponent(dropPartRequest));
     }
 
-    @PostMapping("/drop-part")
+    @PostMapping("/assemble-part")
     public ApiResponse<?> assemblePart(@RequestBody AssemblePartRequest assemblePartRequest) {
         return ApiResponse.success(configurationHistoryService.assembleComponent(assemblePartRequest));
     }
