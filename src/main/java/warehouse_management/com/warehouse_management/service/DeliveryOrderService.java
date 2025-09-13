@@ -166,36 +166,43 @@ public class DeliveryOrderService {
             }
         }
         if(status.equals(DeliveryOrderStatus.COMPLETED)){
-            if(deliveryOrder.getInventoryItems() == null || deliveryOrder.getInventoryItems().isEmpty())
-                throw LogicErrException.of("Đơn hàng hiện đang không có sản phẩm, hủy thay vì hoàn tất.");
-
-            List<IdAndNameWarehouseDto> warehouseDepartures = warehouseRepository.findIdsByType(WarehouseType.DEPARTURE.getId());
-
-            List<PushItemToDeliveryDto> itemsToDeliveredList = new ArrayList<>();
-            for(var item : deliveryOrder.getInventoryItems()){
-                warehouseDepartures.stream()
-                        .filter(o -> o.getId().equals(item.getWarehouseId()))
-                        .findFirst()
-                        .ifPresent(o -> {
-                            throw LogicErrException.of("Không được phép hoàn tất khi sản phẩm '"+item.getProductCode()+"' vẫn còn ở kho đi ("+o.getName()+").");
-                        });
-                if(!item.getIsDelivered()){
-                    PushItemToDeliveryDto itemToDelivered = new PushItemToDeliveryDto();
-                    itemToDelivered.setId(item.getId().toString());
-                    itemToDelivered.setQuantity(item.getQuantity());
-                    itemToDelivered.setIsDelivered(true);
-                    itemsToDeliveredList.add(itemToDelivered);
-                }
-            }
-            if(!itemsToDeliveredList.isEmpty()){
-                PushItemsDeliveryDto updateItemsDelivered = new PushItemsDeliveryDto();
-                updateItemsDelivered.setDeliveryOrderId(deliveryOrder.getId().toString());
-                updateItemsDelivered.setInventoryItemsDelivery(itemsToDeliveredList);
-                deliveryOrder = updateDeliveryOrderItems(updateItemsDelivered);
-            }
+            deliveryOrder = completedDeliveryLogic(deliveryOrder);
         }
         deliveryOrder.setStatus(status.getValue());
         return deliveryOrderRepository.save(deliveryOrder);
+    }
+
+    @Transactional
+    protected DeliveryOrder completedDeliveryLogic(DeliveryOrder deliveryOrder){
+        if(deliveryOrder.getInventoryItems() == null || deliveryOrder.getInventoryItems().isEmpty())
+            throw LogicErrException.of("Đơn hàng hiện đang không có sản phẩm, hủy thay vì hoàn tất.");
+
+        List<IdAndNameWarehouseDto> warehouseDepartures = warehouseRepository.findIdsByType(WarehouseType.DEPARTURE.getId());
+
+        List<PushItemToDeliveryDto> itemsToDeliveredList = new ArrayList<>();
+        for(var item : deliveryOrder.getInventoryItems()){
+            warehouseDepartures.stream()
+                    .filter(o -> o.getId().equals(item.getWarehouseId()))
+                    .findFirst()
+                    .ifPresent(o -> {
+                        throw LogicErrException.of("Không được phép hoàn tất khi sản phẩm '"+item.getProductCode()+"' vẫn còn ở kho đi ("+o.getName()+").");
+                    });
+            if(!item.getIsDelivered()){
+                PushItemToDeliveryDto itemToDelivered = new PushItemToDeliveryDto();
+                itemToDelivered.setId(item.getId().toString());
+                itemToDelivered.setQuantity(item.getQuantity());
+                itemToDelivered.setIsDelivered(true);
+                itemsToDeliveredList.add(itemToDelivered);
+            }
+        }
+        if(!itemsToDeliveredList.isEmpty()){
+            PushItemsDeliveryDto updateItemsDelivered = new PushItemsDeliveryDto();
+            updateItemsDelivered.setDeliveryOrderId(deliveryOrder.getId().toString());
+            updateItemsDelivered.setInventoryItemsDelivery(itemsToDeliveredList);
+            deliveryOrder = updateDeliveryOrderItems(updateItemsDelivered);
+        }
+
+        return deliveryOrder;
     }
 
     @Transactional

@@ -1,4 +1,4 @@
-package warehouse_management.com.warehouse_management.dto.configuration_history.response;
+package warehouse_management.com.warehouse_management.dto.configuration_vehicle.response;
 
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.*;
