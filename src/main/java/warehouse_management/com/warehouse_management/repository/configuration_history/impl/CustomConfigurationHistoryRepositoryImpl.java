@@ -60,4 +60,6 @@ public class CustomConfigurationHistoryRepositoryImpl implements CustomConfigura
         }
         return MongoRsqlUtils.queryPage(ConfigurationHistory.class, ConfigurationHistory.class, optionsReq);
     }
+
+
 }
