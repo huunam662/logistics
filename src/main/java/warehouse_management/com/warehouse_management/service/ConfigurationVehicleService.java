@@ -47,7 +47,7 @@ public class ConfigurationVehicleService {
         if(componentType == null) throw LogicErrException.of("Loại bộ phận cần tháo rời không hợp lệ.");
 
         InventoryItem leftVehComponent = inventoryItemService.getComponentItemToVehicleIdAndType(leftVeh.getId(), componentType, leftVeh.getProductCode());
-        InventoryItem rightVehComponent = inventoryItemService.getComponentItemToVehicleIdAndType(rightVeh.getId(), componentType, leftVeh.getProductCode());
+        InventoryItem rightVehComponent = inventoryItemService.getComponentItemToVehicleIdAndType(rightVeh.getId(), componentType, rightVeh.getProductCode());
         inventoryItemRepository.updateVehicleIdById(leftVehComponent.getId(), rightVeh.getId());
         inventoryItemRepository.updateVehicleIdById(rightVehComponent.getId(), leftVeh.getId());
 
@@ -139,10 +139,15 @@ public class ConfigurationVehicleService {
         configHistory.setVehicleId(vehicleLeft.getId());
 
         configHistory.setComponentOldId(componentOld.getId());
-        configHistory.setComponentOldSerial(componentOld.getSerialNumber());
+
+        if(InventoryType.SPARE_PART.getId().equals(componentOld.getInventoryType()))
+            configHistory.setComponentOldSerial(componentOld.getCommodityCode());
+        else configHistory.setComponentOldSerial(componentOld.getSerialNumber());
 
         configHistory.setComponentReplaceId(componentReplace.getId());
-        configHistory.setComponentReplaceSerial(componentReplace.getSerialNumber());
+        if(InventoryType.SPARE_PART.getId().equals(componentReplace.getInventoryType()))
+            configHistory.setComponentReplaceSerial(componentReplace.getCommodityCode());
+        else configHistory.setComponentReplaceSerial(componentReplace.getSerialNumber());
 
         configHistory.setComponentType(componentType.getId());
         configHistory.setConfigType(ChangeConfigurationType.SWAP.getId());
