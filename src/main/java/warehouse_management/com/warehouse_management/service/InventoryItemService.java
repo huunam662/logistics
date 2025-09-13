@@ -4,7 +4,6 @@ import com.mongodb.DuplicateKeyException;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,11 +20,9 @@ import warehouse_management.com.warehouse_management.exceptions.LogicErrExceptio
 import warehouse_management.com.warehouse_management.mapper.InventoryItemMapper;
 import warehouse_management.com.warehouse_management.model.*;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.IdProjection;
-import warehouse_management.com.warehouse_management.repository.configuration_history.ConfigurationHistoryRepository;
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
 import warehouse_management.com.warehouse_management.repository.warehouse.WarehouseRepository;
 import warehouse_management.com.warehouse_management.repository.warehouse_transaction.WarehouseTransactionRepository;
-import warehouse_management.com.warehouse_management.utils.GeneralUtil;
 import warehouse_management.com.warehouse_management.utils.TranUtils;
 
 import java.time.LocalDate;
