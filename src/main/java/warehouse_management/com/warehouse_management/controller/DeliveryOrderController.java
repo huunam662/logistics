@@ -139,4 +139,14 @@ public class DeliveryOrderController {
         DeliveryOrder deliveryOrder = deliveryOrderService.updateDeliveryOrderItems(dto);
         return ResponseEntity.ok(ApiResponse.success(Map.of("deliveryOrderId", deliveryOrder.getId())));
     }
+
+    @Operation(
+            summary = "GET Lịch sử thay đổi đơn giao hàng.",
+            description = "GET Lịch sử thay đổi đơn giao hàng theo ID."
+    )
+    @GetMapping("/{id}/history")
+    public ResponseEntity<?> getDeliveryHistory(@PathVariable("id") String id) {
+        List<DeliveryOrder.DeliveryHistory> histories = deliveryOrderService.getDeliveryHistory(new ObjectId(id));
+        return ResponseEntity.ok(ApiResponse.success(histories));
+    }
 }

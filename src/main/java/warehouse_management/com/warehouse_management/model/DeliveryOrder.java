@@ -37,6 +37,7 @@ public class DeliveryOrder {
     private List<InventoryItemDelivery> inventoryItems; // Các mặt hàng trong đơn giao
 
     private List<NoteDeliveryModel> modelNotes;  // Các Model còn nợ
+    private List<DeliveryHistory> deliveryHistories; // Lịch sử thao tác đơn hàng
 
     @CreatedBy
     private String createdBy;
@@ -84,7 +85,6 @@ public class DeliveryOrder {
         private InventoryItemDelivery.Pricing pricing;
         private InventoryItemDelivery.Logistics logistics;
 
-
         @Data
         @NoArgsConstructor
         @AllArgsConstructor
@@ -128,5 +128,22 @@ public class DeliveryOrder {
             private LocalDateTime plannedProductionDate; // Ngày dự kiến sản xuất
             private LocalDateTime estimateCompletionDate; // Ngày dự kiến sản xuất xong
         }
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class DeliveryHistory {
+        private ObjectId id;
+        private String action; // "ADD_ITEM", "REMOVE_ITEM", "UPDATE_ITEM"
+        private String productCode;
+        private String commodityCode;
+        private String model;
+        private Integer originalQuantity;
+        private Integer newQuantity;
+        private String reason;
+        private String performedBy;
+        private LocalDateTime performedAt;
+        private Boolean isSparePart;
     }
 }
