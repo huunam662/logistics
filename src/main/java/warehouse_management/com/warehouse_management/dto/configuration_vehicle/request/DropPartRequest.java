@@ -1,4 +1,4 @@
-package warehouse_management.com.warehouse_management.dto.configuration_history.request;
+package warehouse_management.com.warehouse_management.dto.configuration_vehicle.request;
 
 import lombok.Data;
 

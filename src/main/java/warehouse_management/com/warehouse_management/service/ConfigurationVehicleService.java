@@ -1,44 +1,41 @@
 package warehouse_management.com.warehouse_management.service;
 
+import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import warehouse_management.com.warehouse_management.dto.configuration_history.request.DropPartRequest;
-import warehouse_management.com.warehouse_management.dto.configuration_history.request.VehiclePartSwapRequest;
+import warehouse_management.com.warehouse_management.dto.configuration_vehicle.request.AssemblePartRequest;
+import warehouse_management.com.warehouse_management.dto.configuration_vehicle.request.DropPartRequest;
+import warehouse_management.com.warehouse_management.dto.configuration_vehicle.request.VehiclePartSwapRequest;
 import warehouse_management.com.warehouse_management.enumerate.ChangeConfigurationType;
 import warehouse_management.com.warehouse_management.enumerate.ComponentType;
 import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
 import warehouse_management.com.warehouse_management.enumerate.InventoryType;
 import warehouse_management.com.warehouse_management.exceptions.LogicErrException;
 import warehouse_management.com.warehouse_management.mapper.ConfigurationHistoryMapper;
+import warehouse_management.com.warehouse_management.mapper.InventoryItemMapper;
 import warehouse_management.com.warehouse_management.model.ConfigurationHistory;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
+import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.repository.configuration_history.ConfigurationHistoryRepository;
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
 import warehouse_management.com.warehouse_management.utils.GeneralUtil;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 
 @Service
-public class ConfigurationHistoryService {
+@RequiredArgsConstructor
+public class ConfigurationVehicleService {
 
 
     private final InventoryItemRepository inventoryItemRepository;
     private final InventoryItemService inventoryItemService;
     private final ConfigurationHistoryRepository configurationHistoryRepository;
-    private final GeneralUtil generalUtil;
-    private final ConfigurationHistoryMapper mapper;
+    private final WarehouseService warehouseService;
+    private final InventoryItemMapper inventoryItemMapper;
 
-    public ConfigurationHistoryService(InventoryItemRepository inventoryItemRepository, InventoryItemService inventoryItemService, ConfigurationHistoryRepository configurationHistoryRepository, GeneralUtil generalUtil, ConfigurationHistoryMapper mapper) {
-        this.inventoryItemRepository = inventoryItemRepository;
-        this.inventoryItemService = inventoryItemService;
-        this.configurationHistoryRepository = configurationHistoryRepository;
-        this.generalUtil = generalUtil;
-        this.mapper = mapper;
-    }
 
     @Transactional
     public boolean swapItems(VehiclePartSwapRequest request) {
@@ -202,7 +199,7 @@ public class ConfigurationHistoryService {
     }
 
     @Transactional
-    public boolean dropPart(DropPartRequest dropPartRequest) {
+    public boolean dropComponent(DropPartRequest dropPartRequest) {
 
         InventoryItem vehicle = inventoryItemService.getItemToId(new ObjectId(dropPartRequest.getVehicleId()));
 
@@ -239,7 +236,7 @@ public class ConfigurationHistoryService {
             inventoryItemRepository.save(component);
         }
 
-        dropComponent(vehicle, componentType);
+        disassembleSpecifications(vehicle, componentType);
         inventoryItemRepository.save(vehicle);
 
         buildDisassembleHistory(vehicle, component, componentType);
@@ -247,7 +244,7 @@ public class ConfigurationHistoryService {
     }
 
 
-    private void dropComponent(InventoryItem veh, ComponentType componentType) {
+    private void disassembleSpecifications(InventoryItem veh, ComponentType componentType) {
         switch (componentType) {
             case LIFTING_FRAME -> {
                 veh.getSpecifications().setLiftingHeightMm(null);
@@ -269,5 +266,75 @@ public class ConfigurationHistoryService {
             case VALVE -> veh.getSpecifications().setValveCount(0);
         }
     }
+
+    private void assembleSpecifications(InventoryItem veh, ComponentType componentType, InventoryItem component) {
+        switch (componentType) {
+            case LIFTING_FRAME -> {
+                veh.getSpecifications().setLiftingHeightMm(component.getSpecifications().getLiftingHeightMm());
+                veh.getSpecifications().setLiftingCapacityKg(component.getSpecifications().getLiftingCapacityKg());
+                veh.getSpecifications().setChassisType(component.getSpecifications().getChassisType());
+            }
+            case BATTERY -> {
+                veh.getSpecifications().setBatteryInfo(component.getSpecifications().getBatteryInfo());
+                veh.getSpecifications().setBatterySpecification(component.getSpecifications().getBatterySpecification());
+            }
+            case CHARGER -> veh.getSpecifications().setChargerSpecification(component.getSpecifications().getChargerSpecification());
+
+            case ENGINE -> veh.getSpecifications().setEngineType(component.getSpecifications().getEngineType());
+
+            case FORK -> veh.getSpecifications().setForkDimensions(component.getSpecifications().getForkDimensions());
+
+            case SIDE_SHIFT -> {
+                if(component.getComponentType().equals(ComponentType.SIDE_SHIFT.getId())){
+                    veh.getSpecifications().setHasSideShift(true);
+                }
+            }
+
+            case VALVE -> veh.getSpecifications().setValveCount(component.getQuantity());
+        }
+    }
+
+    public boolean assembleComponent(AssemblePartRequest assemblePart){
+
+        InventoryItem vehicle = inventoryItemService.getItemToId(new ObjectId(assemblePart.getVehicleId()));
+        ComponentType componentType = ComponentType.fromId(assemblePart.getComponentType());
+        if(componentType == null) throw LogicErrException.of("Loại bộ phận cần tháo rời không hợp lệ.");
+
+        InventoryItem component = inventoryItemService.getComponentItemToVehicleIdAndType(vehicle.getId(), componentType, vehicle.getProductCode());
+        if(vehicle.getId().equals(component.getVehicleId()))
+            throw LogicErrException.of("Bộ phận " + componentType.getValue() + " đã có sẵn trong xe " + vehicle.getProductCode());
+
+        Warehouse warehouse = warehouseService.getWarehouseToId(new ObjectId(assemblePart.getWarehouseId()));
+
+        component = inventoryItemRepository.findByComponentTypeAndWarehouseId(componentType.getId(), warehouse.getId())
+                .orElseThrow(() -> LogicErrException.of("Bộ phận " + componentType.getValue() + " không tồn tại ở kho " + warehouse.getName()));
+
+        if(ComponentType.itemType(componentType).equals(InventoryType.SPARE_PART)){
+            if(component.getQuantity() < assemblePart.getComponentQuantity())
+                throw LogicErrException.of("Bộ phận phụ tùng " + componentType.getValue() + " không đủ số lượng yêu cầu lắp vào.");
+            else if(component.getQuantity() > assemblePart.getComponentQuantity()){
+
+                component.setQuantity(component.getQuantity() - assemblePart.getComponentQuantity());
+                inventoryItemRepository.bulkUpdateStatusAndQuantity(List.of(component));
+
+                component = inventoryItemMapper.cloneEntity(component);
+                component.setQuantity(assemblePart.getComponentQuantity());
+            }
+        }
+
+        component.setVehicleId(vehicle.getId());
+        component.setStatus(InventoryItemStatus.OTHER.getId());
+
+        component = inventoryItemRepository.save(component);
+
+        assembleSpecifications(vehicle, componentType, component);
+
+        inventoryItemRepository.save(vehicle);
+
+        buildAssembleHistory(vehicle, component, componentType);
+
+        return true;
+    }
+
 
 }
