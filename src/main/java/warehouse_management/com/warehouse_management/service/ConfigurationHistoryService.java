@@ -4,9 +4,11 @@ import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import warehouse_management.com.warehouse_management.dto.configuration_vehicle.request.AssemblePartRequest;
-import warehouse_management.com.warehouse_management.dto.configuration_vehicle.request.DropPartRequest;
-import warehouse_management.com.warehouse_management.dto.configuration_vehicle.request.VehiclePartSwapRequest;
+import warehouse_management.com.warehouse_management.dto.configuration_history.request.AssemblePartRequest;
+import warehouse_management.com.warehouse_management.dto.configuration_history.request.DropPartRequest;
+import warehouse_management.com.warehouse_management.dto.configuration_history.request.VehiclePartSwapRequest;
+import warehouse_management.com.warehouse_management.dto.configuration_history.response.ConfigVehicleSpecHistoryResponse;
+import warehouse_management.com.warehouse_management.dto.configuration_history.response.ConfigurationHistoryResponse;
 import warehouse_management.com.warehouse_management.enumerate.ChangeConfigurationType;
 import warehouse_management.com.warehouse_management.enumerate.ComponentType;
 import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
@@ -19,7 +21,6 @@ import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.repository.configuration_history.ConfigurationHistoryRepository;
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
-import warehouse_management.com.warehouse_management.utils.GeneralUtil;
 
 import java.util.List;
 import java.util.Optional;
@@ -27,7 +28,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class ConfigurationVehicleService {
+public class ConfigurationHistoryService {
 
 
     private final InventoryItemRepository inventoryItemRepository;
@@ -35,6 +36,7 @@ public class ConfigurationVehicleService {
     private final ConfigurationHistoryRepository configurationHistoryRepository;
     private final WarehouseService warehouseService;
     private final InventoryItemMapper inventoryItemMapper;
+    private final ConfigurationHistoryMapper configurationVehicleMapper;
 
 
     @Transactional
@@ -341,5 +343,21 @@ public class ConfigurationVehicleService {
         return true;
     }
 
+    public ConfigVehicleSpecHistoryResponse getConfigurationHistoryToVehicleId(ObjectId vehicleId){
+        InventoryItem vehicle = inventoryItemService.getItemToId(new ObjectId(vehicleId.toString()));
+        if(!InventoryType.VEHICLE.getId().equals(vehicle.getInventoryType()))
+            throw LogicErrException.of("Sản phẩm cần xem lịch sử cấu hình không phải là xe.");
 
+        List<ConfigurationHistory> configHistories = configurationHistoryRepository.findByVehicleIdOrderByCreatedAtDesc(vehicle.getId());
+
+        ConfigVehicleSpecHistoryResponse configVehicleSpecHistory = configurationVehicleMapper.toConfigVehicleSpecHistoryResponse(vehicle);
+
+        configVehicleSpecHistory.setConfigHistories(
+                configHistories.stream()
+                        .map(configurationVehicleMapper::toConfigurationHistoryResponse)
+                        .toList()
+        );
+
+        return configVehicleSpecHistory;
+    }
 }

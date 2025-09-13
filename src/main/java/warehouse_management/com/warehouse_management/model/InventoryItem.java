@@ -14,7 +14,6 @@ import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.mapping.FieldType;
 import org.springframework.data.mongodb.core.index.Indexed;
 import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -34,7 +33,6 @@ public class InventoryItem {
     private String productCode;    // Mã định danh của sản phẩm (đối với sản phẩm xe & phụ kiện, phụ tùng thuộc sản phẩm này) – Bắt buộc
     private String serialNumber;   // Số seri – Có cho xe/phụ kiện
     private String model;          // Model sản phẩm – Bắt buộc
-    private Boolean isFullyConfigurations;
     //
     private Integer manufacturingYear; // Năm sản xuất – Không bắt buộc
 

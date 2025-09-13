@@ -2,11 +2,8 @@ package warehouse_management.com.warehouse_management.repository.configuration_h
 
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.stereotype.Repository;
 import warehouse_management.com.warehouse_management.model.ConfigurationHistory;
-import warehouse_management.com.warehouse_management.model.InventoryItem;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,4 +13,5 @@ public interface ConfigurationHistoryRepository extends CustomConfigurationHisto
     // Lấy bản cấu hình mới nhất theo vehicleId
     Optional<ConfigurationHistory> findTopByVehicleIdOrderByCreatedAtDesc(ObjectId vehicleId);
 
+    List<ConfigurationHistory> findByVehicleIdOrderByCreatedAtDesc(ObjectId vehicleId);
 }
