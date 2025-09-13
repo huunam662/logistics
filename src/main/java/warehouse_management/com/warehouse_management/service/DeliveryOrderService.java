@@ -5,6 +5,7 @@ import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import warehouse_management.com.warehouse_management.app.CustomAuthentication;
 import warehouse_management.com.warehouse_management.dto.delivery_order.request.*;
 import warehouse_management.com.warehouse_management.dto.delivery_order.response.*;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
@@ -40,6 +41,7 @@ public class DeliveryOrderService {
     private final WarehouseRepository warehouseRepository;
     private final ClientService clientService;
     private final WarehouseService warehouseService;
+    private final CustomAuthentication customAuthentication;
 
     public DeliveryOrder getDeliveryOrderToId(ObjectId id) {
         return deliveryOrderRepository.findById(id)
@@ -268,7 +270,7 @@ public class DeliveryOrderService {
             InventoryItem item = itemsToDeliveryMap.getOrDefault(new ObjectId(itemToPush.getId()), null);
             if(item == null) throw LogicErrException.of("Mặt hàng cần thêm vào đơn hiện không tồn tại.");
 
-            if(InventoryItemStatus.IN_STOCK.equals(item.getStatus()))
+            if(!InventoryItemStatus.IN_STOCK.equals(item.getStatus()))
                 throw LogicErrException.of("Mặt hàng cần thêm vào đơn hiện không sẵn hàng.");
 
             Warehouse warehouse = warehouseService.getWarehouseToId(item.getWarehouseId());
@@ -281,6 +283,10 @@ public class DeliveryOrderService {
             }
             if(item.getInventoryType().equals(InventoryType.SPARE_PART.getId())){
                 pushSparePartToDeliveryOrderLogic(deliveryOrder, itemToPush, item, sparePartToNew, itemsHoldingInWarehouseMap);
+
+                addDeliveryHistory(deliveryOrder, "ADD_ITEM", item.getProductCode(), item.getCommodityCode(),
+                        item.getModel(), 0, item.getQuantity(),
+                        "Chưa có lý do thêm hàng", true);
             }
             else{
                 if(!itemToPush.getIsDelivered()) item.setStatus(InventoryItemStatus.HOLD.getId());
@@ -288,6 +294,9 @@ public class DeliveryOrderService {
                 DeliveryOrder.InventoryItemDelivery itemDelivery = inventoryItemMapper.toInventoryItemDelivery(item);
                 itemDelivery.setIsDelivered(itemToPush.getIsDelivered());
                 deliveryOrder.getInventoryItems().add(itemDelivery);
+                addDeliveryHistory(deliveryOrder, "ADD_ITEM", item.getProductCode(), item.getCommodityCode(),
+                        item.getModel(), 0, item.getQuantity(),
+                        "Chưa có lý do thêm hàng", false);
             }
         }
         inventoryItemRepository.bulkInsert(sparePartToNew);
@@ -423,6 +432,20 @@ public class DeliveryOrderService {
 
         deliveryOrder.getInventoryItems().removeAll(items);
 
+        // Track history before removing items
+        for (DeliveryOrder.InventoryItemDelivery item : items) {
+            addDeliveryHistory(
+                    deliveryOrder,
+                    "REMOVE_ITEM",
+                    item.getProductCode(),
+                    item.getCommodityCode(),
+                    item.getModel(),
+                    item.getQuantity(),
+                    0,
+                    "Chưa có lý do xóa hàng",
+                    item.getInventoryType().equals(InventoryType.SPARE_PART.getId())
+            );
+        }
         return deliveryOrderRepository.save(deliveryOrder);
     }
 
@@ -551,6 +574,17 @@ public class DeliveryOrderService {
                     product.setStatus(InventoryItemStatus.SOLD.getId());
                     inventoryItemRepository.save(product);
                 }
+                addDeliveryHistory(
+                        deliveryOrder,
+                        "UPDATE_ITEM",
+                        deliveryItem.getProductCode(),
+                        deliveryItem.getCommodityCode(),
+                        deliveryItem.getModel(),
+                        deliveryItem.getQuantity(),
+                        itemToUpdateReq.getQuantity(),
+                        "Chưa có lý do cập nhật hàng",
+                        false
+                );
             }
             // - Nếu là phụ tùng
             // */   + Có 2 trường hợp
@@ -691,7 +725,6 @@ public class DeliveryOrderService {
     }
 
     private void updateItemSoldInDeliveryLogic(PushItemToDeliveryDto itemToUpdateReq, DeliveryOrder deliveryOrder, InventoryItem itemInStockOrSold, String commodityCode) {
-
         DeliveryOrder.InventoryItemDelivery itemSoldInDeliveryOrder = deliveryOrder.getInventoryItems().stream()
                 .filter(e -> e.getInventoryType().equals(InventoryType.SPARE_PART.getId()) && e.getCommodityCode().equals(commodityCode) && e.getIsDelivered())
                 .findFirst().orElse(null);
@@ -703,5 +736,39 @@ public class DeliveryOrderService {
             itemSold.setIsDelivered(true);
             deliveryOrder.getInventoryItems().add(itemSold);
         }
+    }
+
+    public List<DeliveryOrder.DeliveryHistory> getDeliveryHistory(ObjectId deliveryOrderId) {
+        DeliveryOrder deliveryOrder = getDeliveryOrderToId(deliveryOrderId);
+        if (deliveryOrder.getDeliveryHistories() == null) {
+            return new ArrayList<>();
+        }
+
+        return deliveryOrder.getDeliveryHistories().stream()
+                .sorted((h1, h2) -> h2.getPerformedAt().compareTo(h1.getPerformedAt()))
+                .collect(Collectors.toList());
+    }
+
+    private void addDeliveryHistory(DeliveryOrder deliveryOrder, String action, String productCode,
+                                    String commodityCode, String model, Integer originalQuantity,
+                                    Integer newQuantity, String reason, Boolean isSparePart) {
+        if (deliveryOrder.getDeliveryHistories() == null) {
+            deliveryOrder.setDeliveryHistories(new ArrayList<>());
+        }
+
+        DeliveryOrder.DeliveryHistory history = new DeliveryOrder.DeliveryHistory();
+        history.setId(new ObjectId());
+        history.setAction(action);
+        history.setProductCode(productCode);
+        history.setCommodityCode(commodityCode);
+        history.setModel(model);
+        history.setOriginalQuantity(originalQuantity);
+        history.setNewQuantity(newQuantity);
+        history.setReason(reason);
+        history.setPerformedBy(customAuthentication.getUser().getFullName());
+        history.setPerformedAt(LocalDateTime.now());
+        history.setIsSparePart(isSparePart);
+
+        deliveryOrder.getDeliveryHistories().add(history);
     }
 }
