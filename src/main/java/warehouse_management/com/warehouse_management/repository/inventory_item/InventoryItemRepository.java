@@ -22,6 +22,8 @@ public interface InventoryItemRepository extends MongoRepository<InventoryItem, 
 
     Optional<InventoryItem> findByCommodityCodeAndDescription(String commodityCode, String description);
 
+    Optional<InventoryItem> findByComponentTypeAndWarehouseId(String componentType, ObjectId warehouseId);
+
     boolean existsBySerialNumber(String serialNumber);
 
     boolean existsByProductCode(String productCode);

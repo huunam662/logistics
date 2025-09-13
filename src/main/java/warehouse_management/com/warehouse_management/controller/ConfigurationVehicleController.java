@@ -1,36 +1,32 @@
 package warehouse_management.com.warehouse_management.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
-import warehouse_management.com.warehouse_management.dto.configuration_history.request.DropPartRequest;
-import warehouse_management.com.warehouse_management.dto.configuration_history.request.VehiclePartSwapRequest;
+import warehouse_management.com.warehouse_management.dto.configuration_vehicle.request.AssemblePartRequest;
+import warehouse_management.com.warehouse_management.dto.configuration_vehicle.request.DropPartRequest;
+import warehouse_management.com.warehouse_management.dto.configuration_vehicle.request.VehiclePartSwapRequest;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryProductDetailsDto;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.pagination.response.PageInfoDto;
 import warehouse_management.com.warehouse_management.model.ConfigurationHistory;
-import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.repository.configuration_history.ConfigurationHistoryRepository;
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
-import warehouse_management.com.warehouse_management.service.ConfigurationHistoryService;
+import warehouse_management.com.warehouse_management.service.ConfigurationVehicleService;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @Tag(name = "Configurations Vehicle")
 @RequestMapping("/v1/configurations")
 
-public class ConfigurationHistoryController {
-    private final ConfigurationHistoryService configurationHistoryService;
+public class ConfigurationVehicleController {
+    private final ConfigurationVehicleService configurationHistoryService;
     private final ConfigurationHistoryRepository configurationHistoryRepository;
     private final InventoryItemRepository inventoryItemRepository;
 
-    public ConfigurationHistoryController(ConfigurationHistoryService configurationHistoryService, ConfigurationHistoryRepository configurationHistoryRepository, InventoryItemRepository inventoryItemRepository) {
+    public ConfigurationVehicleController(ConfigurationVehicleService configurationHistoryService, ConfigurationHistoryRepository configurationHistoryRepository, InventoryItemRepository inventoryItemRepository) {
         this.configurationHistoryService = configurationHistoryService;
         this.configurationHistoryRepository = configurationHistoryRepository;
         this.inventoryItemRepository = inventoryItemRepository;
@@ -61,7 +57,12 @@ public class ConfigurationHistoryController {
 
     @PostMapping("/drop-part")
     public ApiResponse<?> dropPart(@RequestBody DropPartRequest dropPartRequest) {
-        return ApiResponse.success(configurationHistoryService.dropPart(dropPartRequest));
+        return ApiResponse.success(configurationHistoryService.dropComponent(dropPartRequest));
+    }
+
+    @PostMapping("/drop-part")
+    public ApiResponse<?> assemblePart(@RequestBody AssemblePartRequest assemblePartRequest) {
+        return ApiResponse.success(configurationHistoryService.assembleComponent(assemblePartRequest));
     }
 
 }

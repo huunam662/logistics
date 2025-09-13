@@ -43,11 +43,8 @@ public class InventoryItemService {
     private final WarehouseTransactionService warehouseTransferTicketService;
     private final InventoryItemMapper inventoryItemMapper;
     private final WarehouseTransactionRepository warehouseTransferTicketRepository;
-    private final MongoTemplate mongoTemplate;
     private final TranUtils tranUtils;
     private final WarehouseRepository warehouseRepository;
-    private final ConfigurationHistoryRepository configurationHistoryRepository;
-    private final GeneralUtil generalUtil;
 
 //    NHẬP VÀO KHO BẰNG EXCEL HOẶC FORM
 
@@ -131,6 +128,7 @@ public class InventoryItemService {
         }
         item.getLogistics().setOrderDate(orderDate);
         item.getLogistics().setEstimateCompletionDate(estimateCompletionDate);
+        item.setSpecificationsBase(item.getSpecifications());
         return item;
     }
 
@@ -232,6 +230,7 @@ public class InventoryItemService {
         List<InventoryItem> itemToLog = new ArrayList<>();
         for (T dto : dtos) {
             InventoryItem item = toInventoryItem.apply(dto);
+            item.setSpecificationsBase(item.getSpecifications());
             itemToLog.add(item);
             if (importType.equals(WarehouseSubTranType.EXCEL_TO_PRODUCTION_PRODUCT)) {
                 buildComponentItems(item, itemsToInsert);
