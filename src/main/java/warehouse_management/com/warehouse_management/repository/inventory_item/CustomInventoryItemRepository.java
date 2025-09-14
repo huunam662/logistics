@@ -2,6 +2,7 @@ package warehouse_management.com.warehouse_management.repository.inventory_item;
 
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
+import warehouse_management.com.warehouse_management.dto.configuration_history.response.ConfigVehicleSpecPageResponse;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
 import warehouse_management.com.warehouse_management.dto.report_inventory.request.ReportParamsDto;
@@ -72,4 +73,6 @@ public interface CustomInventoryItemRepository {
     Page<InventoryItemWarrantyDto> findItemForWarranty(PageOptionsDto optionsDto);
 
     Page<InventoryItemRepairDto> findItemForRepair(PageOptionsDto optionsDto);
+
+    Page<ConfigVehicleSpecPageResponse> findPageConfigVehicleSpec(PageOptionsDto optionsDto);
 }

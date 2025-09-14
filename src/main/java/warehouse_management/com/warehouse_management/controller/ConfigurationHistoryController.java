@@ -9,6 +9,7 @@ import warehouse_management.com.warehouse_management.dto.configuration_history.r
 import warehouse_management.com.warehouse_management.dto.configuration_history.request.DropPartRequest;
 import warehouse_management.com.warehouse_management.dto.configuration_history.request.VehiclePartSwapRequest;
 import warehouse_management.com.warehouse_management.dto.configuration_history.response.ConfigVehicleSpecHistoryResponse;
+import warehouse_management.com.warehouse_management.dto.configuration_history.response.ConfigVehicleSpecPageResponse;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryProductDetailsDto;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.pagination.response.PageInfoDto;
@@ -72,4 +73,9 @@ public class ConfigurationHistoryController {
         return ApiResponse.success(configurationHistoryService.getConfigurationHistoryToVehicleId(new ObjectId(vehicleId)));
     }
 
+    @GetMapping("/page")
+    public ApiResponse<?> getPageConfigVehicleSpec(@ModelAttribute PageOptionsDto optionsDto){
+        Page<ConfigVehicleSpecPageResponse> page = configurationHistoryService.getPageConfigVehicleSpec(optionsDto);
+        return ApiResponse.success(new PageInfoDto<>(page));
+    }
 }
