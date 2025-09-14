@@ -295,7 +295,7 @@ public class DeliveryOrderService {
             InventoryItem item = itemsToDeliveryMap.getOrDefault(new ObjectId(itemToPush.getId()), null);
             if(item == null) throw LogicErrException.of("Mặt hàng cần thêm vào đơn hiện không tồn tại.");
 
-            if(InventoryItemStatus.IN_STOCK.equals(item.getStatus()))
+            if(!InventoryItemStatus.IN_STOCK.equals(item.getStatus()))
                 throw LogicErrException.of("Mặt hàng cần thêm vào đơn hiện không sẵn hàng.");
 
             Warehouse warehouse = warehouseService.getWarehouseToId(item.getWarehouseId());
