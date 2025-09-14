@@ -21,6 +21,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import warehouse_management.com.warehouse_management.dto.configuration_history.response.ConfigVehicleSpecPageResponse;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
 import warehouse_management.com.warehouse_management.dto.report_inventory.request.ReportParamsDto;
@@ -840,6 +841,65 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         Aggregation agg = Aggregation.newAggregation(pipelines);
 
         return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryItemRepairDto.class, agg, optionsDto);
+    }
+
+    public Page<ConfigVehicleSpecPageResponse> findPageConfigVehicleSpec(PageOptionsDto optionsDto) {
+        Aggregation aggregation = Aggregation.newAggregation(
+                Aggregation.match(Criteria.where("inventoryType").is("VEHICLE")),
+
+                Aggregation.lookup("inventory_item", "_id", "vehicleId", "components"),
+
+                Aggregation.addFields()
+                        .addField("componentsObj")
+                        .withValue(
+                                new Document("$arrayToObject",
+                                        new Document("$map", new Document()
+                                                .append("input", "$components")
+                                                .append("as", "c")
+                                                .append("in", List.of(
+                                                        new Document("$ifNull", List.of("$$c.componentType", "UNKNOWN")),
+                                                        "$$c"
+                                                ))
+                                        )
+                                )
+                        ).build(),
+
+                Aggregation.addFields()
+                        .addField("liftingFrame.value")
+                        .withValue(
+                                StringOperators.Concat.valueOf(ConditionalOperators.IfNull.ifNull(ConvertOperators.ToString.toString("$specifications.chassisType")).then(""))
+                                        .concat(" - ")
+                                        .concatValueOf(ConditionalOperators.IfNull.ifNull(ConvertOperators.ToString.toString("$specifications.liftingCapacityKg")).then("0"))
+                                        .concat(" Kg - ")
+                                        .concatValueOf(ConditionalOperators.IfNull.ifNull(ConvertOperators.ToString.toString("$specifications.liftingHeightMm")).then("0"))
+                                        .concat(" mm")
+                        )
+                        .addField("liftingFrame.serialNumber").withValue("$componentsObj.LIFTING_FRAME.serialNumber")
+                        .addField("battery.value")
+                        .withValue(
+                                StringOperators.Concat.valueOf(ConditionalOperators.IfNull.ifNull(ConvertOperators.ToString.toString("$specifications.batteryInfo")).then(""))
+                                        .concat(" - ")
+                                        .concatValueOf(ConditionalOperators.IfNull.ifNull(ConvertOperators.ToString.toString("$specifications.batterySpecification")).then(""))
+                        )
+                        .addField("battery.serialNumber").withValue("$componentsObj.BATTERY.serialNumber")
+                        .addField("charger.value").withValue("$specifications.chargerSpecification")
+                        .addField("charger.serialNumber").withValue("$componentsObj.CHARGER.serialNumber")
+                        .addField("engine.value").withValue("$specifications.engineType")
+                        .addField("engine.serialNumber").withValue("$componentsObj.ENGINE.commodityCode")
+                        .addField("fork.value").withValue("$specifications.forkDimensions")
+                        .addField("fork.serialNumber").withValue("$componentsObj.FORK.commodityCode")
+                        .addField("valve.value").withValue("$specifications.valveCount")
+                        .addField("valve.serialNumber").withValue("$componentsObj.VALVE.commodityCode")
+                        .addField("sideShift.value").withValue("$specifications.hasSideShift")
+                        .addField("sideShift.serialNumber").withValue("$componentsObj.SIDE_SHIFT.commodityCode")
+                        .build(),
+
+                Aggregation.project()
+                        .and("_id").as("vehicleId")
+                        .andInclude("productCode", "liftingFrame", "battery", "charger", "engine", "fork", "valve", "sideShift")
+                        .andExclude("_id")
+        );
+        return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, ConfigVehicleSpecPageResponse.class, aggregation, optionsDto);
     }
 
 }
