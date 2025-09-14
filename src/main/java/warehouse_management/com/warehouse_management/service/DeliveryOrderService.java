@@ -134,19 +134,44 @@ public class DeliveryOrderService {
     public List<DeliveryProductDetailsDto> getProductDetailInDeliveryOrder(ObjectId deliveryOrderId){
         DeliveryOrder deliveryOrder = getDeliveryOrderToId(deliveryOrderId);
         if(deliveryOrder.getInventoryItems() == null) return null;
-        return deliveryOrder.getInventoryItems().stream()
+
+        List<DeliveryProductDetailsDto> result = new ArrayList<>();
+
+        List<DeliveryProductDetailsDto> deliveryItems =  deliveryOrder.getInventoryItems().stream()
                 .filter(e -> !e.getInventoryType().equals(InventoryType.SPARE_PART.getId()))
                 .map(deliveryOrderMapper::toDeliveryProductDetailsDto)
                 .toList();
+        List<DeliveryProductDetailsDto> modelNotes = deliveryOrder.getModelNotes().stream()
+                .filter(e -> !e.getIsSparePart())
+                .map(deliveryOrderMapper::toDeliveryProductDetailsDto)
+                .toList();
+
+        result.addAll(deliveryItems);
+        result.addAll(modelNotes);
+        return result;
     }
 
     public List<DeliverySparePartDetailsDto> getSparePartDetailInDeliveryOrder(ObjectId deliveryOrderId){
         DeliveryOrder deliveryOrder = getDeliveryOrderToId(deliveryOrderId);
+
         if(deliveryOrder.getInventoryItems() == null) return null;
-        return deliveryOrder.getInventoryItems().stream()
+
+        List<DeliverySparePartDetailsDto> result = new ArrayList<>();
+
+        List<DeliverySparePartDetailsDto> deliveryItems = deliveryOrder.getInventoryItems().stream()
                 .filter(e -> e.getInventoryType().equals(InventoryType.SPARE_PART.getId()))
                 .map(deliveryOrderMapper::toDeliverySparePartDetailsDto)
                 .toList();
+        List<DeliverySparePartDetailsDto> noteDeliveryModels = deliveryOrder.getModelNotes()
+                .stream()
+                .filter(note -> note.getIsSparePart().equals(Boolean.TRUE))
+                .map(deliveryOrderMapper::toDeliverySparePartNotesDto)
+                .toList();
+
+        result.addAll(deliveryItems);
+        result.addAll(noteDeliveryModels);
+
+        return result;
     }
 
     @Transactional
