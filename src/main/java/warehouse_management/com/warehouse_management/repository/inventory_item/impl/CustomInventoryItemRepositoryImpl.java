@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -845,7 +844,11 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
 
     public Page<ConfigVehicleSpecPageResponse> findPageConfigVehicleSpec(PageOptionsDto optionsDto) {
         Aggregation aggregation = Aggregation.newAggregation(
-                Aggregation.match(Criteria.where("inventoryType").is(InventoryType.VEHICLE.getId())),
+                Aggregation.match(new Criteria().andOperator(
+                        Criteria.where("inventoryType").is(InventoryType.VEHICLE.getId()),
+                        Criteria.where("status").is(InventoryItemStatus.IN_REPAIR.getId()),
+                        Criteria.where("deletedAt").isNull()
+                )),
 
                 Aggregation.lookup("inventory_item", "_id", "vehicleId", "components"),
 
@@ -900,6 +903,25 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .andExclude("_id")
         );
         return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, ConfigVehicleSpecPageResponse.class, aggregation, optionsDto);
+    }
+
+    public Page<ItemCodeModelSerialResponse> findPageVehicleInStock(PageOptionsDto optionsDto){
+        Aggregation aggregation = Aggregation.newAggregation(
+                Aggregation.match(new Criteria().andOperator(
+                        Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
+                        Criteria.where("deletedAt").isNull()
+                )),
+                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
+                Aggregation.unwind("warehouse"),
+                Aggregation.match(new Criteria().andOperator(
+                        Criteria.where("warehouse.deletedAt").isNull(),
+                        Criteria.where("warehouse.type").ne(WarehouseType.DEPARTURE.getId())
+                )),
+                Aggregation.project("productCode", "model", "serialNumber")
+                        .and("_id").as("vehicleId")
+        );
+
+        return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, ItemCodeModelSerialResponse.class, aggregation, optionsDto);
     }
 
 }

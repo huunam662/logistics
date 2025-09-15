@@ -1,18 +1,17 @@
 package warehouse_management.com.warehouse_management.service;
 
 import lombok.RequiredArgsConstructor;
-import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import warehouse_management.com.warehouse_management.dto.configuration_history.request.AddVehicleToConfigurationRequest;
 import warehouse_management.com.warehouse_management.dto.configuration_history.request.AssemblePartRequest;
 import warehouse_management.com.warehouse_management.dto.configuration_history.request.DropPartRequest;
 import warehouse_management.com.warehouse_management.dto.configuration_history.request.VehiclePartSwapRequest;
 import warehouse_management.com.warehouse_management.dto.configuration_history.response.*;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.ItemCodeModelSerialResponse;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
-import warehouse_management.com.warehouse_management.dto.warehouse.response.GetDepartureWarehouseForContainerDto;
 import warehouse_management.com.warehouse_management.enumerate.ChangeConfigurationType;
 import warehouse_management.com.warehouse_management.enumerate.ComponentType;
 import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
@@ -22,12 +21,9 @@ import warehouse_management.com.warehouse_management.mapper.ConfigurationHistory
 import warehouse_management.com.warehouse_management.mapper.InventoryItemMapper;
 import warehouse_management.com.warehouse_management.model.ConfigurationHistory;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
-import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.repository.configuration_history.ConfigurationHistoryRepository;
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
-
 import java.util.*;
-import java.util.stream.Collectors;
 
 
 @Service
@@ -449,5 +445,20 @@ public class ConfigurationHistoryService {
 
     public List<ItemCodeModelSerialResponse> getVehicleByComponentType(String componentType){
         return inventoryItemRepository.findVehicleByComponentType(componentType);
+    }
+
+    public void addVehicleToConfiguration(AddVehicleToConfigurationRequest request){
+        List<ObjectId> vehicleIds = request.getVehicleIds().stream().map(ObjectId::new).toList();
+        List<InventoryItem> vehicles = inventoryItemRepository.findByIdInAndStatus(vehicleIds, InventoryItemStatus.IN_STOCK.getId());
+        List<ObjectId> vehiclesToRepair = vehicles.stream()
+                .filter(o -> InventoryType.VEHICLE.getId().equalsIgnoreCase(o.getInventoryType())
+                            && InventoryItemStatus.IN_STOCK.equals(o.getStatus()))
+                .map(InventoryItem::getId)
+                .toList();
+        inventoryItemRepository.updateStatusByIdIn(vehiclesToRepair, InventoryItemStatus.IN_REPAIR.getId());
+    }
+
+    public Page<ItemCodeModelSerialResponse> getPageVehicleInStock(PageOptionsDto optionsDto){
+        return inventoryItemRepository.findPageVehicleInStock(optionsDto);
     }
 }
