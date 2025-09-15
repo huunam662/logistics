@@ -82,9 +82,11 @@ public class InventoryItemService {
 
         try {
             List<InventoryItem> itemsToInsert = new ArrayList<>();
-
-            if(InventoryType.VEHICLE.getId().equals(newItem.getInventoryType()))
+            if (InventoryType.VEHICLE.getId().equals(newItem.getInventoryType())) {
                 buildComponentItems(newItem, itemsToInsert);
+            } else {
+                itemsToInsert.add(newItem);
+            }
 
             inventoryItemRepository.bulkInsert(itemsToInsert);
             // Ghi phiếu nhập kho (WarehouseTransaction)
@@ -216,36 +218,60 @@ public class InventoryItemService {
         warehouseTransferTicketRepository.save(tran);
     }
 
-    public <T> List<InventoryItem> bulkImport(
+    public List<InventoryItem> bulkImport(
             String warehouseId,
-            List<T> dtos,
-            Function<T, InventoryItem> toInventoryItem,
-
-            WarehouseSubTranType importType
+            List<ExcelImportProductionProductDto> dtos,
+            String productType
     ) {
         if (dtos == null || dtos.isEmpty()) {
             return List.of();
         }
         List<InventoryItem> itemsToInsert = new ArrayList<>();
-        List<InventoryItem> itemToLog = new ArrayList<>();
-        for (T dto : dtos) {
-            InventoryItem item = toInventoryItem.apply(dto);
-            item.setSpecificationsBase(item.getSpecifications());
-            itemToLog.add(item);
-            if (importType.equals(WarehouseSubTranType.EXCEL_TO_PRODUCTION_PRODUCT)) {
-                if(InventoryType.VEHICLE.getId().equals(item.getInventoryType()))
-                    buildComponentItems(item, itemsToInsert);
-            } else {
+
+        List<WarehouseTransaction.InventoryItemTicket> itemTicketToLog = new ArrayList<>();
+
+        if (productType.equals(WarehouseSubTranType.EXCEL_TO_PRODUCTION_PRODUCT.getId())) {
+            List<InventoryItem> itemToLog = new ArrayList<>();
+            for (ExcelImportProductionProductDto dto : dtos) {
+                InventoryItem item = mapper.toInventoryItem(dto);
+                item.setSpecificationsBase(item.getSpecifications());
+                itemToLog.add(item);
+                buildComponentItems(item, itemsToInsert);
+            }
+            itemTicketToLog = itemToLog.stream().map(mapper::toInventoryItemTicket).collect(Collectors.toList());
+        } else {
+            ComponentType componentType = mapToComponentType(productType);
+            for (ExcelImportProductionProductDto dto : dtos) {
+                InventoryItem item = mapper.toInventoryItem(dto);
+                item.setSpecificationsBase(item.getSpecifications());
                 item.setStatus(InventoryItemStatus.IN_STOCK);
+                item.setComponentType(componentType.getId());
                 itemsToInsert.add(item);
             }
+            itemTicketToLog = itemsToInsert.stream().map(mapper::toInventoryItemTicket).collect(Collectors.toList());
         }
-
         List<InventoryItem> saved = inventoryItemRepository.bulkInsert(itemsToInsert);
+        createImportTransaction(warehouseId, itemTicketToLog, WarehouseSubTranType.EXCEL_TO_PRODUCTION_PRODUCT);
+        return saved;
+    }
 
-        List<WarehouseTransaction.InventoryItemTicket> itemTicketToLog = itemToLog.stream().map(mapper::toInventoryItemTicket).collect(Collectors.toList());
-        createImportTransaction(warehouseId, itemTicketToLog, importType);
-
+    public List<InventoryItem> bulkImport(
+            String warehouseId,
+            List<ExcelImportProductionSparePartDto> dtos
+    ) {
+        if (dtos == null || dtos.isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<InventoryItem> itemsToInsert = new ArrayList<>();
+        for (ExcelImportProductionSparePartDto dto : dtos) {
+            InventoryItem item = mapper.toInventoryItem(dto);
+            item.setSpecificationsBase(item.getSpecifications());
+            item.setStatus(InventoryItemStatus.IN_STOCK);
+            itemsToInsert.add(item);
+        }
+        List<InventoryItem> saved = inventoryItemRepository.bulkInsert(itemsToInsert);
+        List<WarehouseTransaction.InventoryItemTicket> itemTicketToLog = itemsToInsert.stream().map(mapper::toInventoryItemTicket).collect(Collectors.toList());
+        createImportTransaction(warehouseId, itemTicketToLog, WarehouseSubTranType.EXCEL_TO_PRODUCTION_SPARE_PART);
         return saved;
     }
 
@@ -386,24 +412,19 @@ public class InventoryItemService {
 
 
     @Transactional
-    public List<InventoryItem> bulkCreateProductionProducts(String warehouseId, List<ExcelImportProductionProductDto> dtos) {
+    public List<InventoryItem> bulkCreateProductionProducts(String warehouseId, String productType, List<ExcelImportProductionProductDto> dtos) {
 
         return bulkImport(
                 warehouseId,
                 dtos,
-                mapper::toInventoryItem,
-
-                WarehouseSubTranType.EXCEL_TO_PRODUCTION_PRODUCT);
+                productType);
     }
 
     @Transactional
     public List<InventoryItem> bulkCreateProductionSpareParts(String warehouseId, List<ExcelImportProductionSparePartDto> dtos) {
         return bulkImport(
                 warehouseId,
-                dtos,
-                mapper::toInventoryItem,
-
-                WarehouseSubTranType.EXCEL_TO_PRODUCTION_SPARE_PART);
+                dtos);
     }
 
 
@@ -710,5 +731,22 @@ public class InventoryItemService {
 
     public InventoryItem findByIdOrThrow(String id) {
         return inventoryItemRepository.findById(new ObjectId(id)).orElseThrow(() -> LogicErrException.of("Không tồn tại"));
+    }
+
+    private ComponentType mapToComponentType(String productType) {
+        if (productType == null) return null;
+        // Loại bỏ prefix
+        String prefix = "EXCEL_TO_PRODUCTION_PRODUCT_";
+        if (productType.startsWith(prefix)) {
+            String componentCode = productType.substring(prefix.length());
+            try {
+                return ComponentType.valueOf(componentCode);
+            } catch (IllegalArgumentException e) {
+                // Không khớp enum nào
+                return null;
+            }
+        }
+
+        return null;
     }
 }

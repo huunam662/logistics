@@ -1,6 +1,7 @@
 package warehouse_management.com.warehouse_management.service;
 
 import lombok.RequiredArgsConstructor;
+import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -8,10 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import warehouse_management.com.warehouse_management.dto.configuration_history.request.AssemblePartRequest;
 import warehouse_management.com.warehouse_management.dto.configuration_history.request.DropPartRequest;
 import warehouse_management.com.warehouse_management.dto.configuration_history.request.VehiclePartSwapRequest;
-import warehouse_management.com.warehouse_management.dto.configuration_history.response.ConfigVehicleSpecHistoryResponse;
-import warehouse_management.com.warehouse_management.dto.configuration_history.response.ConfigVehicleSpecPageResponse;
-import warehouse_management.com.warehouse_management.dto.configuration_history.response.ConfigurationHistoryResponse;
-import warehouse_management.com.warehouse_management.dto.configuration_history.response.VehicleComponentTypeResponse;
+import warehouse_management.com.warehouse_management.dto.configuration_history.response.*;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.warehouse.response.GetDepartureWarehouseForContainerDto;
 import warehouse_management.com.warehouse_management.enumerate.ChangeConfigurationType;
@@ -27,10 +25,7 @@ import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.repository.configuration_history.ConfigurationHistoryRepository;
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 
 @Service
@@ -314,28 +309,26 @@ public class ConfigurationHistoryService {
     public boolean assembleComponent(AssemblePartRequest assemblePart){
 
         InventoryItem vehicle = inventoryItemService.getItemToId(new ObjectId(assemblePart.getVehicleId()));
-        ComponentType componentType = ComponentType.fromId(assemblePart.getComponentType());
-        if(componentType == null) throw LogicErrException.of("Loại bộ phận cần tháo rời không hợp lệ.");
 
-        InventoryItem component = inventoryItemService.getComponentItemToVehicleIdAndType(vehicle.getId(), componentType, vehicle.getProductCode());
-        if(vehicle.getId().equals(component.getVehicleId()))
+        InventoryItem component = inventoryItemService.getItemToId(new ObjectId(assemblePart.getComponentId()));
+        ComponentType componentType = ComponentType.fromId(component.getComponentType());
+
+        if(componentType == null) throw LogicErrException.of("Loại bộ phận không hợp lệ");
+
+        if(vehicle.getId().equals(component.getVehicleId())){
             throw LogicErrException.of("Bộ phận " + componentType.getValue() + " đã có sẵn trong xe " + vehicle.getProductCode());
-
-        Warehouse warehouse = warehouseService.getWarehouseToId(new ObjectId(assemblePart.getWarehouseId()));
-
-        component = inventoryItemRepository.findByComponentTypeAndWarehouseId(componentType.getId(), warehouse.getId())
-                .orElseThrow(() -> LogicErrException.of("Bộ phận " + componentType.getValue() + " không tồn tại ở kho " + warehouse.getName()));
+        }
 
         if(ComponentType.itemType(componentType).equals(InventoryType.SPARE_PART)){
-            if(component.getQuantity() < assemblePart.getComponentQuantity())
+            if(component.getQuantity() < 1)
                 throw LogicErrException.of("Bộ phận phụ tùng " + componentType.getValue() + " không đủ số lượng yêu cầu lắp vào.");
-            else if(component.getQuantity() > assemblePart.getComponentQuantity()){
+            else if(component.getQuantity() > 1){
 
-                component.setQuantity(component.getQuantity() - assemblePart.getComponentQuantity());
+                component.setQuantity(component.getQuantity() - 1);
                 inventoryItemRepository.bulkUpdateStatusAndQuantity(List.of(component));
 
                 component = inventoryItemMapper.cloneEntity(component);
-                component.setQuantity(assemblePart.getComponentQuantity());
+                component.setQuantity(1);
             }
         }
 
@@ -402,11 +395,29 @@ public class ConfigurationHistoryService {
                 .toList();
     }
 
-    public List<GetDepartureWarehouseForContainerDto> getWarehouseContainsComponent(String componentType){
+    public List<ComponentAndWarehouseResponse> getWarehouseContainsComponent(String componentType){
 
         ComponentType type = ComponentType.fromId(componentType);
         if(type == null) throw LogicErrException.of("Loại bộ phận muốn kiểm tra không hợp lệ.");
 
-        return inventoryItemRepository.findWarehouseContainsComponent(type.getId());
+        List<Map<String, Object>> docRsults = inventoryItemRepository.findWarehouseContainsComponent(type.getId());
+
+        return docRsults.stream()
+                .map(doc -> {
+
+                    ComponentAndWarehouseResponse res = new ComponentAndWarehouseResponse();
+                    res.setComponentId((ObjectId) doc.get("componentId"));
+                    res.setSerialNumber(doc.get("serialNumber").toString());
+
+                    if(res.getSerialNumber() == null) res.setSerialNumber(doc.get("commodityCode").toString());
+
+                    ComponentType ctype = ComponentType.fromId(doc.get("componentType").toString());
+
+                    res.setComponentName(ctype == null ? null : ctype.getValue());
+                    res.setWarehouseName(doc.get("warehouseName").toString());
+                    res.setWarehouseCode(doc.get("warehouseCode").toString());
+                    return res;
+                })
+                .toList();
     }
 }
