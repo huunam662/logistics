@@ -1,18 +1,14 @@
 package warehouse_management.com.warehouse_management.repository.inventory_item;
 
 
+import org.bson.Document;
 import org.bson.types.ObjectId;
-import org.springframework.data.mongodb.repository.Aggregation;
-import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.data.mongodb.repository.Query;
-import org.springframework.data.mongodb.repository.Update;
-import org.springframework.data.repository.query.Param;
-import warehouse_management.com.warehouse_management.dto.warehouse.response.GetDepartureWarehouseForContainerDto;
+import org.springframework.data.mongodb.repository.*;
 import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
-
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface InventoryItemRepository extends MongoRepository<InventoryItem, ObjectId>,
@@ -23,6 +19,7 @@ public interface InventoryItemRepository extends MongoRepository<InventoryItem, 
 
     Optional<InventoryItem> findByCommodityCodeAndDescription(String commodityCode, String description);
 
+    @Query("{'componentType': ?0, warehouseId: ?1}")
     Optional<InventoryItem> findByComponentTypeAndWarehouseId(String componentType, ObjectId warehouseId);
 
     boolean existsBySerialNumber(String serialNumber);
@@ -70,7 +67,7 @@ public interface InventoryItemRepository extends MongoRepository<InventoryItem, 
     })
     List<ObjectId> findIdsByContainerIdAndStatus(ObjectId containerId, String status);
 
-    @Query("{vehicleId: ?0, componentType: ?0}")
+    @Query("{vehicleId: ?0, componentType: ?1}")
     Optional<InventoryItem> findByVehicleIdAndComponentType(ObjectId vehicleId, String componentType);
 
     @Query("{ '_id': { $in: ?0 } }")
@@ -91,7 +88,8 @@ public interface InventoryItemRepository extends MongoRepository<InventoryItem, 
     @Aggregation(pipeline = {
             "{$match: {componentType: ?0, vehicleId: null, deletedAt: null}}",
             "{$lookup: {from: 'warehouse', localField: 'warehouseId', foreignField: '_id', as: 'warehouse'}}",
-            "{$project: {warehouseId: '$warehouse._id', warehouseCode: '$warehouse.code', warehouseName: '$warehouse.name', _id: 0}}"
+            "{$unwind: '$warehouse'}",
+            "{$project: {componentId: '$_id', componentType: 1, serialNumber: 1, commodityCode: 1, warehouseCode: '$warehouse.code', warehouseName: '$warehouse.name'}}"
     })
-    List<GetDepartureWarehouseForContainerDto> findWarehouseContainsComponent(String componentType);
+    List<Map<String, Object>> findWarehouseContainsComponent(String componentType);
 }
