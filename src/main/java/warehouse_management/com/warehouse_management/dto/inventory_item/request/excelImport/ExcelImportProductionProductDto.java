@@ -52,9 +52,9 @@ public class ExcelImportProductionProductDto {
         private String hasSideShift; // Có side shift không 9
         private String otherDetails; // Chi tiết khác 10
 
-        private Integer liftingCapacityKg; // Sức nâng (Kg) 12
+        private String liftingCapacityKg; // Sức nâng (Kg) 12
         private String chassisType; // Loại khung nâng 13
-        private Integer liftingHeightMm; // Độ cao nâng (mm) 14
+        private String liftingHeightMm; // Độ cao nâng (mm) 14
         private String engineType; // Động cơ 15
         private String batteryInfo; // Bình điện 16
         private String forkDimensions;          // Thông số càng

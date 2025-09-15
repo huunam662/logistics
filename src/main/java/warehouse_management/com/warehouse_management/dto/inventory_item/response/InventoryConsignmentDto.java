@@ -20,9 +20,9 @@ public class InventoryConsignmentDto {
     private String category;       // Chủng loại
     private String hasSideShift;           // SS (Side Shift)
     private String serialNumber;   // Số seri
-    private Integer liftingCapacityKg;      // Sức nâng (kg)
+    private String liftingCapacityKg;      // Sức nâng (kg)
     private String chassisType;             // Loại khung nâng
-    private Integer liftingHeightMm;        // Độ cao nâng (mm)
+    private String liftingHeightMm;        // Độ cao nâng (mm)
     private String engineType;              // Loại động cơ
     private String batteryInfo;             // Bình điện
     private String batterySpecification;    // Thông số bình điện

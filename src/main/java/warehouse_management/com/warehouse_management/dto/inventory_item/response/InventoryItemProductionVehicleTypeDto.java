@@ -10,8 +10,8 @@ public class InventoryItemProductionVehicleTypeDto {
     private String model;
     private String status;
     private Integer manufacturingYear;
-    private Integer liftingCapacityKg;
+    private String liftingCapacityKg;
     private String chassisType;
-    private Integer liftingHeightMm;
+    private String liftingHeightMm;
     private String engineType;
 }
