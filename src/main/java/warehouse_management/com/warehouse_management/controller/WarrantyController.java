@@ -17,6 +17,7 @@ import warehouse_management.com.warehouse_management.dto.pagination.request.Page
 import warehouse_management.com.warehouse_management.dto.warranty.request.CreateWarrantyDTO;
 import warehouse_management.com.warehouse_management.dto.warranty.request.CreateWarrantyTransactionDTO;
 import warehouse_management.com.warehouse_management.dto.warranty.request.UpdateStatusWarrantyRequestDTO;
+import warehouse_management.com.warehouse_management.dto.warranty.request.UpdateStatusWarrantyTransactionRequestDTO;
 import warehouse_management.com.warehouse_management.dto.warranty.response.WarrantyResponseDTO;
 import warehouse_management.com.warehouse_management.dto.warranty.response.WarrantyTransactionResponseDTO;
 import warehouse_management.com.warehouse_management.service.WarrantyService;
@@ -53,8 +54,8 @@ public class WarrantyController {
             summary = "Tạo phiếu bảo hành",
             description = "Tạo phiếu bảo hành"
     )
-    public ApiResponse<WarrantyTransactionResponseDTO> saveWarrantyTransaction(@Valid @RequestBody CreateWarrantyTransactionDTO createWarrantyTransactionDTO) {
-        return ApiResponse.success(warrantyService.createWarrantyTransaction(createWarrantyTransactionDTO));
+    public ApiResponse<List<WarrantyTransactionResponseDTO>> saveWarrantyTransaction(@Valid @RequestBody List<CreateWarrantyTransactionDTO> createWarrantyTransactionDTO) {
+        return ApiResponse.success(warrantyService.createListWarrantyTransaction(createWarrantyTransactionDTO));
     }
 
     @PatchMapping("/status")
@@ -64,5 +65,14 @@ public class WarrantyController {
     )
     public ApiResponse<WarrantyResponseDTO> updateStatusWarranty(@Valid @RequestBody UpdateStatusWarrantyRequestDTO updateStatusWarrantyRequestDTO) {
         return ApiResponse.success(warrantyService.updateStatus(updateStatusWarrantyRequestDTO));
+    }
+
+    @PatchMapping("transaction/status")
+    @Operation(
+            summary = "Đổi trạng thái của phiếu bảo hành",
+            description = "Đổi trạng thái của phiếu bảo hành, nếu đơn 'Đã hoàn thành' thì đổi lại 'Đang bảo hành' và ngược lại"
+    )
+    public ApiResponse<WarrantyTransactionResponseDTO> updateStatusWarrantyTransaction(@Valid @RequestBody UpdateStatusWarrantyTransactionRequestDTO updateStatusWarrantyTransactionRequestDTO) {
+        return ApiResponse.success(warrantyService.updateStatusTransaction(updateStatusWarrantyTransactionRequestDTO));
     }
 }
