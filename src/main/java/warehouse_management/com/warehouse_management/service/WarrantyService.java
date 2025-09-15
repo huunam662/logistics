@@ -9,6 +9,7 @@ import warehouse_management.com.warehouse_management.dto.warranty.request.Create
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.warranty.request.CreateWarrantyTransactionDTO;
 import warehouse_management.com.warehouse_management.dto.warranty.request.UpdateStatusWarrantyRequestDTO;
+import warehouse_management.com.warehouse_management.dto.warranty.request.UpdateStatusWarrantyTransactionRequestDTO;
 import warehouse_management.com.warehouse_management.dto.warranty.response.WarrantyResponseDTO;
 import warehouse_management.com.warehouse_management.dto.warranty.response.WarrantyTransactionResponseDTO;
 import warehouse_management.com.warehouse_management.enumerate.DeliveryOrderStatus;
@@ -147,6 +148,32 @@ public class WarrantyService {
     }
 
     /**
+     * Tạo phiếu bảo hành cho đơn bảo hành bằng danh sách
+     * @param createWarrantyTransactionDTOList danh sách DTO nhận từ request
+     * @return phiếu bảo hành
+     */
+    @Transactional
+    public List<WarrantyTransactionResponseDTO> createListWarrantyTransaction(List<CreateWarrantyTransactionDTO> createWarrantyTransactionDTOList) {
+        List<WarrantyTransaction> warrantyTransactionCreateList = new ArrayList<>();
+        for (CreateWarrantyTransactionDTO createWarrantyTransactionDTO : createWarrantyTransactionDTOList) {
+            checkExistWarrantyAndGet(createWarrantyTransactionDTO.getWarrantyId().toString());
+
+            WarrantyTransaction warrantyTransaction = warrantyTransactionMapper
+                    .toWarrantyTransaction(createWarrantyTransactionDTO);
+            warrantyTransaction.setCreateByName(customAuthentication.getUser().getFullName());
+            warrantyTransaction.setIsCompleted(false);
+
+            warrantyTransactionCreateList.add(warrantyTransaction);
+        }
+
+        return warrantyTransactionRepository
+                .saveAll(warrantyTransactionCreateList)
+                .stream()
+                .map(warrantyTransactionMapper::toWarrantyTransactionResponseDTO)
+                .toList();
+    }
+
+    /**
      * Kiểm tra xem đơn bảo hành có tồn tại không
      * @param warrantyId id của đơn bảo hành cần check
      * @return nếu như tồn tại thì trả về đơn bảo hành
@@ -159,4 +186,33 @@ public class WarrantyService {
         }
         return warranty.get();
     }
+
+    /**
+     * Cập nhật tình trạng của phiếu bảo hành bảo hành
+     * @param updateStatusWarrantyTransactionRequestDTO DTO truyền từ request
+     * @return phiếu bảo hành sau khi cập nhật
+     */
+    public WarrantyTransactionResponseDTO updateStatusTransaction(UpdateStatusWarrantyTransactionRequestDTO updateStatusWarrantyTransactionRequestDTO) {
+        checkExistWarrantyTransactionAndGet(updateStatusWarrantyTransactionRequestDTO.getWarrantyTransactionId().toString());
+
+        return warrantyTransactionMapper
+                .toWarrantyTransactionResponseDTO(warrantyTransactionRepository
+                        .switchStatus(updateStatusWarrantyTransactionRequestDTO.getWarrantyTransactionId(),
+                                updateStatusWarrantyTransactionRequestDTO.getIsCompleted()));
+    }
+
+    /**
+     * Kiểm tra xem phiếu bảo hành có tồn tại không
+     * @param warrantyTransactionId id của phiếu bảo hành cần check
+     * @return nếu như tồn tại thì trả về phiếu bảo hành
+     */
+    private WarrantyTransaction checkExistWarrantyTransactionAndGet(String warrantyTransactionId) {
+        Optional<WarrantyTransaction> warrantyTransaction = warrantyTransactionRepository.findById(warrantyTransactionId);
+
+        if (warrantyTransaction.isEmpty() || warrantyTransaction.get().getDeletedBy() != null) {
+            throw LogicErrException.of(Msg.get(LogicErrMsg.WARRANTY_NOT_FOUND));
+        }
+        return warrantyTransaction.get();
+    }
+
 }
