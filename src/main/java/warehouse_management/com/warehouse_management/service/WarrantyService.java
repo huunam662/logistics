@@ -161,7 +161,6 @@ public class WarrantyService {
             WarrantyTransaction warrantyTransaction = warrantyTransactionMapper
                     .toWarrantyTransaction(createWarrantyTransactionDTO);
             warrantyTransaction.setCreateByName(customAuthentication.getUser().getFullName());
-            warrantyTransaction.setIsCompleted(false);
 
             warrantyTransactionCreateList.add(warrantyTransaction);
         }
