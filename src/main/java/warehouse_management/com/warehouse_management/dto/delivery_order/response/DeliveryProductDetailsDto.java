@@ -24,9 +24,9 @@ public class DeliveryProductDetailsDto {
 
     @Data
     public static class Specifications {
-        private Integer liftingCapacityKg;      // Sức nâng (kg)
+        private String liftingCapacityKg;      // Sức nâng (kg)
         private String chassisType;             // Loại khung nâng
-        private Integer liftingHeightMm;        // Độ cao nâng (mm)
+        private String liftingHeightMm;        // Độ cao nâng (mm)
         private String engineType;              // Loại động cơ
         private String batteryInfo;             // Thông tin bình điện
         private String batterySpecification;    // Thông số bình điện

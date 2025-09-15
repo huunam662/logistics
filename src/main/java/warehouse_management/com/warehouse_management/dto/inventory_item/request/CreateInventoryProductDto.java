@@ -30,9 +30,9 @@ public class CreateInventoryProductDto {
 
     @Data
     public static class Specifications {
-        private Integer liftingCapacityKg; // Sức nâng (Kg) 12
+        private String liftingCapacityKg; // Sức nâng (Kg) 12
         private String chassisType; // Loại khung nâng 13
-        private Integer liftingHeightMm; // Độ cao nâng (mm) 14
+        private String liftingHeightMm; // Độ cao nâng (mm) 14
         private String engineType; // Động cơ 15
         private String batteryInfo; // Bình điện 16
         private String forkDimensions;          // Thông số càng
