@@ -28,8 +28,8 @@ public class InventoryCentralWarehouseProductDto {
     private String batterySpecification;    // Thông số bình điện
     private String forkDimensions;          // Thông số càng
     private String chargerSpecification;    // Thông số bộ sạc
-    private Integer valveCount;             // Số lượng van
-    private Boolean hasSideShift;           // Có side shift không
+    private String valveCount;             // Số lượng van
+    private String hasSideShift;           // Có side shift không
     private String otherDetails;            // Chi tiết khác
     private BigDecimal purchasePrice;       // Giá mua vào
     private BigDecimal salePriceR0;         // Giá bán đề xuất R0
