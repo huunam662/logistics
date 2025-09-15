@@ -845,7 +845,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
 
     public Page<ConfigVehicleSpecPageResponse> findPageConfigVehicleSpec(PageOptionsDto optionsDto) {
         Aggregation aggregation = Aggregation.newAggregation(
-                Aggregation.match(Criteria.where("inventoryType").is("VEHICLE")),
+                Aggregation.match(Criteria.where("inventoryType").is(InventoryType.VEHICLE.getId())),
 
                 Aggregation.lookup("inventory_item", "_id", "vehicleId", "components"),
 
@@ -896,7 +896,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
 
                 Aggregation.project()
                         .and("_id").as("vehicleId")
-                        .andInclude("productCode", "liftingFrame", "battery", "charger", "engine", "fork", "valve", "sideShift")
+                        .andInclude("productCode", "serialNumber", "liftingFrame", "battery", "charger", "engine", "fork", "valve", "sideShift")
                         .andExclude("_id")
         );
         return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, ConfigVehicleSpecPageResponse.class, aggregation, optionsDto);

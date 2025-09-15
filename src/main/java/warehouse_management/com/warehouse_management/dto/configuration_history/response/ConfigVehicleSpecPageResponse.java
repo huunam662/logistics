@@ -8,6 +8,7 @@ public class ConfigVehicleSpecPageResponse {
 
     private ObjectId vehicleId;
     private String productCode;
+    private String serialNumber;
     private Boolean isFullyComponent;
     private ComponentVehicle liftingFrame;
     private ComponentVehicle battery;
@@ -20,17 +21,14 @@ public class ConfigVehicleSpecPageResponse {
     @Data
     public static class ComponentVehicle{
         private Object value;
-        private Object serialNumber;
+        private String serialNumber;
     }
 
 
     public Boolean getIsFullyComponent() {
-        return liftingFrame != null && liftingFrame.getValue() != null && liftingFrame.getSerialNumber() != null &&
-                battery != null && battery.getValue() != null && battery.getSerialNumber() != null &&
-                charger != null && charger.getValue() != null && charger.getSerialNumber() != null &&
-                engine != null && engine.getValue() != null && engine.getSerialNumber() != null &&
-                fork != null && fork.getValue() != null && fork.getSerialNumber() != null &&
-                valve != null && valve.getValue() != null && valve.getSerialNumber() != null &&
-                sideShift != null && sideShift.getValue() != null && sideShift.getSerialNumber() != null;
+        return liftingFrame.getSerialNumber() != null && battery.getSerialNumber() != null &&
+                charger.getSerialNumber() != null && engine.getSerialNumber() != null &&
+                fork.getSerialNumber() != null && valve.getSerialNumber() != null &&
+                sideShift.getSerialNumber() != null;
     }
 }

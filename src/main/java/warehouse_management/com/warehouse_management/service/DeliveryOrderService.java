@@ -25,6 +25,7 @@ import warehouse_management.com.warehouse_management.repository.delivery_order.D
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
 import warehouse_management.com.warehouse_management.repository.warehouse.WarehouseRepository;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -145,7 +146,11 @@ public class DeliveryOrderService {
         if(deliveryOrder.getInventoryItems() == null) return null;
         return deliveryOrder.getInventoryItems().stream()
                 .filter(e -> e.getInventoryType().equals(InventoryType.SPARE_PART.getId()))
-                .map(deliveryOrderMapper::toDeliverySparePartDetailsDto)
+                .map(o -> {
+                    DeliverySparePartDetailsDto dto = deliveryOrderMapper.toDeliverySparePartDetailsDto(o);
+                    dto.getPricing().setTotalPrice(o.getPricing().getPurchasePrice().multiply(BigDecimal.valueOf(o.getQuantity())));
+                    return dto;
+                })
                 .toList();
     }
 

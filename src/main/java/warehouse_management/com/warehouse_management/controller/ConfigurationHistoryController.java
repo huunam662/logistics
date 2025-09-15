@@ -13,6 +13,7 @@ import warehouse_management.com.warehouse_management.dto.configuration_history.r
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryProductDetailsDto;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.pagination.response.PageInfoDto;
+import warehouse_management.com.warehouse_management.dto.warehouse.response.GetDepartureWarehouseForContainerDto;
 import warehouse_management.com.warehouse_management.model.ConfigurationHistory;
 import warehouse_management.com.warehouse_management.repository.configuration_history.ConfigurationHistoryRepository;
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
@@ -77,5 +78,22 @@ public class ConfigurationHistoryController {
     public ApiResponse<?> getPageConfigVehicleSpec(@ModelAttribute PageOptionsDto optionsDto){
         Page<ConfigVehicleSpecPageResponse> page = configurationHistoryService.getPageConfigVehicleSpec(optionsDto);
         return ApiResponse.success(new PageInfoDto<>(page));
+    }
+
+    @GetMapping("/vehicle-components-exists")
+    public ApiResponse<?> getComponentByVehicleId(@RequestParam("vehicleId") String vehicleId){
+        return ApiResponse.success(configurationHistoryService.getComponentTypeToVehicleId(new ObjectId(vehicleId)));
+    }
+
+    @GetMapping("/vehicle-components-missing")
+    public ApiResponse<?> getComponentMissingByVehicleId(@RequestParam("vehicleId") String vehicleId){
+        return ApiResponse.success(configurationHistoryService.getComponentTypeMissingToVehicleId(new ObjectId(vehicleId)));
+    }
+
+    @GetMapping("/warehouse-components")
+    public ApiResponse<?> getWarehouseContainsComponent(
+           @RequestParam("componentType") String componentType
+    ){
+        return ApiResponse.success(configurationHistoryService.getWarehouseContainsComponent(componentType));
     }
 }

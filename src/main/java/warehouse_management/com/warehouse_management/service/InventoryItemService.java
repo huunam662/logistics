@@ -82,7 +82,10 @@ public class InventoryItemService {
 
         try {
             List<InventoryItem> itemsToInsert = new ArrayList<>();
-            buildComponentItems(newItem, itemsToInsert);
+
+            if(InventoryType.VEHICLE.getId().equals(newItem.getInventoryType()))
+                buildComponentItems(newItem, itemsToInsert);
+
             inventoryItemRepository.bulkInsert(itemsToInsert);
             // Ghi phiếu nhập kho (WarehouseTransaction)
             warehouseTransferTicketRepository.save(buildAWarehouseTransaction(inStockWh, newItem));
@@ -230,7 +233,8 @@ public class InventoryItemService {
             item.setSpecificationsBase(item.getSpecifications());
             itemToLog.add(item);
             if (importType.equals(WarehouseSubTranType.EXCEL_TO_PRODUCTION_PRODUCT)) {
-                buildComponentItems(item, itemsToInsert);
+                if(InventoryType.VEHICLE.getId().equals(item.getInventoryType()))
+                    buildComponentItems(item, itemsToInsert);
             } else {
                 item.setStatus(InventoryItemStatus.IN_STOCK);
                 itemsToInsert.add(item);
@@ -251,7 +255,7 @@ public class InventoryItemService {
     ) {
 
         // Tạo ObjectId cho item cha
-        if(parentItem.getId() != null)
+        if(parentItem.getId() == null)
             parentItem.setId(new ObjectId());
         parentItem.setInventoryType(InventoryType.VEHICLE.getId());
         parentItem.setStatus(InventoryItemStatus.IN_STOCK);
