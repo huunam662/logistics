@@ -26,6 +26,7 @@ public class WarrantyTransaction {
     private String sparePartWarranty;   // Bộ phận cần bảo hành
     private String reason;              // Lý do bảo hành
     private String createByName;        // Username của người tạo phiếu bảo hành
+    private String updateByName;        // Username của người cập nhật phiếu bảo hành
     private Boolean isCompleted;        // Trạng thái hoàn thành của phiếu
 
     @CreatedDate
