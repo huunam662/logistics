@@ -176,7 +176,7 @@ public class PXKDCNBGenerateReport implements GenerateReportStrategy {
             sb.append("\nSố lượng van: ").append(specs.getValveCount());
         }
         if (specs.getHasSideShift() != null) {
-            sb.append("\nCó side shift: ").append(specs.getHasSideShift() ? "Có" : "Không");
+            sb.append("\nCó side shift: ").append(specs.getHasSideShift() );
         }
         if (specs.getOtherDetails() != null) {
             sb.append("\nChi tiết khác: ").append(specs.getOtherDetails());
