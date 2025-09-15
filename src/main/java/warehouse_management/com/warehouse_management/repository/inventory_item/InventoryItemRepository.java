@@ -4,6 +4,7 @@ package warehouse_management.com.warehouse_management.repository.inventory_item;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.*;
+import warehouse_management.com.warehouse_management.dto.inventory_item.response.ItemCodeModelSerialResponse;
 import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
 import java.util.Collection;
@@ -33,6 +34,9 @@ public interface InventoryItemRepository extends MongoRepository<InventoryItem, 
 
     @Query("{'_id': {'$in': ?0}}")
     List<InventoryItem> findByIdIn(Collection<ObjectId> ids);
+
+    @Query("{'_id': {'$in': ?0}, 'status': ?1}")
+    List<InventoryItem> findByIdInAndStatus(Collection<ObjectId> ids, String status);
 
     @Query("{'commodityCode': {'$in': ?0}, 'warehouseId': ?1, 'status': ?2}")
     List<InventoryItem> findSparePartByCommodityCodeIn(Collection<String> commodityCodes, ObjectId warehouseId, String inventoryStatus);
@@ -92,4 +96,12 @@ public interface InventoryItemRepository extends MongoRepository<InventoryItem, 
             "{$project: {componentId: '$_id', componentType: 1, serialNumber: 1, commodityCode: 1, warehouseCode: '$warehouse.code', warehouseName: '$warehouse.name'}}"
     })
     List<Map<String, Object>> findWarehouseContainsComponent(String componentType);
+
+    @Aggregation(pipeline = {
+            "{$match: {componentType: ?0, vehicleId: {'$ne': null}, deletedAt: null}}",
+            "{$lookup: {from: 'inventory_item', localField: 'vehicleId', foreignField: '_id', as: 'vehicle'}}",
+            "{$unwind: '$vehicle'}",
+            "{$project: {vehicleId: '$vehicle._id', productCode: '$vehicle.productCode', serialNumber: '$vehicle.serialNumber', model: '$vehicle.model'}}"
+    })
+    List<ItemCodeModelSerialResponse> findVehicleByComponentType(String componentType);
 }
