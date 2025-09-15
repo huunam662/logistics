@@ -20,6 +20,7 @@ public class ConfigurationHistoryResponse {
     private String componentReplaceSerial;  // Serial của bộ phận được thay thế
 
     private String componentType;    // Loại bộ phận cũ
+    private String componentName;    // Tên loại bộ phận cũ
 
     private String configType;    // Kiểu cấu hình thay đổi
 
