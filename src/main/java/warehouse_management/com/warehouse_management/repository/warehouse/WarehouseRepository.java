@@ -4,6 +4,7 @@ import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
+import warehouse_management.com.warehouse_management.dto.warehouse.response.GetDepartureWarehouseForContainerDto;
 import warehouse_management.com.warehouse_management.enumerate.WarehouseType;
 import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.dto.warehouse.response.IdAndNameWarehouseDto;
@@ -35,4 +36,5 @@ CustomWarehouseRepository {
             "{$project: {id: '$_id', name: 1}}"
     })
     List<IdAndNameWarehouseDto> findIdsByType(String type);
+
 }

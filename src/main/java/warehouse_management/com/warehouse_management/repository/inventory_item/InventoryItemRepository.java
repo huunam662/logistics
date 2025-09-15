@@ -7,6 +7,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.data.mongodb.repository.Update;
 import org.springframework.data.repository.query.Param;
+import warehouse_management.com.warehouse_management.dto.warehouse.response.GetDepartureWarehouseForContainerDto;
 import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
 
@@ -79,4 +80,18 @@ public interface InventoryItemRepository extends MongoRepository<InventoryItem, 
     @Query("{'_id': ?0}")
     @Update("{'$set':  {'vehicleId': ?1}}")
     void updateVehicleIdById(ObjectId id, ObjectId vehicleId);
+
+    @Aggregation(pipeline = {
+            "{$match: {vehicleId: ?0, deletedAt: null}}",
+            "{$project: {componentType: 1, _id: 0}}"
+    })
+    List<String> findComponentTypeByVehicleId(ObjectId vehicleId);
+
+
+    @Aggregation(pipeline = {
+            "{$match: {componentType: ?0, vehicleId: null, deletedAt: null}}",
+            "{$lookup: {from: 'warehouse', localField: 'warehouseId', foreignField: '_id', as: 'warehouse'}}",
+            "{$project: {warehouseId: '$warehouse._id', warehouseCode: '$warehouse.code', warehouseName: '$warehouse.name', _id: 0}}"
+    })
+    List<GetDepartureWarehouseForContainerDto> findWarehouseContainsComponent(String componentType);
 }

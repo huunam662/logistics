@@ -11,7 +11,9 @@ import warehouse_management.com.warehouse_management.dto.configuration_history.r
 import warehouse_management.com.warehouse_management.dto.configuration_history.response.ConfigVehicleSpecHistoryResponse;
 import warehouse_management.com.warehouse_management.dto.configuration_history.response.ConfigVehicleSpecPageResponse;
 import warehouse_management.com.warehouse_management.dto.configuration_history.response.ConfigurationHistoryResponse;
+import warehouse_management.com.warehouse_management.dto.configuration_history.response.VehicleComponentTypeResponse;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
+import warehouse_management.com.warehouse_management.dto.warehouse.response.GetDepartureWarehouseForContainerDto;
 import warehouse_management.com.warehouse_management.enumerate.ChangeConfigurationType;
 import warehouse_management.com.warehouse_management.enumerate.ComponentType;
 import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
@@ -25,7 +27,9 @@ import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.repository.configuration_history.ConfigurationHistoryRepository;
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 
@@ -69,11 +73,11 @@ public class ConfigurationHistoryService {
     private void swapVehicleComponent(InventoryItem leftVeh, InventoryItem rightVeh, ComponentType componentType) {
         switch (componentType) {
             case LIFTING_FRAME -> {
-                Integer tmpHeight = leftVeh.getSpecifications().getLiftingHeightMm();
+                String tmpHeight = leftVeh.getSpecifications().getLiftingHeightMm();
                 leftVeh.getSpecifications().setLiftingHeightMm(rightVeh.getSpecifications().getLiftingHeightMm());
                 rightVeh.getSpecifications().setLiftingHeightMm(tmpHeight);
 
-                Integer tmpCapacity = leftVeh.getSpecifications().getLiftingCapacityKg();
+                String tmpCapacity = leftVeh.getSpecifications().getLiftingCapacityKg();
                 leftVeh.getSpecifications().setLiftingCapacityKg(rightVeh.getSpecifications().getLiftingCapacityKg());
                 rightVeh.getSpecifications().setLiftingCapacityKg(tmpCapacity);
 
@@ -106,12 +110,12 @@ public class ConfigurationHistoryService {
                 rightVeh.getSpecifications().setForkDimensions(tmpFork);
             }
             case SIDE_SHIFT -> {
-                Boolean tmpSideShift = leftVeh.getSpecifications().getHasSideShift();
+                String tmpSideShift = leftVeh.getSpecifications().getHasSideShift();
                 leftVeh.getSpecifications().setHasSideShift(rightVeh.getSpecifications().getHasSideShift());
                 rightVeh.getSpecifications().setHasSideShift(tmpSideShift);
             }
             case VALVE -> {
-                Integer tmpValve = leftVeh.getSpecifications().getValveCount();
+                String tmpValve = leftVeh.getSpecifications().getValveCount();
                 leftVeh.getSpecifications().setValveCount(rightVeh.getSpecifications().getValveCount());
                 rightVeh.getSpecifications().setValveCount(tmpValve);
             }
@@ -247,6 +251,7 @@ public class ConfigurationHistoryService {
         }
 
         disassembleSpecifications(vehicle, componentType);
+        vehicle.setInitialCondition(false);
         inventoryItemRepository.save(vehicle);
 
         buildDisassembleHistory(vehicle, component, componentType);
@@ -271,9 +276,9 @@ public class ConfigurationHistoryService {
 
             case FORK -> veh.getSpecifications().setForkDimensions(null);
 
-            case SIDE_SHIFT -> veh.getSpecifications().setHasSideShift(false);
+            case SIDE_SHIFT -> veh.getSpecifications().setHasSideShift(null);
 
-            case VALVE -> veh.getSpecifications().setValveCount(0);
+            case VALVE -> veh.getSpecifications().setValveCount(null);
         }
     }
 
@@ -295,12 +300,12 @@ public class ConfigurationHistoryService {
             case FORK -> veh.getSpecifications().setForkDimensions(component.getSpecifications().getForkDimensions());
 
             case SIDE_SHIFT -> {
-                if(component.getComponentType().equals(ComponentType.SIDE_SHIFT.getId())){
-                    veh.getSpecifications().setHasSideShift(true);
-                }
+
+                    veh.getSpecifications().setHasSideShift(component.getSpecifications().getHasSideShift());
+
             }
 
-            case VALVE -> veh.getSpecifications().setValveCount(component.getQuantity());
+            case VALVE -> veh.getSpecifications().setValveCount(component.getSpecifications().getValveCount());
         }
     }
 
@@ -366,5 +371,40 @@ public class ConfigurationHistoryService {
 
     public Page<ConfigVehicleSpecPageResponse> getPageConfigVehicleSpec(PageOptionsDto optionsDto){
         return inventoryItemRepository.findPageConfigVehicleSpec(optionsDto);
+    }
+
+    public List<VehicleComponentTypeResponse> getComponentTypeToVehicleId(ObjectId vehicleId){
+        List<String> componentTypes = inventoryItemRepository.findComponentTypeByVehicleId(vehicleId);
+        return componentTypes.stream().map(elm -> {
+            ComponentType componentType = ComponentType.fromId(elm);
+            if(componentType == null) return null;
+            VehicleComponentTypeResponse res = new VehicleComponentTypeResponse();
+            res.setComponentType(componentType.getId());
+            res.setComponentName(componentType.getValue());
+            return res;
+        }).filter(Objects::nonNull).toList();
+    }
+
+    public List<VehicleComponentTypeResponse> getComponentTypeMissingToVehicleId(ObjectId vehicleId){
+        List<String> componentTypes = inventoryItemRepository.findComponentTypeByVehicleId(vehicleId);
+        List<ComponentType> componentTypesMissing = Arrays.stream(ComponentType.values())
+                .filter(o -> !componentTypes.contains(o.getId()))
+                .toList();
+        return componentTypesMissing.stream()
+                .map(o -> {
+                    VehicleComponentTypeResponse res = new VehicleComponentTypeResponse();
+                    res.setComponentType(o.getId());
+                    res.setComponentName(o.getValue());
+                    return res;
+                })
+                .toList();
+    }
+
+    public List<GetDepartureWarehouseForContainerDto> getWarehouseContainsComponent(String componentType){
+
+        ComponentType type = ComponentType.fromId(componentType);
+        if(type == null) throw LogicErrException.of("Loại bộ phận muốn kiểm tra không hợp lệ.");
+
+        return inventoryItemRepository.findWarehouseContainsComponent(type.getId());
     }
 }

@@ -49,7 +49,7 @@ public class ExcelImportProductionProductDto {
     @Data
     @AllArgsConstructor
     public static class Specifications {
-        private Boolean hasSideShift; // Có side shift không 9
+        private String hasSideShift; // Có side shift không 9
         private String otherDetails; // Chi tiết khác 10
 
         private Integer liftingCapacityKg; // Sức nâng (Kg) 12
@@ -60,7 +60,7 @@ public class ExcelImportProductionProductDto {
         private String forkDimensions;          // Thông số càng
         private String batterySpecification; // Thông số bình điện 17
         private String chargerSpecification; // Thông số sạc 18
-        private Integer valveCount; // Số van 20
+        private String valveCount; // Số van 20
 
     }
 

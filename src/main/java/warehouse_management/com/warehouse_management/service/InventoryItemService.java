@@ -82,7 +82,10 @@ public class InventoryItemService {
 
         try {
             List<InventoryItem> itemsToInsert = new ArrayList<>();
-            buildComponentItems(newItem, itemsToInsert);
+
+            if(InventoryType.VEHICLE.getId().equals(newItem.getInventoryType()))
+                buildComponentItems(newItem, itemsToInsert);
+
             inventoryItemRepository.bulkInsert(itemsToInsert);
             // Ghi phiếu nhập kho (WarehouseTransaction)
             warehouseTransferTicketRepository.save(buildAWarehouseTransaction(inStockWh, newItem));
@@ -230,7 +233,8 @@ public class InventoryItemService {
             item.setSpecificationsBase(item.getSpecifications());
             itemToLog.add(item);
             if (importType.equals(WarehouseSubTranType.EXCEL_TO_PRODUCTION_PRODUCT)) {
-                buildComponentItems(item, itemsToInsert);
+                if(InventoryType.VEHICLE.getId().equals(item.getInventoryType()))
+                    buildComponentItems(item, itemsToInsert);
             } else {
                 item.setStatus(InventoryItemStatus.IN_STOCK);
                 itemsToInsert.add(item);
@@ -251,7 +255,7 @@ public class InventoryItemService {
     ) {
 
         // Tạo ObjectId cho item cha
-        if(parentItem.getId() != null)
+        if(parentItem.getId() == null)
             parentItem.setId(new ObjectId());
         parentItem.setInventoryType(InventoryType.VEHICLE.getId());
         parentItem.setStatus(InventoryItemStatus.IN_STOCK);
@@ -327,10 +331,10 @@ public class InventoryItemService {
             itemsToInsert.add(fork);
         }
 
-        if(parentItem.getSpecifications().getValveCount() != null && parentItem.getSpecifications().getValveCount() > 0){
+        if (parentItem.getSpecifications().getValveCount() != null) {
             InventoryItem valve = mapper.cloneToValveOrSideShift(parentItem);
             valve.setId(new ObjectId());
-            valve.setQuantity(parentItem.getSpecifications().getValveCount());
+            valve.setQuantity(1);
             valve.setVehicleId(parentItem.getId());
             valve.setInventoryType(InventoryType.SPARE_PART.getId());
             valve.setComponentType(ComponentType.VALVE.getId());
@@ -341,7 +345,7 @@ public class InventoryItemService {
         }
 
 
-        if(parentItem.getSpecifications().getHasSideShift()){
+        if (parentItem.getSpecifications().getHasSideShift() != null) {
             InventoryItem sideShift = mapper.cloneToValveOrSideShift(parentItem);
             sideShift.setId(new ObjectId());
             sideShift.setQuantity(1);
