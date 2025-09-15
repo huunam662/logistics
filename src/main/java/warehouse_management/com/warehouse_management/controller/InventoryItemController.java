@@ -182,8 +182,8 @@ public class InventoryItemController {
 // Bulk insert kho production - xe phụ kiện (import Excel)
     @PostMapping("/production/{warehouseId}/products-import")
     public ResponseEntity<ApiResponse<?>> bulkCreateProductionProducts(
-            @PathVariable("warehouseId") String warehouseId,  @RequestBody List<ExcelImportProductionProductDto> dtos) {
-        List<InventoryItem> created = inventoryItemService.bulkCreateProductionProducts(warehouseId, dtos);
+            @PathVariable("warehouseId") String warehouseId, @RequestParam("productType") String productType, @RequestBody List<ExcelImportProductionProductDto> dtos) {
+        List<InventoryItem> created = inventoryItemService.bulkCreateProductionProducts(warehouseId, productType, dtos);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(Map.of("createdCount", created.size())));
     }
