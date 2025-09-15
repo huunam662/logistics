@@ -4,6 +4,7 @@ import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.Named;
 import warehouse_management.com.warehouse_management.dto.delivery_order.request.CreateDeliveryOrderDto;
 import warehouse_management.com.warehouse_management.dto.delivery_order.request.UpdateDeliveryOrderDto;
 import warehouse_management.com.warehouse_management.dto.delivery_order.response.DeliveryItemModelDto;
@@ -29,4 +30,31 @@ public interface DeliveryOrderMapper {
 
     @Mapping(target = "warehouseId", source="warehouseId")
     DeliverySparePartDetailsDto toDeliverySparePartDetailsDto(DeliveryOrder.InventoryItemDelivery inventoryItemDelivery);
+
+    @Mapping(target = "commodityCode", source = ".", qualifiedByName = "mapCommodityCode")
+    @Mapping(target = "isDelivered", source = ".", qualifiedByName = "mapIsDelivered")
+    DeliverySparePartDetailsDto toDeliverySparePartNotesDto(DeliveryOrder.NoteDeliveryModel noteDeliveryModel);
+
+    @Mapping(target = "productCode", source = ".", qualifiedByName = "mapProductCode")
+    @Mapping(target = "isDelivered", source = ".", qualifiedByName = "mapIsDelivered")
+    DeliveryProductDetailsDto toDeliveryProductDetailsDto(DeliveryOrder.NoteDeliveryModel noteDeliveryModel);
+
+    @Named("mapCommodityCode")
+    default String mapCommodityCode(DeliveryOrder.NoteDeliveryModel noteDeliveryModel) {
+        return Boolean.TRUE.equals(noteDeliveryModel.getIsSparePart())
+                ? noteDeliveryModel.getModel()
+                : null;
+    }
+
+    @Named("mapProductCode")
+    default String mapProductCode(DeliveryOrder.NoteDeliveryModel noteDeliveryModel) {
+        return Boolean.TRUE.equals(noteDeliveryModel.getIsSparePart())
+                ? null
+                : noteDeliveryModel.getModel();
+    }
+
+    @Named("mapIsDelivered")
+    default Boolean mapIsDelivered(DeliveryOrder.NoteDeliveryModel noteDeliveryModel) {
+        return Boolean.FALSE;
+    }
 }

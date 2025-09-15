@@ -60,9 +60,10 @@ public class InventoryItem {
     @AllArgsConstructor
     public static class Specifications {
         //PK-KN
-        private Integer liftingCapacityKg;      // Sức nâng (kg)
+        private String liftingCapacityKg;      // Sức nâng (kg)
         private String chassisType;             // Loại khung nâng
-        private Integer liftingHeightMm;        // Độ cao nâng (mm)
+        private String liftingHeightMm;        // Độ cao nâng (mm)
+
         //PK-BINHDIEN
         private String batteryInfo;             // Thông tin bình điện
         private String batterySpecification;    // Thông số bình điện
@@ -73,8 +74,8 @@ public class InventoryItem {
 
         private String engineType;              // Loại động cơ
         private String forkDimensions;          // Thông số càng
-        private Integer valveCount;             // Số lượng van
-        private Boolean hasSideShift;           // Có side shift không
+        private String valveCount;             // Số lượng van
+        private String hasSideShift;           // Có side shift không
         private String otherDetails;
     }
 

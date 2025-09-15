@@ -16,7 +16,7 @@ public class InventoryDestinationDto {
     private String model;          // Model
     private String inventoryType;           // Loại
     private String category;       // Chủng loại
-    private Boolean hasSideShift;           // SS (Side Shift)
+    private String hasSideShift;           // SS (Side Shift)
     private String serialNumber;   // Số seri
     private Integer liftingCapacityKg;      // Sức nâng (kg)
     private String chassisType;             // Loại khung nâng
@@ -27,7 +27,7 @@ public class InventoryDestinationDto {
     private String chargerSpecification;    // Thông số bộ sạc
     private String forkDimensions;          // Thông số càng
     private String warehouseType;           // Loại kho
-    private Integer valveCount;             // Số lượng van
+    private String valveCount;             // Số lượng van
     private String otherDetails;            // Chi tiết khác
     private Boolean initialCondition;       // Nguyên trạng
     private String notes;                  // Ghi chú
