@@ -35,6 +35,9 @@ public interface InventoryItemRepository extends MongoRepository<InventoryItem, 
     @Query("{'_id': {'$in': ?0}}")
     List<InventoryItem> findByIdIn(Collection<ObjectId> ids);
 
+    @Query("{'_id': {'$in': ?0}, 'status': ?1}")
+    List<InventoryItem> findByIdInAndStatus(Collection<ObjectId> ids, String status);
+
     @Query("{'commodityCode': {'$in': ?0}, 'warehouseId': ?1, 'status': ?2}")
     List<InventoryItem> findSparePartByCommodityCodeIn(Collection<String> commodityCodes, ObjectId warehouseId, String inventoryStatus);
 

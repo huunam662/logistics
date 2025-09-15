@@ -76,4 +76,5 @@ public interface CustomInventoryItemRepository {
 
     Page<ConfigVehicleSpecPageResponse> findPageConfigVehicleSpec(PageOptionsDto optionsDto);
 
+    Page<ItemCodeModelSerialResponse> findPageVehicleInStock(PageOptionsDto optionsDto);
 }
