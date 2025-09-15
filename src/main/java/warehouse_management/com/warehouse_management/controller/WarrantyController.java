@@ -51,11 +51,11 @@ public class WarrantyController {
 
     @PostMapping("/transaction")
     @Operation(
-            summary = "Tạo phiếu bảo hành",
-            description = "Tạo phiếu bảo hành"
+            summary = "Tạo, sửa phiếu bảo hành",
+            description = "Tạo, sửa phiếu bảo hành, nếu như có warrantyTransactionId thì sửa, không có thì tạo"
     )
     public ApiResponse<List<WarrantyTransactionResponseDTO>> saveWarrantyTransaction(@Valid @RequestBody List<CreateWarrantyTransactionDTO> createWarrantyTransactionDTO) {
-        return ApiResponse.success(warrantyService.createListWarrantyTransaction(createWarrantyTransactionDTO));
+        return ApiResponse.success(warrantyService.handlePostListWarrantyTransaction(createWarrantyTransactionDTO));
     }
 
     @PatchMapping("/status")

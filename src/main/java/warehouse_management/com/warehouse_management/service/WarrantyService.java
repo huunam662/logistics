@@ -148,28 +148,52 @@ public class WarrantyService {
     }
 
     /**
-     * Tạo phiếu bảo hành cho đơn bảo hành bằng danh sách
+     * Tạo và sửa phiếu bảo hành cho đơn bảo hành bằng danh sách, nếu như có warrantyTransactionId thì sửa, không có thì tạo
      * @param createWarrantyTransactionDTOList danh sách DTO nhận từ request
      * @return phiếu bảo hành
      */
     @Transactional
-    public List<WarrantyTransactionResponseDTO> createListWarrantyTransaction(List<CreateWarrantyTransactionDTO> createWarrantyTransactionDTOList) {
-        List<WarrantyTransaction> warrantyTransactionCreateList = new ArrayList<>();
+    public List<WarrantyTransactionResponseDTO> handlePostListWarrantyTransaction(List<CreateWarrantyTransactionDTO> createWarrantyTransactionDTOList) {
+        List<CreateWarrantyTransactionDTO> warrantyTransactionCreateList = new ArrayList<>();
+        List<CreateWarrantyTransactionDTO> warrantyTransactionUpdateList = new ArrayList<>();
+
         for (CreateWarrantyTransactionDTO createWarrantyTransactionDTO : createWarrantyTransactionDTOList) {
             checkExistWarrantyAndGet(createWarrantyTransactionDTO.getWarrantyId().toString());
 
-            WarrantyTransaction warrantyTransaction = warrantyTransactionMapper
-                    .toWarrantyTransaction(createWarrantyTransactionDTO);
-            warrantyTransaction.setCreateByName(customAuthentication.getUser().getFullName());
-
-            warrantyTransactionCreateList.add(warrantyTransaction);
+            if (createWarrantyTransactionDTO.getWarrantyTransactionId() != null) {
+                checkExistWarrantyTransactionAndGet(createWarrantyTransactionDTO.getWarrantyTransactionId().toString());
+                warrantyTransactionUpdateList.add(createWarrantyTransactionDTO);
+            } else {
+                warrantyTransactionCreateList.add(createWarrantyTransactionDTO);
+            }
         }
 
-        return warrantyTransactionRepository
-                .saveAll(warrantyTransactionCreateList)
+        List<WarrantyTransaction> returnList = new ArrayList<>();
+        returnList.addAll(createListWarrantyTransaction(warrantyTransactionCreateList));
+        returnList.addAll(updateListWarrantyTransaction(warrantyTransactionUpdateList));
+
+        return returnList
                 .stream()
                 .map(warrantyTransactionMapper::toWarrantyTransactionResponseDTO)
                 .toList();
+    }
+
+    private List<WarrantyTransaction> createListWarrantyTransaction(List<CreateWarrantyTransactionDTO> createWarrantyTransactionDTOList) {
+        List<WarrantyTransaction> createWarrantyTransactionList = new ArrayList<>();
+        for (CreateWarrantyTransactionDTO createWarrantyTransactionDTO : createWarrantyTransactionDTOList) {
+            WarrantyTransaction warrantyTransaction = warrantyTransactionMapper
+                    .toWarrantyTransaction(createWarrantyTransactionDTO);
+            warrantyTransaction.setCreateByName(customAuthentication.getUser().getFullName());
+            createWarrantyTransactionList.add(warrantyTransaction);
+        }
+
+        return warrantyTransactionRepository
+                .saveAll(createWarrantyTransactionList);
+    }
+
+    private List<WarrantyTransaction> updateListWarrantyTransaction(List<CreateWarrantyTransactionDTO> updateWarrantyTransactionDTOList) {
+        return warrantyTransactionRepository
+                .updateAll(updateWarrantyTransactionDTOList);
     }
 
     /**
@@ -209,7 +233,7 @@ public class WarrantyService {
         Optional<WarrantyTransaction> warrantyTransaction = warrantyTransactionRepository.findById(warrantyTransactionId);
 
         if (warrantyTransaction.isEmpty() || warrantyTransaction.get().getDeletedBy() != null) {
-            throw LogicErrException.of(Msg.get(LogicErrMsg.WARRANTY_NOT_FOUND));
+            throw LogicErrException.of(Msg.get(LogicErrMsg.WARRANTY_TRANSACTION_NOT_FOUND));
         }
         return warrantyTransaction.get();
     }
