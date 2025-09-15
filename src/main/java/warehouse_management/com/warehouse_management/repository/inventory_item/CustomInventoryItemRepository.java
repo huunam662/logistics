@@ -75,4 +75,5 @@ public interface CustomInventoryItemRepository {
     Page<InventoryItemRepairDto> findItemForRepair(PageOptionsDto optionsDto);
 
     Page<ConfigVehicleSpecPageResponse> findPageConfigVehicleSpec(PageOptionsDto optionsDto);
+
 }

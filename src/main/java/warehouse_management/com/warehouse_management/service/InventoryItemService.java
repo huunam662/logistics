@@ -82,7 +82,10 @@ public class InventoryItemService {
 
         try {
             List<InventoryItem> itemsToInsert = new ArrayList<>();
-            buildComponentItems(newItem, itemsToInsert);
+
+            if(InventoryType.VEHICLE.getId().equals(newItem.getInventoryType()))
+                buildComponentItems(newItem, itemsToInsert);
+
             inventoryItemRepository.bulkInsert(itemsToInsert);
             // Ghi phiếu nhập kho (WarehouseTransaction)
             warehouseTransferTicketRepository.save(buildAWarehouseTransaction(inStockWh, newItem));
@@ -92,11 +95,11 @@ public class InventoryItemService {
         }
     }
 
-    public InventoryItem getComponentItemToVehicleIdAndType(ObjectId vehicleId, ComponentType componentType, String productCOde) {
+    public InventoryItem getComponentItemToVehicleIdAndType(ObjectId vehicleId, ComponentType componentType, String productCOde){
 
         return inventoryItemRepository
                 .findByVehicleIdAndComponentType(vehicleId, componentType.getId())
-                .orElseThrow(() -> LogicErrException.of("Không tìm thấy bộ phận " + componentType.getValue() + " của xe " + productCOde));
+                .orElseThrow(() -> LogicErrException.of("Không tìm thấy bộ phận "+componentType.getValue()+" của xe "+productCOde));
     }
 
     private InventoryItem buildSparePartItem(CreateInventorySparePartDto req, Warehouse wh, LocalDate orderDate) {
@@ -230,7 +233,8 @@ public class InventoryItemService {
             item.setSpecificationsBase(item.getSpecifications());
             itemToLog.add(item);
             if (importType.equals(WarehouseSubTranType.EXCEL_TO_PRODUCTION_PRODUCT)) {
-                buildComponentItems(item, itemsToInsert);
+                if(InventoryType.VEHICLE.getId().equals(item.getInventoryType()))
+                    buildComponentItems(item, itemsToInsert);
             } else {
                 item.setStatus(InventoryItemStatus.IN_STOCK);
                 itemsToInsert.add(item);
@@ -251,7 +255,7 @@ public class InventoryItemService {
     ) {
 
         // Tạo ObjectId cho item cha
-        if (parentItem.getId() != null)
+        if(parentItem.getId() == null)
             parentItem.setId(new ObjectId());
         parentItem.setInventoryType(InventoryType.VEHICLE.getId());
         parentItem.setStatus(InventoryItemStatus.IN_STOCK);
@@ -260,8 +264,8 @@ public class InventoryItemService {
         // === Sinh các item con theo loại PK ===
         if (
                 parentItem.getSpecifications().getLiftingHeightMm() != null
-                        && parentItem.getSpecifications().getChassisType() != null
-                        && parentItem.getSpecifications().getLiftingCapacityKg() != null
+                && parentItem.getSpecifications().getChassisType() != null
+                && parentItem.getSpecifications().getLiftingCapacityKg() != null
         ) {
             InventoryItem liftingFrame = mapper.cloneToLiftingFrame(parentItem);
             liftingFrame.setId(new ObjectId());
@@ -276,7 +280,7 @@ public class InventoryItemService {
 
         if (
                 parentItem.getSpecifications().getBatteryInfo() != null
-                        && parentItem.getSpecifications().getBatterySpecification() != null
+                && parentItem.getSpecifications().getBatterySpecification() != null
         ) {
             InventoryItem battery = mapper.cloneToBattery(parentItem);
             battery.setId(new ObjectId());
@@ -301,7 +305,7 @@ public class InventoryItemService {
             itemsToInsert.add(charger);
         }
 
-        if (parentItem.getSpecifications().getEngineType() != null) {
+        if(parentItem.getSpecifications().getEngineType() != null){
             InventoryItem engine = mapper.cloneToEngineType(parentItem);
             engine.setId(new ObjectId());
             engine.setQuantity(1);
@@ -314,7 +318,7 @@ public class InventoryItemService {
             itemsToInsert.add(engine);
         }
 
-        if (parentItem.getSpecifications().getForkDimensions() != null) {
+        if(parentItem.getSpecifications().getForkDimensions() != null){
             InventoryItem fork = mapper.cloneToForkDimensions(parentItem);
             fork.setId(new ObjectId());
             fork.setQuantity(1);
@@ -562,8 +566,8 @@ public class InventoryItemService {
         List<InventoryItem> itemsResults = new ArrayList<>();
         for (var item : itemsToTransfer) {
 
-            if (item.getLogistics() == null) item.setLogistics(new InventoryItem.Logistics());
-            if (item.getPricing() == null) item.setPricing(new InventoryItem.Pricing());
+            if(item.getLogistics() == null) item.setLogistics(new InventoryItem.Logistics());
+            if(item.getPricing() == null) item.setPricing(new InventoryItem.Pricing());
 
             if (item.getInventoryType().equals(InventoryType.SPARE_PART.getId())) {
                 int quantityToTransfer = itemIdQualityMap.get(item.getId());
@@ -575,23 +579,23 @@ public class InventoryItemService {
                 if (item.getQuantity() > quantityToTransfer) {
                     item.setQuantity(item.getQuantity() - quantityToTransfer);
                     InventoryItem sparePartToDeparture = inventoryItemMapper.cloneEntity(item);
-                    if (container != null) {
+                    if(container != null){
                         boolean isExistsInContainer = false;
-                        for (var sp : itemsSparePartInTransitContainer) {
+                        for(var sp : itemsSparePartInTransitContainer){
                             // Nếu phụ tùng có mã hàng hóa tương ứng đã tồn tại trong container thì cập nhật số lượng
-                            if (sp.getCommodityCode().equals(item.getCommodityCode())) {
+                            if(sp.getCommodityCode().equals(item.getCommodityCode())){
                                 sp.setQuantity(sp.getQuantity() + quantityToTransfer);
                                 isExistsInContainer = true;
                                 break;
                             }
                         }
                         // Duyệt qua item tiếp theo
-                        if (isExistsInContainer) continue;
+                        if(isExistsInContainer) continue;
 
                         sparePartToDeparture.setContainerId(container.getId());
                         sparePartToDeparture.getLogistics().setDepartureDate(container.getDepartureDate());
                     }
-
+                    
                     sparePartToDeparture.setId(null);
                     sparePartToDeparture.setQuantity(quantityToTransfer);
                     // Kho hiện tại → “Kho khác”
@@ -608,7 +612,7 @@ public class InventoryItemService {
                 }
             }
 
-            if (container != null) {
+            if(container != null){
                 boolean isExistsInContainer = false;
                 for (var sp : itemsSparePartInTransitContainer) {
                     // Nếu phụ tùng có mã hàng hóa tương ứng đã tồn tại trong container thì cập nhật số lượng
@@ -625,7 +629,7 @@ public class InventoryItemService {
                 item.setContainerId(container.getId());
                 item.getLogistics().setDepartureDate(container.getDepartureDate());
             }
-            if (container != null && !item.getStatus().equals(InventoryItemStatus.HOLD))
+            if(container != null && !item.getStatus().equals(InventoryItemStatus.HOLD))
                 item.setStatus(itemStatus.getId());
             // Kho hiện tại → “Kho khác”
             item.setWarehouseId(toWarehouseId);

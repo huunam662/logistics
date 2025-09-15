@@ -190,7 +190,7 @@ public class MongoRsqlUtils {
                 field = rsqlPropertyMapper.get(field);
             return switch (op) {
                 case "=isnull=" -> Criteria.where(field).isNull();
-                case "=notnull=" -> Criteria.where(field).not().isNull();
+                case "=notnull=" -> Criteria.where(field).ne(null);
                 case "==", "!=" -> {
                     String val = args.getFirst();
                     Criteria result = Criteria.where(field);

@@ -11,7 +11,9 @@ import warehouse_management.com.warehouse_management.dto.configuration_history.r
 import warehouse_management.com.warehouse_management.dto.configuration_history.response.ConfigVehicleSpecHistoryResponse;
 import warehouse_management.com.warehouse_management.dto.configuration_history.response.ConfigVehicleSpecPageResponse;
 import warehouse_management.com.warehouse_management.dto.configuration_history.response.ConfigurationHistoryResponse;
+import warehouse_management.com.warehouse_management.dto.configuration_history.response.VehicleComponentTypeResponse;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
+import warehouse_management.com.warehouse_management.dto.warehouse.response.GetDepartureWarehouseForContainerDto;
 import warehouse_management.com.warehouse_management.enumerate.ChangeConfigurationType;
 import warehouse_management.com.warehouse_management.enumerate.ComponentType;
 import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
@@ -25,7 +27,9 @@ import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.repository.configuration_history.ConfigurationHistoryRepository;
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 
@@ -247,6 +251,7 @@ public class ConfigurationHistoryService {
         }
 
         disassembleSpecifications(vehicle, componentType);
+        vehicle.setInitialCondition(false);
         inventoryItemRepository.save(vehicle);
 
         buildDisassembleHistory(vehicle, component, componentType);
@@ -366,5 +371,40 @@ public class ConfigurationHistoryService {
 
     public Page<ConfigVehicleSpecPageResponse> getPageConfigVehicleSpec(PageOptionsDto optionsDto){
         return inventoryItemRepository.findPageConfigVehicleSpec(optionsDto);
+    }
+
+    public List<VehicleComponentTypeResponse> getComponentTypeToVehicleId(ObjectId vehicleId){
+        List<String> componentTypes = inventoryItemRepository.findComponentTypeByVehicleId(vehicleId);
+        return componentTypes.stream().map(elm -> {
+            ComponentType componentType = ComponentType.fromId(elm);
+            if(componentType == null) return null;
+            VehicleComponentTypeResponse res = new VehicleComponentTypeResponse();
+            res.setComponentType(componentType.getId());
+            res.setComponentName(componentType.getValue());
+            return res;
+        }).filter(Objects::nonNull).toList();
+    }
+
+    public List<VehicleComponentTypeResponse> getComponentTypeMissingToVehicleId(ObjectId vehicleId){
+        List<String> componentTypes = inventoryItemRepository.findComponentTypeByVehicleId(vehicleId);
+        List<ComponentType> componentTypesMissing = Arrays.stream(ComponentType.values())
+                .filter(o -> !componentTypes.contains(o.getId()))
+                .toList();
+        return componentTypesMissing.stream()
+                .map(o -> {
+                    VehicleComponentTypeResponse res = new VehicleComponentTypeResponse();
+                    res.setComponentType(o.getId());
+                    res.setComponentName(o.getValue());
+                    return res;
+                })
+                .toList();
+    }
+
+    public List<GetDepartureWarehouseForContainerDto> getWarehouseContainsComponent(String componentType){
+
+        ComponentType type = ComponentType.fromId(componentType);
+        if(type == null) throw LogicErrException.of("Loại bộ phận muốn kiểm tra không hợp lệ.");
+
+        return inventoryItemRepository.findWarehouseContainsComponent(type.getId());
     }
 }
