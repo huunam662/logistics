@@ -11,6 +11,7 @@ import warehouse_management.com.warehouse_management.dto.configuration_history.r
 import warehouse_management.com.warehouse_management.dto.configuration_history.request.VehiclePartSwapRequest;
 import warehouse_management.com.warehouse_management.dto.configuration_history.response.*;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.ItemCodeModelSerialResponse;
+import warehouse_management.com.warehouse_management.dto.inventory_item.response.ItemCodePriceResponse;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.enumerate.ChangeConfigurationType;
 import warehouse_management.com.warehouse_management.enumerate.ComponentType;
@@ -23,6 +24,8 @@ import warehouse_management.com.warehouse_management.model.ConfigurationHistory;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.repository.configuration_history.ConfigurationHistoryRepository;
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
+
+import java.math.BigDecimal;
 import java.util.*;
 
 
@@ -460,5 +463,28 @@ public class ConfigurationHistoryService {
 
     public Page<ItemCodeModelSerialResponse> getPageVehicleInStock(PageOptionsDto optionsDto){
         return inventoryItemRepository.findPageVehicleInStock(optionsDto);
+    }
+
+    public ItemCodePriceResponse getCodeAndPriceToVehicleIdAndComponentType(ObjectId vehicleId, String componentType){
+
+        Optional<Map<String, Object>> resultQuery = inventoryItemRepository.findCodeAndPriceByVehicleIdAndComponentType(vehicleId, componentType);
+
+        if(resultQuery.isPresent()){
+
+            Map<String, Object> result = resultQuery.get();
+
+            ItemCodePriceResponse res = new ItemCodePriceResponse();
+
+            res.setCode((String) result.get("productCode"));
+            if(res.getCode() == null) res.setCode((String) result.get("commodityCode"));
+
+            res.setActualSalePrice((BigDecimal) result.get("actualSalePrice"));
+            res.setSalePriceR0((BigDecimal) result.get("salePriceR0"));
+            res.setSalePriceR1((BigDecimal) result.get("salePriceR1"));
+
+            return res;
+        }
+
+        return new ItemCodePriceResponse();
     }
 }
