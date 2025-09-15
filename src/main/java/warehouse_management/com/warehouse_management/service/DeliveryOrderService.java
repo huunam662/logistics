@@ -142,7 +142,9 @@ public class DeliveryOrderService {
                 .filter(e -> !e.getInventoryType().equals(InventoryType.SPARE_PART.getId()))
                 .map(deliveryOrderMapper::toDeliveryProductDetailsDto)
                 .toList();
-        List<DeliveryProductDetailsDto> modelNotes = deliveryOrder.getModelNotes().stream()
+        List<DeliveryProductDetailsDto> modelNotes = Optional.ofNullable(deliveryOrder.getModelNotes())
+                .orElse(Collections.emptyList())
+                .stream()
                 .filter(e -> !e.getIsSparePart())
                 .map(deliveryOrderMapper::toDeliveryProductDetailsDto)
                 .toList();
@@ -167,7 +169,8 @@ public class DeliveryOrderService {
                     return dto;
                 })
                 .toList();
-        List<DeliverySparePartDetailsDto> noteDeliveryModels = deliveryOrder.getModelNotes()
+        List<DeliverySparePartDetailsDto> noteDeliveryModels = Optional.ofNullable(deliveryOrder.getModelNotes())
+                .orElse(Collections.emptyList())
                 .stream()
                 .filter(note -> note.getIsSparePart().equals(Boolean.TRUE))
                 .map(deliveryOrderMapper::toDeliverySparePartNotesDto)
