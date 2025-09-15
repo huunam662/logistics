@@ -36,8 +36,8 @@ public class InventoryProductDetailsDto {
         private String batterySpecification;    // Thông số bình điện
         private String chargerSpecification;    // Thông số bộ sạc
         private String forkDimensions;          // Thông số càng
-        private Integer valveCount;             // Số lượng van
-        private Boolean hasSideShift;           // Có side shift không
+        private String valveCount;             // Số lượng van
+        private String hasSideShift;           // Có side shift không
         private String otherDetails;            // Chi tiết khác
     }
 

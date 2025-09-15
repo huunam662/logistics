@@ -73,11 +73,11 @@ public class ConfigurationHistoryService {
     private void swapVehicleComponent(InventoryItem leftVeh, InventoryItem rightVeh, ComponentType componentType) {
         switch (componentType) {
             case LIFTING_FRAME -> {
-                Integer tmpHeight = leftVeh.getSpecifications().getLiftingHeightMm();
+                String tmpHeight = leftVeh.getSpecifications().getLiftingHeightMm();
                 leftVeh.getSpecifications().setLiftingHeightMm(rightVeh.getSpecifications().getLiftingHeightMm());
                 rightVeh.getSpecifications().setLiftingHeightMm(tmpHeight);
 
-                Integer tmpCapacity = leftVeh.getSpecifications().getLiftingCapacityKg();
+                String tmpCapacity = leftVeh.getSpecifications().getLiftingCapacityKg();
                 leftVeh.getSpecifications().setLiftingCapacityKg(rightVeh.getSpecifications().getLiftingCapacityKg());
                 rightVeh.getSpecifications().setLiftingCapacityKg(tmpCapacity);
 
@@ -110,12 +110,12 @@ public class ConfigurationHistoryService {
                 rightVeh.getSpecifications().setForkDimensions(tmpFork);
             }
             case SIDE_SHIFT -> {
-                Boolean tmpSideShift = leftVeh.getSpecifications().getHasSideShift();
+                String tmpSideShift = leftVeh.getSpecifications().getHasSideShift();
                 leftVeh.getSpecifications().setHasSideShift(rightVeh.getSpecifications().getHasSideShift());
                 rightVeh.getSpecifications().setHasSideShift(tmpSideShift);
             }
             case VALVE -> {
-                Integer tmpValve = leftVeh.getSpecifications().getValveCount();
+                String tmpValve = leftVeh.getSpecifications().getValveCount();
                 leftVeh.getSpecifications().setValveCount(rightVeh.getSpecifications().getValveCount());
                 rightVeh.getSpecifications().setValveCount(tmpValve);
             }
@@ -276,9 +276,9 @@ public class ConfigurationHistoryService {
 
             case FORK -> veh.getSpecifications().setForkDimensions(null);
 
-            case SIDE_SHIFT -> veh.getSpecifications().setHasSideShift(false);
+            case SIDE_SHIFT -> veh.getSpecifications().setHasSideShift(null);
 
-            case VALVE -> veh.getSpecifications().setValveCount(0);
+            case VALVE -> veh.getSpecifications().setValveCount(null);
         }
     }
 
@@ -300,12 +300,12 @@ public class ConfigurationHistoryService {
             case FORK -> veh.getSpecifications().setForkDimensions(component.getSpecifications().getForkDimensions());
 
             case SIDE_SHIFT -> {
-                if(component.getComponentType().equals(ComponentType.SIDE_SHIFT.getId())){
-                    veh.getSpecifications().setHasSideShift(true);
-                }
+
+                    veh.getSpecifications().setHasSideShift(component.getSpecifications().getHasSideShift());
+
             }
 
-            case VALVE -> veh.getSpecifications().setValveCount(component.getQuantity());
+            case VALVE -> veh.getSpecifications().setValveCount(component.getSpecifications().getValveCount());
         }
     }
 

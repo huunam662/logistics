@@ -331,10 +331,10 @@ public class InventoryItemService {
             itemsToInsert.add(fork);
         }
 
-        if(parentItem.getSpecifications().getValveCount() != null && parentItem.getSpecifications().getValveCount() > 0){
+        if (parentItem.getSpecifications().getValveCount() != null) {
             InventoryItem valve = mapper.cloneToValveOrSideShift(parentItem);
             valve.setId(new ObjectId());
-            valve.setQuantity(parentItem.getSpecifications().getValveCount());
+            valve.setQuantity(1);
             valve.setVehicleId(parentItem.getId());
             valve.setInventoryType(InventoryType.SPARE_PART.getId());
             valve.setComponentType(ComponentType.VALVE.getId());
@@ -345,7 +345,7 @@ public class InventoryItemService {
         }
 
 
-        if(parentItem.getSpecifications().getHasSideShift()){
+        if (parentItem.getSpecifications().getHasSideShift() != null) {
             InventoryItem sideShift = mapper.cloneToValveOrSideShift(parentItem);
             sideShift.setId(new ObjectId());
             sideShift.setQuantity(1);

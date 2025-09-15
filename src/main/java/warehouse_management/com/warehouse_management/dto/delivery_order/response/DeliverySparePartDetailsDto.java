@@ -13,7 +13,7 @@ public class DeliverySparePartDetailsDto {
     private String model;          // Model sản phẩm – Bắt buộc
     private String poNumber;       // Số của Đơn đặt hàng (Purchase Order) – Bắt buộc
     private String contractNumber; // Số hợp đồng
-    private Integer quantity;   // Số lượng hàng hóa
+    private Integer quantity = 1;   // Số lượng hàng hóa
     private ObjectId warehouseId;
     private String description;         // Mô tả
     private String notes;                  // Ghi chú chung – Không bắt buộc
