@@ -227,6 +227,7 @@ public class ConfigurationHistoryService {
 
         if(component.getProductCode() == null && itemType.equals(InventoryType.ACCESSORY)) {
             component.setProductCode(dropPartRequest.getProductCode());
+            component.setInitialCondition(false);
             isAccessoryOrSparePartNotExists = true;
         }
         else if(itemType.equals(InventoryType.SPARE_PART)){
@@ -246,6 +247,7 @@ public class ConfigurationHistoryService {
             component.getPricing().setSalePriceR1(dropPartRequest.getPriceR1());
             component.getPricing().setActualSalePrice(dropPartRequest.getActualPrice());
             component.setStatus(InventoryItemStatus.IN_STOCK.getId());
+            component.setVehicleId(null);
 
             inventoryItemRepository.save(component);
         }

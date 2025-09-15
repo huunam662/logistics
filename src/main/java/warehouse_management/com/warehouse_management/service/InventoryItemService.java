@@ -267,13 +267,18 @@ public class InventoryItemService {
                 && parentItem.getSpecifications().getChassisType() != null
                 && parentItem.getSpecifications().getLiftingCapacityKg() != null
         ) {
-            InventoryItem liftingFrame = mapper.cloneToLiftingFrame(parentItem);
+            InventoryItem liftingFrame = mapper.cloneToComponent(parentItem);
             liftingFrame.setId(new ObjectId());
             liftingFrame.setQuantity(1);
             liftingFrame.setVehicleId(parentItem.getId());   // gán cha
+            liftingFrame.setSerialNumber(parentItem.getSerialNumber());
             liftingFrame.setInventoryType(InventoryType.ACCESSORY.getId());
             liftingFrame.setComponentType(ComponentType.LIFTING_FRAME.getId());
             liftingFrame.setStatus(InventoryItemStatus.OTHER);
+            liftingFrame.setSpecifications(new InventoryItem.Specifications());
+            liftingFrame.getSpecifications().setChassisType(parentItem.getSpecifications().getChassisType());
+            liftingFrame.getSpecifications().setLiftingHeightMm(parentItem.getSpecifications().getLiftingHeightMm());
+            liftingFrame.getSpecifications().setLiftingCapacityKg(parentItem.getSpecifications().getLiftingCapacityKg());
 
             itemsToInsert.add(liftingFrame);
         }
@@ -282,74 +287,94 @@ public class InventoryItemService {
                 parentItem.getSpecifications().getBatteryInfo() != null
                 && parentItem.getSpecifications().getBatterySpecification() != null
         ) {
-            InventoryItem battery = mapper.cloneToBattery(parentItem);
+            InventoryItem battery = mapper.cloneToComponent(parentItem);
             battery.setId(new ObjectId());
             battery.setQuantity(1);
             battery.setVehicleId(parentItem.getId());
+            battery.setSerialNumber(parentItem.getSerialNumber());
             battery.setInventoryType(InventoryType.ACCESSORY.getId());
             battery.setComponentType(ComponentType.BATTERY.getId());
             battery.setStatus(InventoryItemStatus.OTHER);
+            battery.setSpecifications(new InventoryItem.Specifications());
+            battery.getSpecifications().setBatteryInfo(parentItem.getSpecifications().getBatteryInfo());
+            battery.getSpecifications().setBatterySpecification(parentItem.getSpecifications().getBatterySpecification());
 
             itemsToInsert.add(battery);
         }
 
         if (parentItem.getSpecifications().getChargerSpecification() != null) {
-            InventoryItem charger = mapper.cloneToCharger(parentItem);
+            InventoryItem charger = mapper.cloneToComponent(parentItem);
             charger.setId(new ObjectId());
             charger.setQuantity(1);
             charger.setVehicleId(parentItem.getId());
+            charger.setSerialNumber(parentItem.getSerialNumber());
             charger.setInventoryType(InventoryType.ACCESSORY.getId());
             charger.setComponentType(ComponentType.CHARGER.getId());
             charger.setStatus(InventoryItemStatus.OTHER);
+            charger.setSpecifications(new InventoryItem.Specifications());
+            charger.getSpecifications().setChargerSpecification(parentItem.getSpecifications().getChargerSpecification());
 
             itemsToInsert.add(charger);
         }
 
         if(parentItem.getSpecifications().getEngineType() != null){
-            InventoryItem engine = mapper.cloneToEngineType(parentItem);
+            InventoryItem engine = mapper.cloneToComponent(parentItem);
             engine.setId(new ObjectId());
             engine.setQuantity(1);
             engine.setVehicleId(parentItem.getId());
+            engine.setCommodityCode(parentItem.getSerialNumber());
             engine.setInventoryType(InventoryType.SPARE_PART.getId());
             engine.setComponentType(ComponentType.ENGINE.getId());
             engine.setStatus(InventoryItemStatus.OTHER);
             engine.setDescription(ComponentType.ENGINE.getValue());
+            engine.setSpecifications(new InventoryItem.Specifications());
+            engine.getSpecifications().setEngineType(parentItem.getSpecifications().getEngineType());
 
             itemsToInsert.add(engine);
         }
 
         if(parentItem.getSpecifications().getForkDimensions() != null){
-            InventoryItem fork = mapper.cloneToForkDimensions(parentItem);
+            InventoryItem fork = mapper.cloneToComponent(parentItem);
             fork.setId(new ObjectId());
             fork.setQuantity(1);
             fork.setVehicleId(parentItem.getId());
+            fork.setCommodityCode(parentItem.getSerialNumber());
             fork.setInventoryType(InventoryType.SPARE_PART.getId());
             fork.setComponentType(ComponentType.FORK.getId());
             fork.setStatus(InventoryItemStatus.OTHER);
             fork.setDescription(ComponentType.FORK.getValue());
+            fork.setSpecifications(new InventoryItem.Specifications());
+            fork.getSpecifications().setForkDimensions(parentItem.getSpecifications().getForkDimensions());
 
             itemsToInsert.add(fork);
         }
 
         if (parentItem.getSpecifications().getValveCount() != null) {
-            InventoryItem valve = mapper.cloneToValveOrSideShift(parentItem);
+            InventoryItem valve = mapper.cloneToComponent(parentItem);
             valve.setId(new ObjectId());
             valve.setQuantity(1);
             valve.setVehicleId(parentItem.getId());
+            valve.setCommodityCode(parentItem.getSerialNumber());
             valve.setInventoryType(InventoryType.SPARE_PART.getId());
             valve.setComponentType(ComponentType.VALVE.getId());
             valve.setStatus(InventoryItemStatus.OTHER);
             valve.setDescription(ComponentType.VALVE.getValue());
+            valve.setSpecifications(new InventoryItem.Specifications());
+            valve.getSpecifications().setValveCount(parentItem.getSpecifications().getValveCount());
 
             itemsToInsert.add(valve);
         }
 
 
-        if (parentItem.getSpecifications().getHasSideShift() != null) {
-            InventoryItem sideShift = mapper.cloneToValveOrSideShift(parentItem);
+        if (
+                parentItem.getSpecifications().getHasSideShift() != null
+                && "true".equalsIgnoreCase(parentItem.getSpecifications().getHasSideShift())
+        ) {
+            InventoryItem sideShift = mapper.cloneToComponent(parentItem);
             sideShift.setId(new ObjectId());
             sideShift.setQuantity(1);
             sideShift.setVehicleId(parentItem.getId());
+            sideShift.setCommodityCode(parentItem.getSerialNumber());
             sideShift.setInventoryType(InventoryType.SPARE_PART.getId());
             sideShift.setComponentType(ComponentType.SIDE_SHIFT.getId());
             sideShift.setStatus(InventoryItemStatus.OTHER);
