@@ -16,6 +16,7 @@ import warehouse_management.com.warehouse_management.dto.configuration_history.r
 import warehouse_management.com.warehouse_management.dto.configuration_history.response.VehicleComponentTypeResponse;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryProductDetailsDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.ItemCodeModelSerialResponse;
+import warehouse_management.com.warehouse_management.dto.inventory_item.response.ItemCodePriceResponse;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.pagination.response.PageInfoDto;
 import warehouse_management.com.warehouse_management.dto.warehouse.response.GetDepartureWarehouseForContainerDto;
@@ -140,6 +141,7 @@ public class ConfigurationHistoryController {
         configurationHistoryService.addVehicleToConfiguration(request);
         return ApiResponse.success();
     }
+
     @Operation(
             summary = "GET Danh sách các xe nâng sẵn hàng chưa thêm vào cấu hình.",
             description = "GET Danh sách các xe nâng sẵn hàng chưa thêm vào cấu hình."
@@ -147,5 +149,18 @@ public class ConfigurationHistoryController {
     @GetMapping("/page/vehicles-to-configuration")
     public ApiResponse<?> getPageVehicleInStock(@ModelAttribute PageOptionsDto optionsDto){
         return ApiResponse.success(new PageInfoDto<>(configurationHistoryService.getPageVehicleInStock(optionsDto)));
+    }
+
+    @Operation(
+            summary = "GET Lấy mã sản phẩm và giá R0, R1, bán thực tế của bộ phận.",
+            description = "GET Lấy mã sản phẩm và giá R0, R1, bán thực tế của bộ phận."
+    )
+    @GetMapping("/component-code-price")
+    public ApiResponse<?> getCodeAndPriceToVehicleIdAndComponentType(
+            @RequestParam("vehicleId") String vehicleId,
+            @RequestParam("componentType") String componentType
+    ){
+        return ApiResponse.success(configurationHistoryService.getCodeAndPriceToVehicleIdAndComponentType(new ObjectId(vehicleId), componentType));
+
     }
 }
