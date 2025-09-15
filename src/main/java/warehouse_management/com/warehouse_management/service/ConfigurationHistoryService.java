@@ -10,6 +10,7 @@ import warehouse_management.com.warehouse_management.dto.configuration_history.r
 import warehouse_management.com.warehouse_management.dto.configuration_history.request.DropPartRequest;
 import warehouse_management.com.warehouse_management.dto.configuration_history.request.VehiclePartSwapRequest;
 import warehouse_management.com.warehouse_management.dto.configuration_history.response.*;
+import warehouse_management.com.warehouse_management.dto.inventory_item.response.ItemCodeModelSerialResponse;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.warehouse.response.GetDepartureWarehouseForContainerDto;
 import warehouse_management.com.warehouse_management.enumerate.ChangeConfigurationType;
@@ -26,6 +27,7 @@ import warehouse_management.com.warehouse_management.repository.configuration_hi
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -57,6 +59,10 @@ public class ConfigurationHistoryService {
 
         swapVehicleComponent(leftVeh, rightVeh, componentType);
         setVehiclePrices(leftVeh, rightVeh, request);
+
+        inventoryItemRepository.save(leftVeh);
+        inventoryItemRepository.save(rightVeh);
+
         buildSwapHistory(leftVeh, rightVeh, leftVehComponent, rightVehComponent, componentType);
         buildSwapHistory(rightVeh, leftVeh, rightVehComponent, leftVehComponent, componentType);
 
@@ -357,7 +363,12 @@ public class ConfigurationHistoryService {
 
         configVehicleSpecHistory.setConfigHistories(
                 configHistories.stream()
-                        .map(configurationVehicleMapper::toConfigurationHistoryResponse)
+                        .map(o -> {
+                            ConfigurationHistoryResponse res = configurationVehicleMapper.toConfigurationHistoryResponse(o);
+                            ComponentType componentType = ComponentType.fromId(o.getComponentType());
+                            res.setComponentName(componentType == null ? null : componentType.getValue());
+                            return res;
+                        })
                         .toList()
         );
 
@@ -407,17 +418,36 @@ public class ConfigurationHistoryService {
 
                     ComponentAndWarehouseResponse res = new ComponentAndWarehouseResponse();
                     res.setComponentId((ObjectId) doc.get("componentId"));
-                    res.setSerialNumber(doc.get("serialNumber").toString());
+                    res.setSerialNumber((String) doc.get("serialNumber"));
 
-                    if(res.getSerialNumber() == null) res.setSerialNumber(doc.get("commodityCode").toString());
+                    if(res.getSerialNumber() == null) res.setSerialNumber((String) doc.get("commodityCode"));
 
-                    ComponentType ctype = ComponentType.fromId(doc.get("componentType").toString());
+                    ComponentType ctype = ComponentType.fromId((String) doc.get("componentType"));
 
                     res.setComponentName(ctype == null ? null : ctype.getValue());
-                    res.setWarehouseName(doc.get("warehouseName").toString());
-                    res.setWarehouseCode(doc.get("warehouseCode").toString());
+                    res.setWarehouseName((String) doc.get("warehouseName"));
+                    res.setWarehouseCode((String) doc.get("warehouseCode"));
                     return res;
                 })
                 .toList();
+    }
+
+    public List<VehicleComponentTypeResponse> getComponentsTypeCommon(ObjectId vehicleLeftId, ObjectId vehicleRightId){
+        List<String> componentTypesLeft = inventoryItemRepository.findComponentTypeByVehicleId(vehicleLeftId);
+        List<String> componentTypesRight = inventoryItemRepository.findComponentTypeByVehicleId(vehicleRightId);
+        Set<String> componentTypesCommon = new HashSet<>(componentTypesLeft);
+        componentTypesCommon.retainAll(componentTypesRight);
+        return componentTypesCommon.stream().map(elm -> {
+            ComponentType componentType = ComponentType.fromId(elm);
+            if(componentType == null) return null;
+            VehicleComponentTypeResponse res = new VehicleComponentTypeResponse();
+            res.setComponentType(componentType.getId());
+            res.setComponentName(componentType.getValue());
+            return res;
+        }).filter(Objects::nonNull).toList();
+    }
+
+    public List<ItemCodeModelSerialResponse> getVehicleByComponentType(String componentType){
+        return inventoryItemRepository.findVehicleByComponentType(componentType);
     }
 }

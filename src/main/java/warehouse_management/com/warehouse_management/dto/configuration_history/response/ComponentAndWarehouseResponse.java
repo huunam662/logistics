@@ -6,9 +6,9 @@ import org.bson.types.ObjectId;
 @Data
 public class ComponentAndWarehouseResponse {
 
-    ObjectId componentId;
-    String serialNumber;
-    String componentName;
-    String warehouseCode;
-    String warehouseName;
+    private ObjectId componentId;
+    private String serialNumber;
+    private String componentName;
+    private String warehouseCode;
+    private String warehouseName;
 }

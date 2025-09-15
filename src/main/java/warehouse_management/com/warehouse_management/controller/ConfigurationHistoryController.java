@@ -10,7 +10,9 @@ import warehouse_management.com.warehouse_management.dto.configuration_history.r
 import warehouse_management.com.warehouse_management.dto.configuration_history.request.VehiclePartSwapRequest;
 import warehouse_management.com.warehouse_management.dto.configuration_history.response.ConfigVehicleSpecHistoryResponse;
 import warehouse_management.com.warehouse_management.dto.configuration_history.response.ConfigVehicleSpecPageResponse;
+import warehouse_management.com.warehouse_management.dto.configuration_history.response.VehicleComponentTypeResponse;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryProductDetailsDto;
+import warehouse_management.com.warehouse_management.dto.inventory_item.response.ItemCodeModelSerialResponse;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.pagination.response.PageInfoDto;
 import warehouse_management.com.warehouse_management.dto.warehouse.response.GetDepartureWarehouseForContainerDto;
@@ -95,5 +97,18 @@ public class ConfigurationHistoryController {
            @RequestParam("componentType") String componentType
     ){
         return ApiResponse.success(configurationHistoryService.getWarehouseContainsComponent(componentType));
+    }
+
+    @GetMapping("/components-common")
+    public ApiResponse<?> getComponentsTypeCommon(
+            @RequestParam("vehicleLeftId") String vehicleLeftId,
+            @RequestParam("vehicleRightId") String vehicleRightId
+    ){
+        return ApiResponse.success(configurationHistoryService.getComponentsTypeCommon(new ObjectId(vehicleLeftId), new ObjectId(vehicleRightId)));
+    }
+
+    @GetMapping("/component-vehicles")
+    public ApiResponse<?> getVehicleByComponentType(@RequestParam("componentType") String componentType){
+        return ApiResponse.success(configurationHistoryService.getVehicleByComponentType(componentType));
     }
 }
