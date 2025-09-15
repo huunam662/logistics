@@ -188,7 +188,7 @@ public class WarrantyService {
     }
 
     /**
-     * Cập nhật tình trạng của phiếu bảo hành bảo hành
+     * Cập nhật tình trạng của phiếu bảo hành
      * @param updateStatusWarrantyTransactionRequestDTO DTO truyền từ request
      * @return phiếu bảo hành sau khi cập nhật
      */
