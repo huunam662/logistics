@@ -6,11 +6,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.bson.types.ObjectId;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import warehouse_management.com.warehouse_management.dto.delivery_order.response.WarehouseForOrder;
+import warehouse_management.com.warehouse_management.dto.delivery_order.response.WarehouseForOrderDto;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.pagination.response.PageInfoDto;
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
@@ -227,26 +226,28 @@ public class WarehouseController {
     }
 
     @GetMapping("/warehouse-for-order")
-    public ApiResponse<List<WarehouseForOrder>> getWarehousesForOrder() {
-        List<WarehouseForOrder> dtos = warehouseService.getWarehousesForOrder();
+    public ApiResponse<List<WarehouseForOrderDto>> getWarehousesForOrder() {
+        List<WarehouseForOrderDto> dtos = warehouseService.getWarehousesForOrder();
         return ApiResponse.success(dtos);
     }
 
     @GetMapping("/{id}/products")
     public ResponseEntity<?> getProductsByWarehouseId(
             @PathVariable("id") String warehouseId,
-            @RequestParam(value = "poNumber", defaultValue = "") String poNumber
+            @RequestParam(value = "poNumber", defaultValue = "") String poNumber,
+            @RequestParam(value = "filter", required = false) String filter
     ){
-        List<InventoryProductDetailsDto> productDetails = inventoryItemService.getProductsByWarehouseId(warehouseId, poNumber);
+        List<InventoryProductDetailsDto> productDetails = inventoryItemService.getProductsByWarehouseId(warehouseId, poNumber, filter);
         return ResponseEntity.ok(ApiResponse.success(productDetails));
     }
 
     @GetMapping("/{id}/spare-part")
     public ResponseEntity<?> getSparePartByWarehouseId(
             @PathVariable("id") String warehouseId,
-            @RequestParam(value = "poNumber", defaultValue = "") String poNumber
+            @RequestParam(value = "poNumber", defaultValue = "") String poNumber,
+            @RequestParam(value = "filter", required = false) String filter
     ){
-        List<InventorySparePartDetailsDto> sparePartDetailsDtos = inventoryItemService.getSparePartByWarehouseId(warehouseId, poNumber);
+        List<InventorySparePartDetailsDto> sparePartDetailsDtos = inventoryItemService.getSparePartByWarehouseId(warehouseId, poNumber, filter);
         return ResponseEntity.ok(ApiResponse.success(sparePartDetailsDtos));
     }
 

@@ -6,7 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import warehouse_management.com.warehouse_management.app.CustomAuthentication;
-import warehouse_management.com.warehouse_management.dto.delivery_order.response.WarehouseForOrder;
+import warehouse_management.com.warehouse_management.dto.delivery_order.response.WarehouseForOrderDto;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
 import warehouse_management.com.warehouse_management.dto.warehouse.response.GetDepartureWarehouseForContainerDto;
@@ -19,7 +19,6 @@ import warehouse_management.com.warehouse_management.mapper.warehouse.WarehouseM
 import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
 import warehouse_management.com.warehouse_management.repository.warehouse.WarehouseRepository;
-import warehouse_management.com.warehouse_management.security.CustomUserDetail;
 
 import java.util.List;
 import java.util.Optional;
@@ -184,7 +183,7 @@ public class WarehouseService {
         return warehouseRepository.getDepartureWarehousesForContainer(warehouseType);
     }
 
-    public List<WarehouseForOrder> getWarehousesForOrder() {
+    public List<WarehouseForOrderDto> getWarehousesForOrder() {
         return warehouseRepository.getWarehousesForOrder();
     }
 

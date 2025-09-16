@@ -7,24 +7,14 @@ import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
-import warehouse_management.com.warehouse_management.dto.configuration_history.request.AddVehicleToConfigurationRequest;
-import warehouse_management.com.warehouse_management.dto.configuration_history.request.AssemblePartRequest;
-import warehouse_management.com.warehouse_management.dto.configuration_history.request.DropPartRequest;
-import warehouse_management.com.warehouse_management.dto.configuration_history.request.VehiclePartSwapRequest;
-import warehouse_management.com.warehouse_management.dto.configuration_history.response.ConfigVehicleSpecHistoryResponse;
-import warehouse_management.com.warehouse_management.dto.configuration_history.response.ConfigVehicleSpecPageResponse;
-import warehouse_management.com.warehouse_management.dto.configuration_history.response.VehicleComponentTypeResponse;
-import warehouse_management.com.warehouse_management.dto.inventory_item.response.InventoryProductDetailsDto;
-import warehouse_management.com.warehouse_management.dto.inventory_item.response.ItemCodeModelSerialResponse;
-import warehouse_management.com.warehouse_management.dto.inventory_item.response.ItemCodePriceResponse;
+import warehouse_management.com.warehouse_management.dto.configuration_history.request.AddVehicleToConfigurationDto;
+import warehouse_management.com.warehouse_management.dto.configuration_history.request.AssemblePartDto;
+import warehouse_management.com.warehouse_management.dto.configuration_history.request.DropPartDto;
+import warehouse_management.com.warehouse_management.dto.configuration_history.request.VehiclePartSwapDto;
+import warehouse_management.com.warehouse_management.dto.configuration_history.response.ConfigVehicleSpecPageDto;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.pagination.response.PageInfoDto;
-import warehouse_management.com.warehouse_management.dto.warehouse.response.GetDepartureWarehouseForContainerDto;
-import warehouse_management.com.warehouse_management.model.ConfigurationHistory;
-import warehouse_management.com.warehouse_management.repository.configuration_history.ConfigurationHistoryRepository;
-import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
 import warehouse_management.com.warehouse_management.service.ConfigurationHistoryService;
-
 import java.util.List;
 
 @RestController
@@ -41,7 +31,7 @@ public class ConfigurationHistoryController {
             description = "POST Hoán đổi cấu hình xe nâng."
     )
     @PostMapping("/vehicle-part-swap")
-    public ApiResponse<?> swapItems(@RequestBody VehiclePartSwapRequest vehiclePartSwapRequest) {
+    public ApiResponse<?> swapItems(@RequestBody VehiclePartSwapDto vehiclePartSwapRequest) {
         return ApiResponse.success(configurationHistoryService.swapItems(vehiclePartSwapRequest));
     }
 
@@ -50,7 +40,7 @@ public class ConfigurationHistoryController {
             description = "POST Tháo rời / Rớt bộ phận xe nâng."
     )
     @PostMapping("/drop-part")
-    public ApiResponse<?> dropPart(@RequestBody DropPartRequest dropPartRequest) {
+    public ApiResponse<?> dropPart(@RequestBody DropPartDto dropPartRequest) {
         return ApiResponse.success(configurationHistoryService.dropComponent(dropPartRequest));
     }
 
@@ -59,7 +49,7 @@ public class ConfigurationHistoryController {
             description = "POST Lắp ráp bộ phận xe nâng."
     )
     @PostMapping("/assemble-part")
-    public ApiResponse<?> assemblePart(@RequestBody AssemblePartRequest assemblePartRequest) {
+    public ApiResponse<?> assemblePart(@RequestBody AssemblePartDto assemblePartRequest) {
         return ApiResponse.success(configurationHistoryService.assembleComponent(assemblePartRequest));
     }
 
@@ -78,7 +68,7 @@ public class ConfigurationHistoryController {
     )
     @GetMapping("/page")
     public ApiResponse<?> getPageConfigVehicleSpec(@ModelAttribute PageOptionsDto optionsDto){
-        Page<ConfigVehicleSpecPageResponse> page = configurationHistoryService.getPageConfigVehicleSpec(optionsDto);
+        Page<ConfigVehicleSpecPageDto> page = configurationHistoryService.getPageConfigVehicleSpec(optionsDto);
         return ApiResponse.success(new PageInfoDto<>(page));
     }
 
@@ -137,7 +127,7 @@ public class ConfigurationHistoryController {
             description = "POST Thêm xe nâng vào cấu hình."
     )
     @PostMapping("/add-vehicles-configuration")
-    public ApiResponse<?> addVehicleToConfiguration(@RequestBody AddVehicleToConfigurationRequest request){
+    public ApiResponse<?> addVehicleToConfiguration(@RequestBody AddVehicleToConfigurationDto request){
         configurationHistoryService.addVehicleToConfiguration(request);
         return ApiResponse.success();
     }
@@ -162,5 +152,14 @@ public class ConfigurationHistoryController {
     ){
         return ApiResponse.success(configurationHistoryService.getCodeAndPriceToVehicleIdAndComponentType(new ObjectId(vehicleId), componentType));
 
+    }
+
+    @Operation(
+            summary = "POST Hoán đổi cấu hình cho nhiều xe nâng.",
+            description = "POST Hoán đổi cấu hình cho nhiều xe nâng."
+    )
+    @PostMapping("/vehicle-part-swap/multiple")
+    public ApiResponse<?> swapMultipleVehicle(@RequestBody List<VehiclePartSwapDto> request){
+        return ApiResponse.success(configurationHistoryService.swapMultipleVehicle(request));
     }
 }

@@ -1,10 +1,9 @@
 package warehouse_management.com.warehouse_management.repository.inventory_item;
 
 
-import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.*;
-import warehouse_management.com.warehouse_management.dto.inventory_item.response.ItemCodeModelSerialResponse;
+import warehouse_management.com.warehouse_management.dto.inventory_item.response.ItemCodeModelSerialDto;
 import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
 import java.util.Collection;
@@ -18,7 +17,7 @@ public interface InventoryItemRepository extends MongoRepository<InventoryItem, 
     Optional<InventoryItem> findByProductCode(String productCode);
     Optional<InventoryItem> findBySerialNumber(String serialNumber);
 
-    Optional<InventoryItem> findByCommodityCodeAndDescription(String commodityCode, String description);
+    Optional<InventoryItem> findByCommodityCodeAndDescriptionAndWarehouseId(String commodityCode, String description, ObjectId warehouseId);
 
     @Query("{'componentType': ?0, warehouseId: ?1}")
     Optional<InventoryItem> findByComponentTypeAndWarehouseId(String componentType, ObjectId warehouseId);
@@ -103,7 +102,7 @@ public interface InventoryItemRepository extends MongoRepository<InventoryItem, 
             "{$unwind: '$vehicle'}",
             "{$project: {vehicleId: '$vehicle._id', productCode: '$vehicle.productCode', serialNumber: '$vehicle.serialNumber', model: '$vehicle.model'}}"
     })
-    List<ItemCodeModelSerialResponse> findVehicleByComponentType(String componentType);
+    List<ItemCodeModelSerialDto> findVehicleByComponentType(String componentType);
 
     @Aggregation(pipeline = {
             "{$match: {vehicleId: ?0, componentType: ?1, deletedAt: null}}",

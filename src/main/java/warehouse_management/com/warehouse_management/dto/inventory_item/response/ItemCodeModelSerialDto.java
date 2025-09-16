@@ -3,7 +3,7 @@ package warehouse_management.com.warehouse_management.dto.inventory_item.respons
 import lombok.Data;
 
 @Data
-public class ItemCodeModelSerialResponse {
+public class ItemCodeModelSerialDto {
 
     private String vehicleId;
     private String productCode;

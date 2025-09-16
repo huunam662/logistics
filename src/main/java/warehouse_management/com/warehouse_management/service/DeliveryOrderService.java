@@ -90,9 +90,9 @@ public class DeliveryOrderService {
 
     public DeliveryOrderItemsDto getDeliveryOrderItemTicks(ObjectId id, boolean isSparePart) {
         DeliveryOrder deliveryOrder = getDeliveryOrderToId(id);
-        List<WarehouseForOrder> warehouseForOrders = warehouseRepository.getWarehousesForOrder();
+        List<WarehouseForOrderDto> warehouseForOrders = warehouseRepository.getWarehousesForOrder();
         Map<ObjectId, String> warehouseIdToType = new HashMap<>();
-        for (WarehouseForOrder warehouseForOrder : warehouseForOrders) {
+        for (WarehouseForOrderDto warehouseForOrder : warehouseForOrders) {
             warehouseIdToType.put(new ObjectId(warehouseForOrder.getId()), warehouseForOrder.getType());
         }
 

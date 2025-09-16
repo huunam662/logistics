@@ -4,7 +4,7 @@ import lombok.Data;
 import org.bson.types.ObjectId;
 
 @Data
-public class ComponentAndWarehouseResponse {
+public class ComponentAndWarehouseDto {
 
     private ObjectId componentId;
     private String serialNumber;
