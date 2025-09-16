@@ -4,10 +4,11 @@ import lombok.Data;
 import org.bson.types.ObjectId;
 
 @Data
-public class ConfigVehicleSpecPageResponse {
+public class ConfigVehicleSpecPageDto {
 
     private ObjectId vehicleId;
     private String productCode;
+    private String model;
     private String serialNumber;
     private Boolean isFullyComponent;
     private ComponentVehicle liftingFrame;
@@ -24,11 +25,4 @@ public class ConfigVehicleSpecPageResponse {
         private String serialNumber;
     }
 
-
-    public Boolean getIsFullyComponent() {
-        return liftingFrame.getSerialNumber() != null && battery.getSerialNumber() != null &&
-                charger.getSerialNumber() != null && engine.getSerialNumber() != null &&
-                fork.getSerialNumber() != null && valve.getSerialNumber() != null &&
-                sideShift.getSerialNumber() != null;
-    }
 }

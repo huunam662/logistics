@@ -5,7 +5,7 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 @Data
-public class VehiclePartSwapRequest {
+public class VehiclePartSwapDto {
 
     private String leftVehicleId;
     private String rightVehicleId;
@@ -16,7 +16,6 @@ public class VehiclePartSwapRequest {
 
     @Data
     public static class VehiclePrice {
-        private BigDecimal actualSalePrice;
         private BigDecimal salePriceR0;
         private BigDecimal salePriceR1;
     }

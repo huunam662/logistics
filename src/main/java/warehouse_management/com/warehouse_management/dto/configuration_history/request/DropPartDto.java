@@ -5,7 +5,7 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 @Data
-public class DropPartRequest {
+public class DropPartDto {
     private String vehicleId;    // ID xe
     private String productCode;
     private String componentType;     // Loại bộ phận: frame, valve, fork, engine, wheel, battery, sideshift, charge

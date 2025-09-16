@@ -42,6 +42,7 @@ public class InventoryItem {
     private Boolean initialCondition;       // Mô tả nguyên trạng khi nhập kho – Không bắt buộc
     private String notes;                  // Ghi chú chung – Không bắt buộc
 
+    private Boolean isFullyComponent;   // Dành cho Xe (VEHICLE)
 
     // --- PK PT ---
     //PT
@@ -139,6 +140,17 @@ public class InventoryItem {
 
     public void setStatus(InventoryItemStatus inventoryItemStatus) {
         this.status = inventoryItemStatus == null ? null : inventoryItemStatus.getId();
+    }
+
+    public Boolean getFullyComponent() {
+        return specifications != null
+                && specifications.chassisType != null && specifications.liftingCapacityKg != null && specifications.liftingHeightMm != null
+                && specifications.batteryInfo != null && specifications.batterySpecification != null
+                && specifications.chargerSpecification != null
+                && specifications.engineType != null
+                && specifications.forkDimensions != null
+                && specifications.valveCount != null && !specifications.valveCount.equals("0")
+                && specifications.hasSideShift != null && specifications.hasSideShift.equals("true");
     }
 }
 

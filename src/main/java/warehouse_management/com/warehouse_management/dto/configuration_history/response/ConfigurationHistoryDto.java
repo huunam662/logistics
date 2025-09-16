@@ -7,7 +7,7 @@ import org.bson.types.ObjectId;
 import java.time.LocalDateTime;
 
 @Data
-public class ConfigurationHistoryResponse {
+public class ConfigurationHistoryDto {
 
     private ObjectId id;
 

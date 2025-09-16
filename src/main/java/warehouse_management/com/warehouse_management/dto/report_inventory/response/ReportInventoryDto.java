@@ -25,4 +25,8 @@ public class ReportInventoryDto {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDateTime arrivalDate;
     private Integer daysLate;
+    private String deliveryOrderCode;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private LocalDateTime deliveryDate;
+    private String customerName;
 }
