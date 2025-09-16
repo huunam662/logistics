@@ -36,6 +36,8 @@ public class InventoryItem {
     //
     private Integer manufacturingYear; // Năm sản xuất – Không bắt buộc
 
+    private String category;       // Chủng loại sản phẩm (VD: Ngồi lái) – Bắt buộc
+
     private String status;         // Trạng thái hiện tại (IN_STOCK, IN_TRANSIT...) – Bắt buộc
     private String contractNumber; // Số hợp đồng
 
@@ -55,6 +57,7 @@ public class InventoryItem {
     private Specifications specifications;
 
     private Specifications specificationsBase;
+
 
     @Data
     @NoArgsConstructor
@@ -142,8 +145,8 @@ public class InventoryItem {
         this.status = inventoryItemStatus == null ? null : inventoryItemStatus.getId();
     }
 
-    public Boolean getFullyComponent() {
-        return specifications != null
+    public void setIsFullyComponent() {
+        this.isFullyComponent = specifications != null
                 && specifications.chassisType != null && specifications.liftingCapacityKg != null && specifications.liftingHeightMm != null
                 && specifications.batteryInfo != null && specifications.batterySpecification != null
                 && specifications.chargerSpecification != null
@@ -151,6 +154,16 @@ public class InventoryItem {
                 && specifications.forkDimensions != null
                 && specifications.valveCount != null && !specifications.valveCount.equals("0")
                 && specifications.hasSideShift != null && specifications.hasSideShift.equals("true");
+    }
+
+    public Boolean isFullyComponent() {
+        return specifications != null
+                && specifications.chassisType != null && specifications.liftingCapacityKg != null && specifications.liftingHeightMm != null
+                && specifications.batteryInfo != null && specifications.batterySpecification != null
+                && specifications.chargerSpecification != null
+                && specifications.engineType != null
+                && specifications.forkDimensions != null
+                && specifications.valveCount != null && !specifications.valveCount.equals("0");
     }
 }
 
