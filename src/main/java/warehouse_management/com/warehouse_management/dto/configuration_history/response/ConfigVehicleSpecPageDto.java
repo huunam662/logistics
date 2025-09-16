@@ -11,6 +11,7 @@ public class ConfigVehicleSpecPageDto {
     private String model;
     private String serialNumber;
     private Boolean isFullyComponent;
+    private Boolean initialCondition;       // Mô tả nguyên trạng khi nhập kho – Không bắt buộc
     private ComponentVehicle liftingFrame;
     private ComponentVehicle battery;
     private ComponentVehicle charger;

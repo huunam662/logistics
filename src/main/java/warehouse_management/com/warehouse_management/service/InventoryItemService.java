@@ -84,6 +84,7 @@ public class InventoryItemService {
             List<InventoryItem> itemsToInsert = new ArrayList<>();
             if (InventoryType.VEHICLE.getId().equals(newItem.getInventoryType())) {
                 buildComponentItems(newItem, itemsToInsert);
+                newItem.setIsFullyComponent();
             } else {
                 itemsToInsert.add(newItem);
             }
@@ -237,6 +238,7 @@ public class InventoryItemService {
                 item.setSpecificationsBase(item.getSpecifications());
                 itemToLog.add(item);
                 buildComponentItems(item, itemsToInsert);
+                item.setIsFullyComponent();
             }
             itemTicketToLog = itemToLog.stream().map(mapper::toInventoryItemTicket).collect(Collectors.toList());
         } else {
@@ -301,6 +303,7 @@ public class InventoryItemService {
             liftingFrame.setInventoryType(InventoryType.ACCESSORY.getId());
             liftingFrame.setComponentType(ComponentType.LIFTING_FRAME.getId());
             liftingFrame.setStatus(InventoryItemStatus.OTHER);
+            liftingFrame.setCategory(ComponentType.LIFTING_FRAME.getValue());
             liftingFrame.setSpecifications(new InventoryItem.Specifications());
             liftingFrame.getSpecifications().setChassisType(parentItem.getSpecifications().getChassisType());
             liftingFrame.getSpecifications().setLiftingHeightMm(parentItem.getSpecifications().getLiftingHeightMm());
@@ -321,6 +324,7 @@ public class InventoryItemService {
             battery.setInventoryType(InventoryType.ACCESSORY.getId());
             battery.setComponentType(ComponentType.BATTERY.getId());
             battery.setStatus(InventoryItemStatus.OTHER);
+            battery.setCategory(ComponentType.BATTERY.getValue());
             battery.setSpecifications(new InventoryItem.Specifications());
             battery.getSpecifications().setBatteryInfo(parentItem.getSpecifications().getBatteryInfo());
             battery.getSpecifications().setBatterySpecification(parentItem.getSpecifications().getBatterySpecification());
@@ -337,6 +341,7 @@ public class InventoryItemService {
             charger.setInventoryType(InventoryType.ACCESSORY.getId());
             charger.setComponentType(ComponentType.CHARGER.getId());
             charger.setStatus(InventoryItemStatus.OTHER);
+            charger.setCategory(ComponentType.CHARGER.getValue());
             charger.setSpecifications(new InventoryItem.Specifications());
             charger.getSpecifications().setChargerSpecification(parentItem.getSpecifications().getChargerSpecification());
 

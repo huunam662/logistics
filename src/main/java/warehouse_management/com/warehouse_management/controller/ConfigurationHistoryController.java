@@ -12,6 +12,7 @@ import warehouse_management.com.warehouse_management.dto.configuration_history.r
 import warehouse_management.com.warehouse_management.dto.configuration_history.request.DropPartDto;
 import warehouse_management.com.warehouse_management.dto.configuration_history.request.VehiclePartSwapDto;
 import warehouse_management.com.warehouse_management.dto.configuration_history.response.ConfigVehicleSpecPageDto;
+import warehouse_management.com.warehouse_management.dto.configuration_history.response.SwapVehiclePricingDto;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.pagination.response.PageInfoDto;
 import warehouse_management.com.warehouse_management.service.ConfigurationHistoryService;
@@ -161,5 +162,29 @@ public class ConfigurationHistoryController {
     @PostMapping("/vehicle-part-swap/multiple")
     public ApiResponse<?> swapMultipleVehicle(@RequestBody List<VehiclePartSwapDto> request){
         return ApiResponse.success(configurationHistoryService.swapMultipleVehicle(request));
+    }
+
+    @Operation(
+            summary = "POST Hoàn tất cấu hình xe nâng.",
+            description = "POST Hoàn tất cấu hình xe nâng."
+    )
+    @PostMapping("/vehicle-configuration-completed")
+    public ApiResponse<?> completedConfigurationVehicle(
+            @RequestParam("vehicleId") String vehicleId
+    ){
+        configurationHistoryService.completedConfigurationVehicle(new ObjectId(vehicleId));
+        return ApiResponse.success();
+    }
+
+    @Operation(
+            summary = "GET Lấy giá R0, R1 của xe trái và phải.",
+            description = "GET Lấy giá R0, R1 của xe trái và phải."
+    )
+    @GetMapping("/vehicles-pricing")
+    public ApiResponse<?> getSwapVehiclePricing(
+            @RequestParam("vehicleLeftId") String vehicleLeftId,
+            @RequestParam("vehicleRightId") String vehicleRightId
+    ){
+        return ApiResponse.success(configurationHistoryService.getSwapVehiclePricing(new ObjectId(vehicleLeftId), new ObjectId(vehicleRightId)));
     }
 }

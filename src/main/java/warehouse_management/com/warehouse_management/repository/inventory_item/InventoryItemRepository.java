@@ -106,7 +106,8 @@ public interface InventoryItemRepository extends MongoRepository<InventoryItem, 
 
     @Aggregation(pipeline = {
             "{$match: {vehicleId: ?0, componentType: ?1, deletedAt: null}}",
-            "{$project: {commodityCode: 1, productCode: 1, actualSalePrice: '$pricing.actualSalePrice', salePriceR0: '$pricing.salePriceR0', salePriceR1: '$pricing.salePriceR1'}}"
+            "{$project: {commodityCode: 1, productCode: 1, salePriceR0: '$pricing.salePriceR0', salePriceR1: '$pricing.salePriceR1'}}"
     })
     Optional<Map<String, Object>> findCodeAndPriceByVehicleIdAndComponentType(ObjectId vehicleId, String componentType);
+
 }

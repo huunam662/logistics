@@ -67,6 +67,7 @@ public class SecurityConfig {
         config.setAllowedOriginPatterns(List.of(
                 "http://localhost:5173",  // Frontend dev
                 "http://localhost:8080",  // Frontend dev
+                "http://localhost:3000",
                 "https://logistic-erp.meu-solutions.com",
                 "https://gateway.dev.meu-solutions.com"
         ));

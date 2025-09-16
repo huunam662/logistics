@@ -9,7 +9,6 @@ public class DropPartDto {
     private String vehicleId;    // ID xe
     private String productCode;
     private String componentType;     // Loại bộ phận: frame, valve, fork, engine, wheel, battery, sideshift, charge
-    private BigDecimal actualPrice; // Giá bán thực tế
     private BigDecimal priceR0;     // Giá bán R0
     private BigDecimal priceR1;     // Giá bán R1
 }
