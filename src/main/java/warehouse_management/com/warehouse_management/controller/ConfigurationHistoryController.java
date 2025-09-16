@@ -7,10 +7,7 @@ import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
-import warehouse_management.com.warehouse_management.dto.configuration_history.request.AddVehicleToConfigurationDto;
-import warehouse_management.com.warehouse_management.dto.configuration_history.request.AssemblePartDto;
-import warehouse_management.com.warehouse_management.dto.configuration_history.request.DropPartDto;
-import warehouse_management.com.warehouse_management.dto.configuration_history.request.VehiclePartSwapDto;
+import warehouse_management.com.warehouse_management.dto.configuration_history.request.*;
 import warehouse_management.com.warehouse_management.dto.configuration_history.response.ConfigVehicleSpecPageDto;
 import warehouse_management.com.warehouse_management.dto.configuration_history.response.SwapVehiclePricingDto;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
@@ -115,12 +112,12 @@ public class ConfigurationHistoryController {
     }
 
     @Operation(
-            summary = "GET Các xe nâng sở hữu bộ phận.",
-            description = "GET Các xe nâng sở hữu bộ phận."
+            summary = "GET Các xe nâng đang sửa chữa sở hữu bộ phận.",
+            description = "GET Các xe nâng đang sửa chữa sở hữu bộ phận."
     )
     @GetMapping("/component-vehicles")
-    public ApiResponse<?> getVehicleByComponentType(@RequestParam("componentType") String componentType){
-        return ApiResponse.success(configurationHistoryService.getVehicleByComponentType(componentType));
+    public ApiResponse<?> getVehicleByComponentTypeAndInRepair(@RequestParam("componentType") String componentType){
+        return ApiResponse.success(configurationHistoryService.getVehicleByComponentTypeAndInRepair(componentType));
     }
 
     @Operation(
@@ -170,9 +167,9 @@ public class ConfigurationHistoryController {
     )
     @PostMapping("/vehicle-configuration-completed")
     public ApiResponse<?> completedConfigurationVehicle(
-            @RequestParam("vehicleId") String vehicleId
-    ){
-        configurationHistoryService.completedConfigurationVehicle(new ObjectId(vehicleId));
+            @RequestBody ConfigurationCompletedDto request
+            ){
+        configurationHistoryService.completedConfigurationVehicle(request);
         return ApiResponse.success();
     }
 
