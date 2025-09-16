@@ -8,7 +8,7 @@ import org.bson.types.ObjectId;
 import java.util.List;
 
 @Data
-public class ConfigVehicleSpecHistoryResponse {
+public class ConfigVehicleSpecHistoryDto {
 
     private ObjectId id; // _id – Khóa chính tự động tạo bởi MongoDB
     private String inventoryType;   //InventoryType
@@ -19,7 +19,7 @@ public class ConfigVehicleSpecHistoryResponse {
 
     private Specifications specificationsBase;
 
-    private List<ConfigurationHistoryResponse> configHistories;
+    private List<ConfigurationHistoryDto> configHistories;
 
     @Data
     @NoArgsConstructor

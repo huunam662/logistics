@@ -6,15 +6,15 @@ import io.jsonwebtoken.security.Keys;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import warehouse_management.com.warehouse_management.dto.auth.request.LoginRequest;
-import warehouse_management.com.warehouse_management.dto.auth.response.LoginResponse;
+import warehouse_management.com.warehouse_management.dto.auth.request.LoginRequestDto;
+import warehouse_management.com.warehouse_management.dto.auth.response.LoginResponseDto;
 
 import warehouse_management.com.warehouse_management.integration.auth.dto.request.AuthLoginRequest;
 import warehouse_management.com.warehouse_management.integration.auth.dto.response.AuthGetInfoResponse;
 import warehouse_management.com.warehouse_management.integration.auth.dto.response.AuthGetPermissionResponse;
 import warehouse_management.com.warehouse_management.integration.auth.dto.response.AuthLoginResponse;
 import warehouse_management.com.warehouse_management.integration.auth.client.AuthIntegrationClient;
-import warehouse_management.com.warehouse_management.dto.auth.response.AnaworkToken;
+import warehouse_management.com.warehouse_management.dto.auth.response.AnaworkTokenDto;
 import warehouse_management.com.warehouse_management.utils.GeneralUtil;
 import warehouse_management.com.warehouse_management.utils.JsonUtils;
 import warehouse_management.com.warehouse_management.utils.JwtUtils;
@@ -38,7 +38,7 @@ public class AuthService {
         this.jwtUtils = jwtUtils;
     }
 
-    public LoginResponse login(LoginRequest loginRequest) {
+    public LoginResponseDto login(LoginRequestDto loginRequest) {
         AuthLoginResponse authLoginResponse = authIntegrationClient.login(buildAuthLoginRequest(loginRequest));
         AuthGetInfoResponse authGetInfoResponse = authIntegrationClient.getInfo(authLoginResponse.getToken());
         AuthGetPermissionResponse authGetPermissionResponse = authIntegrationClient.getPermission(authLoginResponse.getToken());
@@ -47,7 +47,7 @@ public class AuthService {
         return buildLoginResponse(authLoginResponse, authGetInfoResponse, authGetPermissionResponse);
     }
 
-    private AuthLoginRequest buildAuthLoginRequest(LoginRequest loginRequest) {
+    private AuthLoginRequest buildAuthLoginRequest(LoginRequestDto loginRequest) {
         AuthLoginRequest authLoginRequest = new AuthLoginRequest();
         authLoginRequest.setUsername(loginRequest.getEmail());
         authLoginRequest.setPassword(loginRequest.getPassword());
@@ -55,9 +55,9 @@ public class AuthService {
         return authLoginRequest;
     }
 
-    private LoginResponse buildLoginResponse(AuthLoginResponse authLoginResponse, AuthGetInfoResponse authGetInfoResponse, AuthGetPermissionResponse authGetPermissionResponse) {
+    private LoginResponseDto buildLoginResponse(AuthLoginResponse authLoginResponse, AuthGetInfoResponse authGetInfoResponse, AuthGetPermissionResponse authGetPermissionResponse) {
         String decodePayload = jwtUtils.decodePayload(authLoginResponse.getToken());
-        AnaworkToken anaworkToken = JsonUtils.parseJsonToDto(decodePayload, AnaworkToken.class);
+        AnaworkTokenDto anaworkToken = JsonUtils.parseJsonToDto(decodePayload, AnaworkTokenDto.class);
 //        long expirationEpochSeconds = anaworkToken.getExpiration();
 //        Date expirationDate = new Date(expirationEpochSeconds * 1000);
         AuthGetInfoResponse.UserDTO user = authGetInfoResponse.getUser();
@@ -79,7 +79,7 @@ public class AuthService {
                 .setExpiration(generateExpiration())
                 .signWith(signingKey, io.jsonwebtoken.SignatureAlgorithm.HS256)
                 .compact();
-        LoginResponse loginResponse = new LoginResponse();
+        LoginResponseDto loginResponse = new LoginResponseDto();
         loginResponse.setToken(tk);
         loginResponse.setFullName(user.getFirstName() + " " + user.getLastName());
         loginResponse.setEmail(user.getEmail());

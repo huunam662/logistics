@@ -20,7 +20,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import warehouse_management.com.warehouse_management.dto.configuration_history.response.ConfigVehicleSpecPageResponse;
+import warehouse_management.com.warehouse_management.dto.configuration_history.response.ConfigVehicleSpecPageDto;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
 import warehouse_management.com.warehouse_management.dto.report_inventory.request.ReportParamsDto;
@@ -498,6 +498,23 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
 
     @Transactional
     @Override
+    public void bulkUpdateSpecAndPricing(Collection<InventoryItem> inventoryItems) {
+        if (inventoryItems.isEmpty()) return;
+        MongoCollection<Document> coll = mongoTemplate.getCollection(mongoTemplate.getCollectionName(InventoryItem.class));
+        List<WriteModel<Document>> writeModels = new ArrayList<>();
+        for (var item : inventoryItems) {
+            Bson filter = Filters.eq("_id", item.getId());
+            Bson update = Updates.combine(
+                    Updates.set("specifications", item.getSpecifications()),
+                    Updates.set("pricing", item.getPricing())
+            );
+            writeModels.add(new UpdateOneModel<>(filter, update));
+        }
+        coll.bulkWrite(writeModels);
+    }
+
+    @Transactional
+    @Override
     public void updateStatusAndUnRefContainer(Collection<ObjectId> ids, String status) {
         Query query = new Query(Criteria.where("_id").in(ids));
         Update update = new Update().set("status", status).set("containerId", null);
@@ -842,7 +859,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryItemRepairDto.class, agg, optionsDto);
     }
 
-    public Page<ConfigVehicleSpecPageResponse> findPageConfigVehicleSpec(PageOptionsDto optionsDto) {
+    public Page<ConfigVehicleSpecPageDto> findPageConfigVehicleSpec(PageOptionsDto optionsDto) {
         Aggregation aggregation = Aggregation.newAggregation(
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("inventoryType").is(InventoryType.VEHICLE.getId()),
@@ -902,10 +919,10 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .andInclude("productCode", "serialNumber", "liftingFrame", "battery", "charger", "engine", "fork", "valve", "sideShift")
                         .andExclude("_id")
         );
-        return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, ConfigVehicleSpecPageResponse.class, aggregation, optionsDto);
+        return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, ConfigVehicleSpecPageDto.class, aggregation, optionsDto);
     }
 
-    public Page<ItemCodeModelSerialResponse> findPageVehicleInStock(PageOptionsDto optionsDto){
+    public Page<ItemCodeModelSerialDto> findPageVehicleInStock(PageOptionsDto optionsDto){
         Aggregation aggregation = Aggregation.newAggregation(
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
@@ -921,7 +938,8 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .and("_id").as("vehicleId")
         );
 
-        return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, ItemCodeModelSerialResponse.class, aggregation, optionsDto);
+        return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, ItemCodeModelSerialDto.class, aggregation, optionsDto);
     }
+
 
 }

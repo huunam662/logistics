@@ -4,14 +4,14 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 @Data
-public class DeliveryItemSparePartDetails {
+public class DeliveryItemSparePartDetailsDto {
     private String commodityCode;  // Mã hàng hóa (đôi với phụ tùng)
     private String model;          // Model sản phẩm – Bắt buộc
     private String poNumber;       // Số của Đơn đặt hàng (Purchase Order) – Bắt buộc
     private String contractNumber; // Số hợp đồng
     private Integer quantity;   // Số lượng hàng hóa
     private String notes;                  // Ghi chú chung – Không bắt buộc
-    private DeliveryItemSparePartDetails.Pricing pricing;
+    private DeliveryItemSparePartDetailsDto.Pricing pricing;
 
     @Data
     public static class Pricing {

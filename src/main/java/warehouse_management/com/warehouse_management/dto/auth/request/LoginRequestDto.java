@@ -4,7 +4,7 @@ import lombok.Data;
 import warehouse_management.com.warehouse_management.annotation.Validation;
 
 @Data
-public class LoginRequest {
+public class LoginRequestDto {
 
     @Validation(label = "email", required = true)
     private String email;

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
-public class AnaworkToken {
+public class AnaworkTokenDto {
     @JsonProperty("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")
     private String email;
 

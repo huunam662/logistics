@@ -6,11 +6,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.bson.types.ObjectId;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import warehouse_management.com.warehouse_management.dto.delivery_order.response.WarehouseForOrder;
+import warehouse_management.com.warehouse_management.dto.delivery_order.response.WarehouseForOrderDto;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.pagination.response.PageInfoDto;
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
@@ -227,8 +226,8 @@ public class WarehouseController {
     }
 
     @GetMapping("/warehouse-for-order")
-    public ApiResponse<List<WarehouseForOrder>> getWarehousesForOrder() {
-        List<WarehouseForOrder> dtos = warehouseService.getWarehousesForOrder();
+    public ApiResponse<List<WarehouseForOrderDto>> getWarehousesForOrder() {
+        List<WarehouseForOrderDto> dtos = warehouseService.getWarehousesForOrder();
         return ApiResponse.success(dtos);
     }
 

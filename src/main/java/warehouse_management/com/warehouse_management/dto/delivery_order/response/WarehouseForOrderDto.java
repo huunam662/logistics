@@ -3,7 +3,7 @@ package warehouse_management.com.warehouse_management.dto.delivery_order.respons
 import lombok.Data;
 
 @Data
-public class WarehouseForOrder {
+public class WarehouseForOrderDto {
     private String id;
     private String name;
     private String type;

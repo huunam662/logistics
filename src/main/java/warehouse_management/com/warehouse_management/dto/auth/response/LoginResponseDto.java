@@ -1,12 +1,9 @@
 package warehouse_management.com.warehouse_management.dto.auth.response;
 
 import lombok.Data;
-import warehouse_management.com.warehouse_management.annotation.Validation;
-
-import java.util.List;
 
 @Data
-public class LoginResponse {
+public class LoginResponseDto {
     private String token;
 
     private String fullName;

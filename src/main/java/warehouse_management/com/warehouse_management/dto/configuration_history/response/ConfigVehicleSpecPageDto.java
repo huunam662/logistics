@@ -4,7 +4,7 @@ import lombok.Data;
 import org.bson.types.ObjectId;
 
 @Data
-public class ConfigVehicleSpecPageResponse {
+public class ConfigVehicleSpecPageDto {
 
     private ObjectId vehicleId;
     private String productCode;

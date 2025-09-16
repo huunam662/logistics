@@ -4,7 +4,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class AddVehicleToConfigurationRequest {
+public class AddVehicleToConfigurationDto {
 
     private List<String> vehicleIds;
 }

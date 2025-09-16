@@ -5,13 +5,13 @@ import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import warehouse_management.com.warehouse_management.dto.configuration_history.request.AddVehicleToConfigurationRequest;
-import warehouse_management.com.warehouse_management.dto.configuration_history.request.AssemblePartRequest;
-import warehouse_management.com.warehouse_management.dto.configuration_history.request.DropPartRequest;
-import warehouse_management.com.warehouse_management.dto.configuration_history.request.VehiclePartSwapRequest;
+import warehouse_management.com.warehouse_management.dto.configuration_history.request.AddVehicleToConfigurationDto;
+import warehouse_management.com.warehouse_management.dto.configuration_history.request.AssemblePartDto;
+import warehouse_management.com.warehouse_management.dto.configuration_history.request.DropPartDto;
+import warehouse_management.com.warehouse_management.dto.configuration_history.request.VehiclePartSwapDto;
 import warehouse_management.com.warehouse_management.dto.configuration_history.response.*;
-import warehouse_management.com.warehouse_management.dto.inventory_item.response.ItemCodeModelSerialResponse;
-import warehouse_management.com.warehouse_management.dto.inventory_item.response.ItemCodePriceResponse;
+import warehouse_management.com.warehouse_management.dto.inventory_item.response.ItemCodeModelSerialDto;
+import warehouse_management.com.warehouse_management.dto.inventory_item.response.ItemCodePriceDto;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.enumerate.ChangeConfigurationType;
 import warehouse_management.com.warehouse_management.enumerate.ComponentType;
@@ -27,6 +27,7 @@ import warehouse_management.com.warehouse_management.repository.inventory_item.I
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -37,13 +38,12 @@ public class ConfigurationHistoryService {
     private final InventoryItemRepository inventoryItemRepository;
     private final InventoryItemService inventoryItemService;
     private final ConfigurationHistoryRepository configurationHistoryRepository;
-    private final WarehouseService warehouseService;
     private final InventoryItemMapper inventoryItemMapper;
     private final ConfigurationHistoryMapper configurationVehicleMapper;
 
 
     @Transactional
-    public boolean swapItems(VehiclePartSwapRequest request) {
+    public boolean swapItems(VehiclePartSwapDto request) {
         // 1. Lấy vehicle và accessory tương ứng
         InventoryItem leftVeh = inventoryItemService.findByIdOrThrow(request.getLeftVehicleId());
         InventoryItem rightVeh = inventoryItemService.findByIdOrThrow(request.getRightVehicleId());
@@ -62,8 +62,11 @@ public class ConfigurationHistoryService {
         inventoryItemRepository.save(leftVeh);
         inventoryItemRepository.save(rightVeh);
 
-        buildSwapHistory(leftVeh, rightVeh, leftVehComponent, rightVehComponent, componentType);
-        buildSwapHistory(rightVeh, leftVeh, rightVehComponent, leftVehComponent, componentType);
+        ConfigurationHistory historyLeftVeh = buildSwapHistory(leftVeh, rightVeh, leftVehComponent, rightVehComponent, componentType);
+        ConfigurationHistory historyRightVeh = buildSwapHistory(rightVeh, leftVeh, rightVehComponent, leftVehComponent, componentType);
+
+        configurationHistoryRepository.save(historyLeftVeh);
+        configurationHistoryRepository.save(historyRightVeh);
 
         return true;
     }
@@ -122,7 +125,7 @@ public class ConfigurationHistoryService {
         }
     }
 
-    private void setVehiclePrices(InventoryItem leftVeh, InventoryItem rightVeh, VehiclePartSwapRequest request) {
+    private void setVehiclePrices(InventoryItem leftVeh, InventoryItem rightVeh, VehiclePartSwapDto request) {
         if (request.getLeftPrice() != null) {
             leftVeh.getPricing().setActualSalePrice(request.getLeftPrice().getActualSalePrice());
             leftVeh.getPricing().setSalePriceR0(request.getLeftPrice().getSalePriceR0());
@@ -135,7 +138,7 @@ public class ConfigurationHistoryService {
         }
     }
 
-    private ConfigurationHistory buildSwapHistory(
+    protected ConfigurationHistory buildSwapHistory(
             InventoryItem vehicleLeft,
             InventoryItem vehicleRight,
             InventoryItem componentOld,
@@ -163,10 +166,10 @@ public class ConfigurationHistoryService {
 
         configHistory.setDescription("Hoán đối " + componentType.getValue() + " với xe " + vehicleRight.getProductCode());
 
-        return configurationHistoryRepository.save(configHistory);
+        return configHistory;
     }
 
-    private ConfigurationHistory buildDisassembleHistory(
+    protected ConfigurationHistory buildDisassembleHistory(
             InventoryItem vehicle,
             InventoryItem component,
             ComponentType componentType
@@ -184,10 +187,10 @@ public class ConfigurationHistoryService {
 
         configHistory.setDescription("Tháo rời " + componentType.getValue() + " ra khỏi xe " + vehicle.getProductCode());
 
-        return configurationHistoryRepository.save(configHistory);
+        return configHistory;
     }
 
-    private ConfigurationHistory buildAssembleHistory(
+    protected ConfigurationHistory buildAssembleHistory(
             InventoryItem vehicle,
             InventoryItem component,
             ComponentType componentType
@@ -205,7 +208,7 @@ public class ConfigurationHistoryService {
 
         configHistory.setDescription("Lắp ráp " + componentType.getValue() + " vào xe " + vehicle.getProductCode());
 
-        return configurationHistoryRepository.save(configHistory);
+        return configHistory;
     }
 
     public ConfigurationHistory findByIdOrThrow(String id) {
@@ -213,7 +216,7 @@ public class ConfigurationHistoryService {
     }
 
     @Transactional
-    public boolean dropComponent(DropPartRequest dropPartRequest) {
+    public boolean dropComponent(DropPartDto dropPartRequest) {
 
         InventoryItem vehicle = inventoryItemService.getItemToId(new ObjectId(dropPartRequest.getVehicleId()));
 
@@ -256,7 +259,10 @@ public class ConfigurationHistoryService {
         vehicle.setInitialCondition(false);
         inventoryItemRepository.save(vehicle);
 
-        buildDisassembleHistory(vehicle, component, componentType);
+        ConfigurationHistory disassembleHistory = buildDisassembleHistory(vehicle, component, componentType);
+
+        configurationHistoryRepository.save(disassembleHistory);
+
         return true;
     }
 
@@ -311,7 +317,8 @@ public class ConfigurationHistoryService {
         }
     }
 
-    public boolean assembleComponent(AssemblePartRequest assemblePart){
+    @Transactional
+    public boolean assembleComponent(AssemblePartDto assemblePart){
 
         InventoryItem vehicle = inventoryItemService.getItemToId(new ObjectId(assemblePart.getVehicleId()));
 
@@ -346,24 +353,26 @@ public class ConfigurationHistoryService {
 
         inventoryItemRepository.save(vehicle);
 
-        buildAssembleHistory(vehicle, component, componentType);
+        ConfigurationHistory assembleHistory = buildAssembleHistory(vehicle, component, componentType);
+
+        configurationHistoryRepository.save(assembleHistory);
 
         return true;
     }
 
-    public ConfigVehicleSpecHistoryResponse getConfigurationHistoryToVehicleId(ObjectId vehicleId){
+    public ConfigVehicleSpecHistoryDto getConfigurationHistoryToVehicleId(ObjectId vehicleId){
         InventoryItem vehicle = inventoryItemService.getItemToId(new ObjectId(vehicleId.toString()));
         if(!InventoryType.VEHICLE.getId().equals(vehicle.getInventoryType()))
             throw LogicErrException.of("Sản phẩm cần xem lịch sử cấu hình không phải là xe.");
 
         List<ConfigurationHistory> configHistories = configurationHistoryRepository.findByVehicleIdOrderByCreatedAtDesc(vehicle.getId());
 
-        ConfigVehicleSpecHistoryResponse configVehicleSpecHistory = configurationVehicleMapper.toConfigVehicleSpecHistoryResponse(vehicle);
+        ConfigVehicleSpecHistoryDto configVehicleSpecHistory = configurationVehicleMapper.toConfigVehicleSpecHistoryResponse(vehicle);
 
         configVehicleSpecHistory.setConfigHistories(
                 configHistories.stream()
                         .map(o -> {
-                            ConfigurationHistoryResponse res = configurationVehicleMapper.toConfigurationHistoryResponse(o);
+                            ConfigurationHistoryDto res = configurationVehicleMapper.toConfigurationHistoryResponse(o);
                             ComponentType componentType = ComponentType.fromId(o.getComponentType());
                             res.setComponentName(componentType == null ? null : componentType.getValue());
                             return res;
@@ -374,30 +383,30 @@ public class ConfigurationHistoryService {
         return configVehicleSpecHistory;
     }
 
-    public Page<ConfigVehicleSpecPageResponse> getPageConfigVehicleSpec(PageOptionsDto optionsDto){
+    public Page<ConfigVehicleSpecPageDto> getPageConfigVehicleSpec(PageOptionsDto optionsDto){
         return inventoryItemRepository.findPageConfigVehicleSpec(optionsDto);
     }
 
-    public List<VehicleComponentTypeResponse> getComponentTypeToVehicleId(ObjectId vehicleId){
+    public List<VehicleComponentTypeDto> getComponentTypeToVehicleId(ObjectId vehicleId){
         List<String> componentTypes = inventoryItemRepository.findComponentTypeByVehicleId(vehicleId);
         return componentTypes.stream().map(elm -> {
             ComponentType componentType = ComponentType.fromId(elm);
             if(componentType == null) return null;
-            VehicleComponentTypeResponse res = new VehicleComponentTypeResponse();
+            VehicleComponentTypeDto res = new VehicleComponentTypeDto();
             res.setComponentType(componentType.getId());
             res.setComponentName(componentType.getValue());
             return res;
         }).filter(Objects::nonNull).toList();
     }
 
-    public List<VehicleComponentTypeResponse> getComponentTypeMissingToVehicleId(ObjectId vehicleId){
+    public List<VehicleComponentTypeDto> getComponentTypeMissingToVehicleId(ObjectId vehicleId){
         List<String> componentTypes = inventoryItemRepository.findComponentTypeByVehicleId(vehicleId);
         List<ComponentType> componentTypesMissing = Arrays.stream(ComponentType.values())
                 .filter(o -> !componentTypes.contains(o.getId()))
                 .toList();
         return componentTypesMissing.stream()
                 .map(o -> {
-                    VehicleComponentTypeResponse res = new VehicleComponentTypeResponse();
+                    VehicleComponentTypeDto res = new VehicleComponentTypeDto();
                     res.setComponentType(o.getId());
                     res.setComponentName(o.getValue());
                     return res;
@@ -405,7 +414,7 @@ public class ConfigurationHistoryService {
                 .toList();
     }
 
-    public List<ComponentAndWarehouseResponse> getWarehouseContainsComponent(String componentType){
+    public List<ComponentAndWarehouseDto> getWarehouseContainsComponent(String componentType){
 
         ComponentType type = ComponentType.fromId(componentType);
         if(type == null) throw LogicErrException.of("Loại bộ phận muốn kiểm tra không hợp lệ.");
@@ -415,7 +424,7 @@ public class ConfigurationHistoryService {
         return docRsults.stream()
                 .map(doc -> {
 
-                    ComponentAndWarehouseResponse res = new ComponentAndWarehouseResponse();
+                    ComponentAndWarehouseDto res = new ComponentAndWarehouseDto();
                     res.setComponentId((ObjectId) doc.get("componentId"));
                     res.setSerialNumber((String) doc.get("serialNumber"));
 
@@ -431,7 +440,7 @@ public class ConfigurationHistoryService {
                 .toList();
     }
 
-    public List<VehicleComponentTypeResponse> getComponentsTypeCommon(ObjectId vehicleLeftId, ObjectId vehicleRightId){
+    public List<VehicleComponentTypeDto> getComponentsTypeCommon(ObjectId vehicleLeftId, ObjectId vehicleRightId){
         List<String> componentTypesLeft = inventoryItemRepository.findComponentTypeByVehicleId(vehicleLeftId);
         List<String> componentTypesRight = inventoryItemRepository.findComponentTypeByVehicleId(vehicleRightId);
         Set<String> componentTypesCommon = new HashSet<>(componentTypesLeft);
@@ -439,18 +448,19 @@ public class ConfigurationHistoryService {
         return componentTypesCommon.stream().map(elm -> {
             ComponentType componentType = ComponentType.fromId(elm);
             if(componentType == null) return null;
-            VehicleComponentTypeResponse res = new VehicleComponentTypeResponse();
+            VehicleComponentTypeDto res = new VehicleComponentTypeDto();
             res.setComponentType(componentType.getId());
             res.setComponentName(componentType.getValue());
             return res;
         }).filter(Objects::nonNull).toList();
     }
 
-    public List<ItemCodeModelSerialResponse> getVehicleByComponentType(String componentType){
+    public List<ItemCodeModelSerialDto> getVehicleByComponentType(String componentType){
         return inventoryItemRepository.findVehicleByComponentType(componentType);
     }
 
-    public void addVehicleToConfiguration(AddVehicleToConfigurationRequest request){
+    @Transactional
+    public void addVehicleToConfiguration(AddVehicleToConfigurationDto request){
         List<ObjectId> vehicleIds = request.getVehicleIds().stream().map(ObjectId::new).toList();
         List<InventoryItem> vehicles = inventoryItemRepository.findByIdInAndStatus(vehicleIds, InventoryItemStatus.IN_STOCK.getId());
         List<ObjectId> vehiclesToRepair = vehicles.stream()
@@ -461,11 +471,11 @@ public class ConfigurationHistoryService {
         inventoryItemRepository.updateStatusByIdIn(vehiclesToRepair, InventoryItemStatus.IN_REPAIR.getId());
     }
 
-    public Page<ItemCodeModelSerialResponse> getPageVehicleInStock(PageOptionsDto optionsDto){
+    public Page<ItemCodeModelSerialDto> getPageVehicleInStock(PageOptionsDto optionsDto){
         return inventoryItemRepository.findPageVehicleInStock(optionsDto);
     }
 
-    public ItemCodePriceResponse getCodeAndPriceToVehicleIdAndComponentType(ObjectId vehicleId, String componentType){
+    public ItemCodePriceDto getCodeAndPriceToVehicleIdAndComponentType(ObjectId vehicleId, String componentType){
 
         Optional<Map<String, Object>> resultQuery = inventoryItemRepository.findCodeAndPriceByVehicleIdAndComponentType(vehicleId, componentType);
 
@@ -473,7 +483,7 @@ public class ConfigurationHistoryService {
 
             Map<String, Object> result = resultQuery.get();
 
-            ItemCodePriceResponse res = new ItemCodePriceResponse();
+            ItemCodePriceDto res = new ItemCodePriceDto();
 
             res.setCode((String) result.get("productCode"));
             if(res.getCode() == null) res.setCode((String) result.get("commodityCode"));
@@ -485,6 +495,61 @@ public class ConfigurationHistoryService {
             return res;
         }
 
-        return new ItemCodePriceResponse();
+        return new ItemCodePriceDto();
+    }
+
+    @Transactional
+    public boolean swapMultipleVehicle(List<VehiclePartSwapDto> request){
+
+        List<VehiclePartSwapDto> vehicleToSwapList = new ArrayList<>();
+
+        List<ObjectId> vehicleIdList = new ArrayList<>();
+
+        for(var vehicleSwap : request){
+            if(vehicleSwap.getLeftVehicleId() == null || vehicleSwap.getRightVehicleId() == null)
+                continue;
+
+            vehicleIdList.add(new ObjectId(vehicleSwap.getLeftVehicleId()));
+            vehicleIdList.add(new ObjectId(vehicleSwap.getRightVehicleId()));
+
+            vehicleToSwapList.add(vehicleSwap);
+        }
+
+        List<InventoryItem> vehicleList = inventoryItemRepository.findByIdIn(vehicleIdList);
+        Map<String, InventoryItem> vehiclesMap = vehicleList.stream()
+                .filter(o -> InventoryType.VEHICLE.getId().equals(o.getInventoryType()))
+                .collect(Collectors.toMap(vehicleCurrent -> vehicleCurrent.getId().toString(), vehicleCurrent -> vehicleCurrent));
+
+        List<ConfigurationHistory> configurationHistoryList = new ArrayList<>();
+
+        for(var swap : vehicleToSwapList){
+
+            InventoryItem vehicleLeft = vehiclesMap.getOrDefault(swap.getLeftVehicleId(), null);
+            InventoryItem vehicleRight = vehiclesMap.getOrDefault(swap.getRightVehicleId(), null);
+
+            if(vehicleLeft == null || vehicleRight == null) continue;
+
+            ComponentType componentType = ComponentType.fromId(swap.getComponentType());
+            if(componentType == null) throw LogicErrException.of("Loại bộ phận cần tháo rời không hợp lệ.");
+
+            InventoryItem leftVehComponent = inventoryItemService.getComponentItemToVehicleIdAndType(vehicleLeft.getId(), componentType, vehicleLeft.getProductCode());
+            InventoryItem rightVehComponent = inventoryItemService.getComponentItemToVehicleIdAndType(vehicleRight.getId(), componentType, vehicleRight.getProductCode());
+            inventoryItemRepository.updateVehicleIdById(leftVehComponent.getId(), vehicleRight.getId());
+            inventoryItemRepository.updateVehicleIdById(rightVehComponent.getId(), vehicleLeft.getId());
+
+            swapVehicleComponent(vehicleLeft, vehicleRight, componentType);
+            setVehiclePrices(vehicleLeft, vehicleRight, swap);
+
+            ConfigurationHistory historyLeftVeh = buildSwapHistory(vehicleLeft, vehicleRight, leftVehComponent, rightVehComponent, componentType);
+            ConfigurationHistory historyRightVeh = buildSwapHistory(vehicleRight, vehicleLeft, rightVehComponent, leftVehComponent, componentType);
+
+            configurationHistoryList.add(historyLeftVeh);
+            configurationHistoryList.add(historyRightVeh);
+        }
+
+        inventoryItemRepository.bulkUpdateSpecAndPricing(vehiclesMap.values());
+        configurationHistoryRepository.bulkInsert(configurationHistoryList);
+
+        return true;
     }
 }

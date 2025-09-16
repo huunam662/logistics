@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
-import warehouse_management.com.warehouse_management.dto.auth.request.LoginRequest;
-import warehouse_management.com.warehouse_management.dto.auth.response.LoginResponse;
+import warehouse_management.com.warehouse_management.dto.auth.request.LoginRequestDto;
+import warehouse_management.com.warehouse_management.dto.auth.response.LoginResponseDto;
 import warehouse_management.com.warehouse_management.service.AuthService;
 
 @RestController
@@ -23,8 +23,8 @@ public class AuthController {
 
     @PostMapping("/login")
     @Operation(summary = "Đăng nhập", description = "")
-    public ApiResponse<LoginResponse> login(@RequestBody @Valid LoginRequest loginRequest) {
-        LoginResponse res = authService.login(loginRequest);
+    public ApiResponse<LoginResponseDto> login(@RequestBody @Valid LoginRequestDto loginRequest) {
+        LoginResponseDto res = authService.login(loginRequest);
         return ApiResponse.success(res);
 
     }
