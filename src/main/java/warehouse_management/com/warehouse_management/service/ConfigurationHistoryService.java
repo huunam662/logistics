@@ -5,10 +5,7 @@ import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import warehouse_management.com.warehouse_management.dto.configuration_history.request.AddVehicleToConfigurationDto;
-import warehouse_management.com.warehouse_management.dto.configuration_history.request.AssemblePartDto;
-import warehouse_management.com.warehouse_management.dto.configuration_history.request.DropPartDto;
-import warehouse_management.com.warehouse_management.dto.configuration_history.request.VehiclePartSwapDto;
+import warehouse_management.com.warehouse_management.dto.configuration_history.request.*;
 import warehouse_management.com.warehouse_management.dto.configuration_history.response.*;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.ItemCodeModelSerialDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.ItemCodePriceDto;
@@ -477,8 +474,8 @@ public class ConfigurationHistoryService {
         }).filter(Objects::nonNull).toList();
     }
 
-    public List<ItemCodeModelSerialDto> getVehicleByComponentType(String componentType){
-        return inventoryItemRepository.findVehicleByComponentType(componentType);
+    public List<ItemCodeModelSerialDto> getVehicleByComponentTypeAndInRepair(String componentType){
+        return inventoryItemRepository.findVehicleByComponentTypeAndInRepair(componentType);
     }
 
     @Transactional
@@ -551,7 +548,7 @@ public class ConfigurationHistoryService {
             if(vehicleLeft == null || vehicleRight == null) continue;
 
             ComponentType componentType = ComponentType.fromId(swap.getComponentType());
-            if(componentType == null) throw LogicErrException.of("Loại bộ phận cần tháo rời không hợp lệ.");
+            if(componentType == null) throw LogicErrException.of("Loại bộ phận cần hoán đổi không hợp lệ.");
 
             InventoryItem leftVehComponent = inventoryItemService.getComponentItemToVehicleIdAndType(vehicleLeft.getId(), componentType, vehicleLeft.getProductCode());
             InventoryItem rightVehComponent = inventoryItemService.getComponentItemToVehicleIdAndType(vehicleRight.getId(), componentType, vehicleRight.getProductCode());
@@ -575,10 +572,10 @@ public class ConfigurationHistoryService {
     }
 
     @Transactional
-    public void completedConfigurationVehicle(ObjectId vehicleId){
-        InventoryItem vehicle = inventoryItemService.getItemToId(vehicleId);
+    public void completedConfigurationVehicle(ConfigurationCompletedDto request){
+        InventoryItem vehicle = inventoryItemService.getItemToId(new ObjectId(request.getVehicleId()));
         if(!vehicle.isFullyComponent())
-            throw LogicErrException.of("Không được phép hoàn tất cấu hình khi còn thiếu bộ phận");
+            throw LogicErrException.of("Không được phép hoàn tất cấu hình khi còn thiếu bộ phận.");
 
         inventoryItemRepository.updateStatusByIdIn(List.of(vehicle.getId()), InventoryItemStatus.IN_STOCK.getId());
     }

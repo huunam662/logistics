@@ -97,6 +97,14 @@ public interface InventoryItemRepository extends MongoRepository<InventoryItem, 
     List<Map<String, Object>> findWarehouseContainsComponent(String componentType);
 
     @Aggregation(pipeline = {
+            "{$match: {componentType: ?0, vehicleId: {'$ne': null}, status: 'IN_REPAIR', deletedAt: null}}",
+            "{$lookup: {from: 'inventory_item', localField: 'vehicleId', foreignField: '_id', as: 'vehicle'}}",
+            "{$unwind: '$vehicle'}",
+            "{$project: {vehicleId: '$vehicle._id', productCode: '$vehicle.productCode', serialNumber: '$vehicle.serialNumber', model: '$vehicle.model'}}"
+    })
+    List<ItemCodeModelSerialDto> findVehicleByComponentTypeAndInRepair(String componentType);
+
+    @Aggregation(pipeline = {
             "{$match: {componentType: ?0, vehicleId: {'$ne': null}, deletedAt: null}}",
             "{$lookup: {from: 'inventory_item', localField: 'vehicleId', foreignField: '_id', as: 'vehicle'}}",
             "{$unwind: '$vehicle'}",
