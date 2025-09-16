@@ -246,7 +246,6 @@ public class ConfigurationHistoryService {
             if(component.getPricing() == null) component.setPricing(new InventoryItem.Pricing());
             component.getPricing().setSalePriceR0(dropPartRequest.getPriceR0());
             component.getPricing().setSalePriceR1(dropPartRequest.getPriceR1());
-            component.getPricing().setActualSalePrice(dropPartRequest.getActualPrice());
             component.setStatus(InventoryItemStatus.IN_STOCK.getId());
             component.setVehicleId(null);
             component.setWarehouseId(vehicle.getWarehouseId());
@@ -256,6 +255,7 @@ public class ConfigurationHistoryService {
 
         disassembleSpecifications(vehicle, componentType);
         vehicle.setInitialCondition(false);
+        vehicle.setIsFullyComponent();
         inventoryItemRepository.save(vehicle);
 
         ConfigurationHistory disassembleHistory = buildDisassembleHistory(vehicle, component, componentType);
@@ -350,6 +350,7 @@ public class ConfigurationHistoryService {
 
         assembleSpecifications(vehicle, componentType, component);
 
+        vehicle.setIsFullyComponent();
         inventoryItemRepository.save(vehicle);
 
         ConfigurationHistory assembleHistory = buildAssembleHistory(vehicle, component, componentType);
@@ -509,7 +510,6 @@ public class ConfigurationHistoryService {
             res.setCode((String) result.get("productCode"));
             if(res.getCode() == null) res.setCode((String) result.get("commodityCode"));
 
-            res.setActualSalePrice((BigDecimal) result.get("actualSalePrice"));
             res.setSalePriceR0((BigDecimal) result.get("salePriceR0"));
             res.setSalePriceR1((BigDecimal) result.get("salePriceR1"));
 
@@ -572,5 +572,31 @@ public class ConfigurationHistoryService {
         configurationHistoryRepository.bulkInsert(configurationHistoryList);
 
         return true;
+    }
+
+    @Transactional
+    public void completedConfigurationVehicle(ObjectId vehicleId){
+        InventoryItem vehicle = inventoryItemService.getItemToId(vehicleId);
+        if(!vehicle.isFullyComponent())
+            throw LogicErrException.of("Không được phép hoàn tất cấu hình khi còn thiếu bộ phận");
+
+        inventoryItemRepository.updateStatusByIdIn(List.of(vehicle.getId()), InventoryItemStatus.IN_STOCK.getId());
+    }
+
+    public SwapVehiclePricingDto getSwapVehiclePricing(ObjectId vehicleLeftId, ObjectId vehicleRightId){
+
+        InventoryItem vehicleLeft = inventoryItemService.getItemToId(vehicleLeftId);
+        InventoryItem vehicleRight = inventoryItemService.getItemToId(vehicleRightId);
+
+        SwapVehiclePricingDto res = new SwapVehiclePricingDto();
+        res.setVehicleLeftPricing(new ItemCodePriceDto());
+        res.getVehicleLeftPricing().setSalePriceR0(vehicleLeft.getPricing() == null ? null : vehicleLeft.getPricing().getSalePriceR0());
+        res.getVehicleLeftPricing().setSalePriceR1(vehicleLeft.getPricing() == null ? null : vehicleLeft.getPricing().getSalePriceR1());
+
+        res.setVehicleRightPricing(new ItemCodePriceDto());
+        res.getVehicleRightPricing().setSalePriceR0(vehicleRight.getPricing() == null ? null : vehicleRight.getPricing().getSalePriceR0());
+        res.getVehicleRightPricing().setSalePriceR1(vehicleRight.getPricing() == null ? null : vehicleRight.getPricing().getSalePriceR1());
+
+        return res;
     }
 }

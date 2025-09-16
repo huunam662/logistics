@@ -976,7 +976,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
 
                 Aggregation.project()
                         .and("_id").as("vehicleId")
-                        .andInclude("productCode", "model", "serialNumber", "isFullyComponent", "liftingFrame", "battery", "charger", "engine", "fork", "valve", "sideShift")
+                        .andInclude("productCode", "model", "serialNumber", "isFullyComponent", "initialCondition", "liftingFrame", "battery", "charger", "engine", "fork", "valve", "sideShift")
                         .andExclude("_id")
         );
         return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, ConfigVehicleSpecPageDto.class, aggregation, optionsDto);
