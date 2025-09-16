@@ -97,6 +97,7 @@ public class CustomDeliveryOrderRepositoryImpl implements CustomDeliveryOrderRep
                 Aggregation.unwind("customer"),
 
                 Aggregation.group("deliveryOrderCode", "customerId", "deliveryDate", "inventoryItems.model", "inventoryItems.poNumber")
+                        .first("inventoryItems.logistics.orderDate").as("orderDate")
                         .first("customer.name").as("customerName")
                         .first(
                                 ConditionalOperators.when(Criteria.where("deliveryDate").ne(null))
@@ -123,7 +124,7 @@ public class CustomDeliveryOrderRepositoryImpl implements CustomDeliveryOrderRep
                                         .otherwise(0)
                         ).as("totalSparePart"),
 
-                Aggregation.project("deliveryOrderCode", "deliveryDate", "customerName", "model", "poNumber", "totalVehicle", "totalAccessory", "totalSparePart", "daysLate")
+                Aggregation.project("deliveryOrderCode", "orderDate", "deliveryDate", "customerName", "model", "poNumber", "totalVehicle", "totalAccessory", "totalSparePart", "daysLate")
                         .andExpression("'" + params.getTypeReport() + "'").as("reportType")
         );
 
