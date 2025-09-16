@@ -13,6 +13,6 @@ import warehouse_management.com.warehouse_management.dto.pagination.request.Page
 @ParameterObject
 public class ReportParamsDto extends PageOptionsDto {
 
-    @Parameter(description = "Kiểu báo cáo [PRODUCTION (hàng chờ sx), CONSIGNMENT (hàng ký gửi), CONTAINER (hàng đang đi đường)]")
+    @Parameter(description = "Kiểu báo cáo [PRODUCTION (hàng chờ sx), CONSIGNMENT (hàng ký gửi), CONTAINER (hàng đang đi đường), UN_DELIVERED (hàng chưa giao)]")
     private String typeReport;
 }

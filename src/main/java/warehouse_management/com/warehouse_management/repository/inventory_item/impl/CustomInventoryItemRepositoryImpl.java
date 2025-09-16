@@ -29,6 +29,7 @@ import warehouse_management.com.warehouse_management.enumerate.*;
 import warehouse_management.com.warehouse_management.exceptions.LogicErrException;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.repository.inventory_item.CustomInventoryItemRepository;
+import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
 import warehouse_management.com.warehouse_management.repository.warehouse.WarehouseRepository;
 import warehouse_management.com.warehouse_management.utils.MongoRsqlUtils;
 import java.time.LocalDateTime;
@@ -41,6 +42,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
 
     private final MongoTemplate mongoTemplate;
     private final WarehouseRepository warehouseRepository;
+    private final InventoryItemRepository inventoryItemRepository;
 
     @Override
     public Page<InventoryItemProductionVehicleTypeDto> getItemsFromVehicleWarehouse(ObjectId warehouseId, PageOptionsDto optionsReq) {
@@ -600,135 +602,181 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     }
 
     @Override
-    public Page<ReportInventoryDto> findPageReportInventoryToDashBoard(ReportParamsDto params) {
+    public Page<ReportInventoryDto> findPageReportItemProductionConsignmentToDashBoard(ReportParamsDto params){
 
-        List<AggregationOperation> pipelines = new ArrayList<>();
+        WarehouseType typeReport = WarehouseType.fromId(params.getTypeReport());
+        if (typeReport == null) throw LogicErrException.of("Loại kho hàng cần báo cáo không hợp lệ.");
 
-        pipelines.add(Aggregation.addFields()
-                .addField("createdAtToDate")
-                .withValue(
-                        DateOperators.DateFromParts
-                                .dateFromParts()
-                                .year(DateOperators.Year.yearOf("createdAt"))
-                                .month(DateOperators.Month.monthOf("createdAt"))
-                                .day(DateOperators.DayOfMonth.dayOfMonth("createdAt"))
-                ).build());
+        Aggregation aggregation = Aggregation.newAggregation(
 
-        GroupOperation group = Aggregation.group("poNumber", "model", "inventoryType")
-                .first("createdAtToDate").as("loadToWarehouseDate")
-                .first("pricing.agent").as("agent")
-                .sum(
-                        ConditionalOperators.when(Criteria.where("inventoryType").is(InventoryType.VEHICLE.getId()))
-                                .thenValueOf("quantity")
-                                .otherwise(0)
-                ).as("totalVehicle")
-                .sum(
-                        ConditionalOperators.when(Criteria.where("inventoryType").is(InventoryType.ACCESSORY.getId()))
-                                .thenValueOf("quantity")
-                                .otherwise(0)
-                ).as("totalAccessory")
-                .sum(
-                        ConditionalOperators.when(Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId()))
-                                .thenValueOf("quantity")
-                                .otherwise(0)
-                ).as("totalSparePart");
+                Aggregation.addFields()
+                        .addField("createdAtToDate")
+                        .withValue(
+                                DateOperators.DateFromParts
+                                        .dateFromParts()
+                                        .year(DateOperators.Year.yearOf("createdAt"))
+                                        .month(DateOperators.Month.monthOf("createdAt"))
+                                        .day(DateOperators.DayOfMonth.dayOfMonth("createdAt"))
+                        ).build(),
 
-        ProjectionOperation project = Aggregation.project("poNumber", "model", "agent", "totalVehicle", "totalAccessory", "totalSparePart", "inventoryType", "loadToWarehouseDate");
+                Aggregation.match(new Criteria().andOperator(
+                        Criteria.where("deletedAt").isNull(),
+                        Criteria.where("vehicleId").isNull(),
+                        Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId())
+                )),
 
-        List<AggregationOperation> lookups = new ArrayList<>();
+                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
+                Aggregation.unwind("warehouse"),
 
-        List<Criteria> filter = new ArrayList<>(List.of(
-                Criteria.where("deletedAt").isNull(),
-                Criteria.where("vehicleId").isNull()
-        ));
+                Aggregation.match(new Criteria().andOperator(
+                        Criteria.where("warehouse.type").is(typeReport.getId()),
+                        Criteria.where("warehouse.deletedAt").isNull(),
+                        Criteria.where("warehouse.status").is(WarehouseStatus.ACTIVE.getValue())
+                )),
 
-        if ("CONTAINER".equals(params.getTypeReport())) {
-            lookups.add(Aggregation.lookup("container", "containerId", "_id", "container"));
-            lookups.add(Aggregation.unwind("container"));
+                Aggregation.group("poNumber", "model", "inventoryType")
+                        .first("createdAtToDate").as("loadToWarehouseDate")
+                        .first("pricing.agent").as("agent")
+                        .sum(
+                                ConditionalOperators.when(Criteria.where("inventoryType").is(InventoryType.VEHICLE.getId()))
+                                        .thenValueOf("quantity")
+                                        .otherwise(0)
+                        ).as("totalVehicle")
+                        .sum(
+                                ConditionalOperators.when(Criteria.where("inventoryType").is(InventoryType.ACCESSORY.getId()))
+                                        .thenValueOf("quantity")
+                                        .otherwise(0)
+                        ).as("totalAccessory")
+                        .sum(
+                                ConditionalOperators.when(Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId()))
+                                        .thenValueOf("quantity")
+                                        .otherwise(0)
+                        ).as("totalSparePart")
+                        .first("warehouse.type").as("reportType"),
 
-            AggregationExpression nowDay = DateOperators.DateFromParts.dateFromParts()
-                    .year(DateOperators.Year.yearOf("$$NOW"))
-                    .month(DateOperators.Month.monthOf("$$NOW"))
-                    .day(DateOperators.DayOfMonth.dayOfMonth("$$NOW"));
+                Aggregation.project("poNumber", "model", "agent", "totalVehicle", "totalAccessory", "totalSparePart", "inventoryType", "loadToWarehouseDate")
+                            .andInclude("reportType")
+        );
 
-            AggregationExpression arrivalDay = DateOperators.DateFromParts.dateFromParts()
-                    .year(DateOperators.Year.yearOf("container.arrivalDate"))
-                    .month(DateOperators.Month.monthOf("container.arrivalDate"))
-                    .day(DateOperators.DayOfMonth.dayOfMonth("container.arrivalDate"));
-
-            ArithmeticOperators.Subtract dayLateOperatorsSubtract = ArithmeticOperators.Subtract.valueOf(nowDay).subtract(arrivalDay);
-
-            group = group.first("departureToDate").as("departureDate")
-                    .first("arrivalToDate").as("arrivalDate")
-                    .first("container.containerCode").as("containerCode")
-                    .first("container.containerStatus").as("containerStatus")
-                    .first(
-                            ConditionalOperators.when(Criteria.where("container.arrivalDate").ne(null))
-                                    .then(
-                                            ConditionalOperators.when(ComparisonOperators.Gt.valueOf(dayLateOperatorsSubtract).greaterThanValue(0))
-                                                    .then(ArithmeticOperators.Divide.valueOf(dayLateOperatorsSubtract).divideBy(TimeUnit.DAYS.toMillis(1)))
-                                                    .otherwise(0)
-                                    )
-                                    .otherwise(0)
-                    ).as("daysLate");
-            project = project.andInclude("containerCode", "containerStatus", "departureDate", "arrivalDate", "daysLate")
-                    .andExpression("'" + params.getTypeReport() + "'").as("reportType");
-        } else {
-            lookups.add(Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"));
-            lookups.add(Aggregation.unwind("warehouse"));
-            filter.add(Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()));
-            group = group.first("warehouse.type").as("reportType");
-            project = project.andInclude("reportType");
-        }
-
-        pipelines.add(Aggregation.match(new Criteria().andOperator(filter)));
-        pipelines.addAll(lookups);
-        if ("CONTAINER".equals(params.getTypeReport())) {
-            pipelines.add(Aggregation.match(new Criteria().andOperator(
-                    Criteria.where("container.containerStatus").is(ContainerStatus.IN_TRANSIT.getId()),
-                    Criteria.where("container.deletedAt").isNull()
-            )));
-            pipelines.add(Aggregation.addFields()
-                    .addField("departureToDate")
-                    .withValue(
-                            DateOperators.DateFromParts
-                                    .dateFromParts()
-                                    .year(DateOperators.Year.yearOf("container.departureDate"))
-                                    .month(DateOperators.Month.monthOf("container.departureDate"))
-                                    .day(DateOperators.DayOfMonth.dayOfMonth("container.departureDate"))
-                    ).build());
-            pipelines.add(Aggregation.addFields()
-                    .addField("arrivalToDate")
-                    .withValue(
-                            DateOperators.DateFromParts
-                                    .dateFromParts()
-                                    .year(DateOperators.Year.yearOf("container.arrivalDate"))
-                                    .month(DateOperators.Month.monthOf("container.arrivalDate"))
-                                    .day(DateOperators.DayOfMonth.dayOfMonth("container.arrivalDate"))
-                    ).build());
-        }
-        else {
-            WarehouseType typeReport = WarehouseType.fromId(params.getTypeReport());
-            if (typeReport == null) throw LogicErrException.of("Loại kho hàng cần báo cáo không hợp lệ.");
-            pipelines.add(Aggregation.match(new Criteria().andOperator(
-                    Criteria.where("warehouse.type").is(typeReport.getId()),
-                    Criteria.where("warehouse.deletedAt").isNull(),
-                    Criteria.where("warehouse.status").is(WarehouseStatus.ACTIVE.getValue())
-            )));
-        }
-        pipelines.add(group);
-        pipelines.add(project);
-        Aggregation agg = Aggregation.newAggregation(pipelines);
-        return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, ReportInventoryDto.class, agg, params);
+        return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, ReportInventoryDto.class, aggregation, params);
     }
 
-    public List<InventoryProductDetailsDto> findProductsByWarehouseId(ObjectId warehouseId, String poNumber) {
+    @Override
+    public Page<ReportInventoryDto> findPageReportItemInTransitContainerToDashBoard(ReportParamsDto params){
+
+        AggregationExpression nowDay = DateOperators.DateFromParts.dateFromParts()
+                .year(DateOperators.Year.yearOf("$$NOW"))
+                .month(DateOperators.Month.monthOf("$$NOW"))
+                .day(DateOperators.DayOfMonth.dayOfMonth("$$NOW"));
+
+        AggregationExpression arrivalDay = DateOperators.DateFromParts.dateFromParts()
+                .year(DateOperators.Year.yearOf("container.arrivalDate"))
+                .month(DateOperators.Month.monthOf("container.arrivalDate"))
+                .day(DateOperators.DayOfMonth.dayOfMonth("container.arrivalDate"));
+
+        ArithmeticOperators.Subtract dayLateOperatorsSubtract = ArithmeticOperators.Subtract.valueOf(nowDay).subtract(arrivalDay);
+
+        Aggregation aggregation = Aggregation.newAggregation(
+
+                Aggregation.addFields()
+                        .addField("createdAtToDate")
+                        .withValue(
+                                DateOperators.DateFromParts
+                                        .dateFromParts()
+                                        .year(DateOperators.Year.yearOf("createdAt"))
+                                        .month(DateOperators.Month.monthOf("createdAt"))
+                                        .day(DateOperators.DayOfMonth.dayOfMonth("createdAt"))
+                        ).build(),
+
+                Aggregation.match(new Criteria().andOperator(
+                        Criteria.where("deletedAt").isNull(),
+                        Criteria.where("vehicleId").isNull()
+                )),
+
+                Aggregation.lookup("container", "containerId", "_id", "container"),
+                Aggregation.unwind("container"),
+
+                Aggregation.match(new Criteria().andOperator(
+                        Criteria.where("container.containerStatus").is(ContainerStatus.IN_TRANSIT.getId()),
+                        Criteria.where("container.deletedAt").isNull()
+                )),
+
+                Aggregation.addFields()
+                        .addField("departureToDate")
+                        .withValue(
+                                DateOperators.DateFromParts
+                                        .dateFromParts()
+                                        .year(DateOperators.Year.yearOf("container.departureDate"))
+                                        .month(DateOperators.Month.monthOf("container.departureDate"))
+                                        .day(DateOperators.DayOfMonth.dayOfMonth("container.departureDate"))
+                        ).build(),
+
+                Aggregation.addFields()
+                        .addField("arrivalToDate")
+                        .withValue(
+                                DateOperators.DateFromParts
+                                        .dateFromParts()
+                                        .year(DateOperators.Year.yearOf("container.arrivalDate"))
+                                        .month(DateOperators.Month.monthOf("container.arrivalDate"))
+                                        .day(DateOperators.DayOfMonth.dayOfMonth("container.arrivalDate"))
+                        ).build(),
+
+                Aggregation.group("poNumber", "model", "inventoryType")
+                        .first("createdAtToDate").as("loadToWarehouseDate")
+                        .first("pricing.agent").as("agent")
+                        .sum(
+                                ConditionalOperators.when(Criteria.where("inventoryType").is(InventoryType.VEHICLE.getId()))
+                                        .thenValueOf("quantity")
+                                        .otherwise(0)
+                        ).as("totalVehicle")
+                        .sum(
+                                ConditionalOperators.when(Criteria.where("inventoryType").is(InventoryType.ACCESSORY.getId()))
+                                        .thenValueOf("quantity")
+                                        .otherwise(0)
+                        ).as("totalAccessory")
+                        .sum(
+                                ConditionalOperators.when(Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId()))
+                                        .thenValueOf("quantity")
+                                        .otherwise(0)
+                        ).as("totalSparePart")
+                        .first("departureToDate").as("departureDate")
+                        .first("arrivalToDate").as("arrivalDate")
+                        .first("container.containerCode").as("containerCode")
+                        .first("container.containerStatus").as("containerStatus")
+                        .first(
+                                ConditionalOperators.when(Criteria.where("container.arrivalDate").ne(null))
+                                        .then(
+                                                ConditionalOperators.when(ComparisonOperators.Gt.valueOf(dayLateOperatorsSubtract).greaterThanValue(0))
+                                                        .then(ArithmeticOperators.Divide.valueOf(dayLateOperatorsSubtract).divideBy(TimeUnit.DAYS.toMillis(1)))
+                                                        .otherwise(0)
+                                        )
+                                        .otherwise(0)
+                        ).as("daysLate"),
+
+                Aggregation.project("poNumber", "model", "agent", "totalVehicle", "totalAccessory", "totalSparePart",
+                        "inventoryType", "loadToWarehouseDate", "containerCode", "containerStatus", "departureDate", "arrivalDate", "daysLate"
+                ).andExpression("'" + params.getTypeReport() + "'").as("reportType")
+        );
+
+        return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, ReportInventoryDto.class, aggregation, params);
+    }
+
+    public List<InventoryProductDetailsDto> findProductsByWarehouseId(ObjectId warehouseId, String poNumber, String filter) {
+
+        List<String> statusIn = new ArrayList<>();
+        statusIn.add(InventoryItemStatus.IN_STOCK.getId());
+
+        String warehouseType = warehouseRepository.findTypeById(warehouseId);
+
+        if(warehouseType != null && warehouseType.equals(WarehouseType.DEPARTURE.getId()))
+            statusIn.add(InventoryItemStatus.HOLD.getId());
+
         List<AggregationOperation> pipelines = new ArrayList<>(List.of(
                 Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
                 Aggregation.unwind("warehouse"),
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("warehouseId").is(warehouseId),
-                        Criteria.where("status").in(InventoryItemStatus.IN_STOCK.getId(), InventoryItemStatus.HOLD.getId()),
+                        Criteria.where("status").in(statusIn),
                         Criteria.where("inventoryType").in(InventoryType.VEHICLE.getId(), InventoryType.ACCESSORY.getId()),
                         Criteria.where("vehicleId").isNull(),
                         Criteria.where("deletedAt").isNull(),
@@ -738,11 +786,17 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 Aggregation.project("model", "category", "serialNumber", "productCode", "poNumber", "inventoryType", "initialCondition", "notes", "specifications", "pricing", "logistics")
                         .and("_id").as("id")
         ));
+
+        if(filter != null && !filter.isBlank()) {
+            Criteria filterCriteria = MongoRsqlUtils.RsqlParser.parse(filter, Map.of());
+            pipelines.add(Aggregation.match(filterCriteria));
+        }
+
         Aggregation agg = Aggregation.newAggregation(pipelines);
         return mongoTemplate.aggregate(agg, InventoryItem.class, InventoryProductDetailsDto.class).getMappedResults();
     }
 
-    public List<InventorySparePartDetailsDto> findSparePartByWarehouseId(ObjectId warehouseId, String poNumber) {
+    public List<InventorySparePartDetailsDto> findSparePartByWarehouseId(ObjectId warehouseId, String poNumber, String filter) {
         List<AggregationOperation> pipelines = new ArrayList<>(List.of(
                 Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
                 Aggregation.unwind("warehouse"),
@@ -759,6 +813,12 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .and("_id").as("id")
                         .and("logistics.orderDate").as("orderDate")
         ));
+
+        if(filter != null && !filter.isBlank()) {
+            Criteria filterCriteria = MongoRsqlUtils.RsqlParser.parse(filter, Map.of());
+            pipelines.add(Aggregation.match(filterCriteria));
+        }
+
         Aggregation agg = Aggregation.newAggregation(pipelines);
         return mongoTemplate.aggregate(agg, InventoryItem.class, InventorySparePartDetailsDto.class).getMappedResults();
     }
@@ -916,7 +976,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
 
                 Aggregation.project()
                         .and("_id").as("vehicleId")
-                        .andInclude("productCode", "serialNumber", "liftingFrame", "battery", "charger", "engine", "fork", "valve", "sideShift")
+                        .andInclude("productCode", "model", "serialNumber", "isFullyComponent", "liftingFrame", "battery", "charger", "engine", "fork", "valve", "sideShift")
                         .andExclude("_id")
         );
         return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, ConfigVehicleSpecPageDto.class, aggregation, optionsDto);

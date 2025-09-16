@@ -64,11 +64,13 @@ public interface CustomInventoryItemRepository {
 
     List<InventoryItemModelDto> findAllModelsAndItems(List<String> inventoryTypes, List<ObjectId> warehouseIds);
 
-    Page<ReportInventoryDto> findPageReportInventoryToDashBoard(ReportParamsDto params);
+    Page<ReportInventoryDto> findPageReportItemProductionConsignmentToDashBoard(ReportParamsDto params);
 
-    List<InventoryProductDetailsDto> findProductsByWarehouseId(ObjectId warehouseId, String poNumber);
+    Page<ReportInventoryDto> findPageReportItemInTransitContainerToDashBoard(ReportParamsDto params);
 
-    List<InventorySparePartDetailsDto> findSparePartByWarehouseId(ObjectId warehouseId, String poNumber);
+    List<InventoryProductDetailsDto> findProductsByWarehouseId(ObjectId warehouseId, String poNumber, String filter);
+
+    List<InventorySparePartDetailsDto> findSparePartByWarehouseId(ObjectId warehouseId, String poNumber, String filter);
 
     List<InventoryProductDetailsDto> findVehicles(PageOptionsDto optionsReq);
 

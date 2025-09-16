@@ -14,6 +14,7 @@ public interface ConfigurationHistoryMapper {
     @Mapping(target = "id", ignore = true)
     ConfigurationHistory clone(ConfigurationHistory item);
 
+    @Mapping(target = "specificationsBase", ignore = true)
     ConfigVehicleSpecHistoryDto toConfigVehicleSpecHistoryResponse(InventoryItem item);
 
     ConfigurationHistoryDto toConfigurationHistoryResponse(ConfigurationHistory item);

@@ -127,12 +127,10 @@ public class ConfigurationHistoryService {
 
     private void setVehiclePrices(InventoryItem leftVeh, InventoryItem rightVeh, VehiclePartSwapDto request) {
         if (request.getLeftPrice() != null) {
-            leftVeh.getPricing().setActualSalePrice(request.getLeftPrice().getActualSalePrice());
             leftVeh.getPricing().setSalePriceR0(request.getLeftPrice().getSalePriceR0());
             leftVeh.getPricing().setSalePriceR1(request.getLeftPrice().getSalePriceR1());
         }
         if (request.getRightPrice() != null) {
-            rightVeh.getPricing().setActualSalePrice(request.getRightPrice().getActualSalePrice());
             rightVeh.getPricing().setSalePriceR0(request.getRightPrice().getSalePriceR0());
             rightVeh.getPricing().setSalePriceR1(request.getRightPrice().getSalePriceR1());
         }
@@ -234,7 +232,7 @@ public class ConfigurationHistoryService {
             isAccessoryOrSparePartNotExists = true;
         }
         else if(itemType.equals(InventoryType.SPARE_PART)){
-            Optional<InventoryItem> componentExistsCodeAndDescription = inventoryItemRepository.findByCommodityCodeAndDescription(component.getCommodityCode(), component.getDescription());
+            Optional<InventoryItem> componentExistsCodeAndDescription = inventoryItemRepository.findByCommodityCodeAndDescriptionAndWarehouseId(component.getCommodityCode(), component.getDescription(), vehicle.getWarehouseId());
             if(componentExistsCodeAndDescription.isPresent()){
                 InventoryItem pt = componentExistsCodeAndDescription.get();
                 pt.setQuantity(pt.getQuantity() + component.getQuantity());
@@ -251,6 +249,7 @@ public class ConfigurationHistoryService {
             component.getPricing().setActualSalePrice(dropPartRequest.getActualPrice());
             component.setStatus(InventoryItemStatus.IN_STOCK.getId());
             component.setVehicleId(null);
+            component.setWarehouseId(vehicle.getWarehouseId());
 
             inventoryItemRepository.save(component);
         }
@@ -369,6 +368,8 @@ public class ConfigurationHistoryService {
 
         ConfigVehicleSpecHistoryDto configVehicleSpecHistory = configurationVehicleMapper.toConfigVehicleSpecHistoryResponse(vehicle);
 
+        configVehicleSpecHistory.setSpecificationsBase(buildSpecificationsBaseResponse(vehicle));
+
         configVehicleSpecHistory.setConfigHistories(
                 configHistories.stream()
                         .map(o -> {
@@ -381,6 +382,26 @@ public class ConfigurationHistoryService {
         );
 
         return configVehicleSpecHistory;
+    }
+
+    private static ConfigVehicleSpecHistoryDto.Specifications buildSpecificationsBaseResponse(InventoryItem vehicle) {
+        ConfigVehicleSpecHistoryDto.Specifications specificationsBase = new ConfigVehicleSpecHistoryDto.Specifications();
+        specificationsBase.setLiftingFrame(
+                (vehicle.getSpecificationsBase().getChassisType() == null ? "" : vehicle.getSpecificationsBase().getChassisType())
+                + " - " + (vehicle.getSpecificationsBase().getLiftingCapacityKg() == null ? "0" : vehicle.getSpecificationsBase().getLiftingCapacityKg())
+                + " Kg - " + (vehicle.getSpecificationsBase().getLiftingHeightMm() == null ? "0" : vehicle.getSpecificationsBase().getLiftingHeightMm())
+                + " mm"
+        );
+        specificationsBase.setBattery(
+                (vehicle.getSpecificationsBase().getBatteryInfo() == null ? "" : vehicle.getSpecificationsBase().getBatteryInfo())
+                + " - " + (vehicle.getSpecificationsBase().getBatterySpecification() == null ? "" : vehicle.getSpecificationsBase().getBatterySpecification())
+        );
+        specificationsBase.setCharger(vehicle.getSpecificationsBase().getChargerSpecification());
+        specificationsBase.setFork(vehicle.getSpecificationsBase().getForkDimensions());
+        specificationsBase.setEngine(vehicle.getSpecificationsBase().getEngineType());
+        specificationsBase.setValve(vehicle.getSpecificationsBase().getValveCount());
+        specificationsBase.setSideShift(vehicle.getSpecificationsBase().getHasSideShift());
+        return specificationsBase;
     }
 
     public Page<ConfigVehicleSpecPageDto> getPageConfigVehicleSpec(PageOptionsDto optionsDto){

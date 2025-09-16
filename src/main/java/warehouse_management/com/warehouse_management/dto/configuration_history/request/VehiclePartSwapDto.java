@@ -16,7 +16,6 @@ public class VehiclePartSwapDto {
 
     @Data
     public static class VehiclePrice {
-        private BigDecimal actualSalePrice;
         private BigDecimal salePriceR0;
         private BigDecimal salePriceR1;
     }

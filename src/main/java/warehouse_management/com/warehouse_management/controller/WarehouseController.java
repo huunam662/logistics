@@ -234,18 +234,20 @@ public class WarehouseController {
     @GetMapping("/{id}/products")
     public ResponseEntity<?> getProductsByWarehouseId(
             @PathVariable("id") String warehouseId,
-            @RequestParam(value = "poNumber", defaultValue = "") String poNumber
+            @RequestParam(value = "poNumber", defaultValue = "") String poNumber,
+            @RequestParam(value = "filter", required = false) String filter
     ){
-        List<InventoryProductDetailsDto> productDetails = inventoryItemService.getProductsByWarehouseId(warehouseId, poNumber);
+        List<InventoryProductDetailsDto> productDetails = inventoryItemService.getProductsByWarehouseId(warehouseId, poNumber, filter);
         return ResponseEntity.ok(ApiResponse.success(productDetails));
     }
 
     @GetMapping("/{id}/spare-part")
     public ResponseEntity<?> getSparePartByWarehouseId(
             @PathVariable("id") String warehouseId,
-            @RequestParam(value = "poNumber", defaultValue = "") String poNumber
+            @RequestParam(value = "poNumber", defaultValue = "") String poNumber,
+            @RequestParam(value = "filter", required = false) String filter
     ){
-        List<InventorySparePartDetailsDto> sparePartDetailsDtos = inventoryItemService.getSparePartByWarehouseId(warehouseId, poNumber);
+        List<InventorySparePartDetailsDto> sparePartDetailsDtos = inventoryItemService.getSparePartByWarehouseId(warehouseId, poNumber, filter);
         return ResponseEntity.ok(ApiResponse.success(sparePartDetailsDtos));
     }
 

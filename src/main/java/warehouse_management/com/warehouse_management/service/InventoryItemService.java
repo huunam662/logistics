@@ -721,12 +721,12 @@ public class InventoryItemService {
         return inventoryItemRepository.findAllModelsAndItems(inventoryTypes, ids);
     }
 
-    public List<InventoryProductDetailsDto> getProductsByWarehouseId(String warehouseId, String poNumber) {
-        return inventoryItemRepository.findProductsByWarehouseId(new ObjectId(warehouseId), poNumber);
+    public List<InventoryProductDetailsDto> getProductsByWarehouseId(String warehouseId, String poNumber, String filter) {
+        return inventoryItemRepository.findProductsByWarehouseId(new ObjectId(warehouseId), poNumber, filter);
     }
 
-    public List<InventorySparePartDetailsDto> getSparePartByWarehouseId(String warehouseId, String poNumber) {
-        return inventoryItemRepository.findSparePartByWarehouseId(new ObjectId(warehouseId), poNumber);
+    public List<InventorySparePartDetailsDto> getSparePartByWarehouseId(String warehouseId, String poNumber, String filter) {
+        return inventoryItemRepository.findSparePartByWarehouseId(new ObjectId(warehouseId), poNumber, filter);
     }
 
     public InventoryItem findByIdOrThrow(String id) {

@@ -26,21 +26,17 @@ public class ConfigVehicleSpecHistoryDto {
     @AllArgsConstructor
     public static class Specifications {
         //PK-KN
-        private String liftingCapacityKg;      // Sức nâng (kg)
-        private String chassisType;             // Loại khung nâng
-        private String liftingHeightMm;        // Độ cao nâng (mm)
+        private String liftingFrame;      // Sức nâng (kg)
         //PK-BINHDIEN
-        private String batteryInfo;             // Thông tin bình điện
-        private String batterySpecification;    // Thông số bình điện
+        private String battery;    // Thông số bình điện
 
         //PK-SAC
-        private String chargerSpecification;    // Thông số bộ sạc
+        private String charger;    // Thông số bộ sạc
 
 
-        private String engineType;              // Loại động cơ
-        private String forkDimensions;          // Thông số càng
-        private Integer valveCount;             // Số lượng van
-        private Boolean hasSideShift;           // Có side shift không
-        private String otherDetails;
+        private String engine;              // Loại động cơ
+        private String fork;          // Thông số càng
+        private String valve;             // Số lượng van
+        private String sideShift;           // Có side shift không
     }
 }
