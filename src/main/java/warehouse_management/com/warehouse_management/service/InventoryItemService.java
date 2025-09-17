@@ -70,15 +70,13 @@ public class InventoryItemService {
 
     @Transactional
     public InventoryItem createInventoryProduct(CreateInventoryProductDto req) {
+
+        if (inventoryItemRepository.existsByProductCode(req.getProductCode())) {
+            throw LogicErrException.of("Mã sản phẩm đã tồn tại: " + req.getProductCode());
+        }
+
         Warehouse inStockWh = warehouseService.getWarehouseToId(new ObjectId(req.getWarehouseId()));
         InventoryItem newItem = buildProductItem(req, inStockWh);
-
-        if (newItem.getProductCode() != null) {
-            Optional<InventoryItem> existing = inventoryItemRepository.findByProductCode(newItem.getProductCode());
-            if (existing.isPresent()) {
-                throw LogicErrException.of("Mã sản phẩm đã tồn tại: " + newItem.getProductCode());
-            }
-        }
 
         try {
             List<InventoryItem> itemsToInsert = new ArrayList<>();
