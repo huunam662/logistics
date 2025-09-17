@@ -15,7 +15,6 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import warehouse_management.com.warehouse_management.app.ReadDateFromDb;
-import warehouse_management.com.warehouse_management.app.WriteLocalDateTimeToDb;
 import warehouse_management.com.warehouse_management.security.CustomUserDetail;
 import java.io.IOException;
 import java.util.List;
@@ -57,7 +56,7 @@ public class CoreInstance {
     }
 
     @Bean
-    public MongoCustomConversions mongoCustomConversions(WriteLocalDateTimeToDb writeToDate, ReadDateFromDb readToLocalDateTime) {
-        return new MongoCustomConversions(List.of(writeToDate, readToLocalDateTime));
+    public MongoCustomConversions mongoCustomConversions(ReadDateFromDb readToLocalDateTime) {
+        return new MongoCustomConversions(List.of(readToLocalDateTime));
     }
 }
