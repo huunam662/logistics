@@ -1,6 +1,7 @@
 package warehouse_management.com.warehouse_management.service;
 
 import lombok.RequiredArgsConstructor;
+import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -226,8 +227,13 @@ public class ConfigurationHistoryService {
 
         boolean isAccessoryOrSparePartNotExists = false;
 
-        if(component.getProductCode() == null && itemType.equals(InventoryType.ACCESSORY)) {
-            component.setProductCode(dropPartRequest.getProductCode());
+        if(itemType.equals(InventoryType.ACCESSORY)) {
+            if(component.getProductCode() == null){
+                if(dropPartRequest.getProductCode() == null) throw LogicErrException.of("Bắt buộc nhập Mã Sản Phẩm cho bộ phận bị tháo rời");
+
+                component.setProductCode(dropPartRequest.getProductCode());
+            }
+
             component.setInitialCondition(false);
             isAccessoryOrSparePartNotExists = true;
         }
@@ -515,8 +521,11 @@ public class ConfigurationHistoryService {
             res.setCode((String) result.get("productCode"));
             if(res.getCode() == null) res.setCode((String) result.get("commodityCode"));
 
-            res.setSalePriceR0((BigDecimal) result.get("salePriceR0"));
-            res.setSalePriceR1((BigDecimal) result.get("salePriceR1"));
+            Decimal128 priceR0 = (Decimal128) result.get("salePriceR0");
+            Decimal128 priceR1 = (Decimal128) result.get("salePriceR1");
+
+            res.setSalePriceR0(priceR0 == null ? null : priceR0.bigDecimalValue());
+            res.setSalePriceR1(priceR1 == null ? null : priceR1.bigDecimalValue());
 
             return res;
         }
