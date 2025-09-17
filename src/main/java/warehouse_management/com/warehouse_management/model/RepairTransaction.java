@@ -10,6 +10,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.domain.Persistable;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
@@ -19,7 +20,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "repair_transaction")
-public class RepairTransaction {
+public class RepairTransaction implements Persistable<ObjectId> {
     @Id
     private ObjectId id;
     private ObjectId repairId;          // Phiếu sửa chữa cha
@@ -39,4 +40,9 @@ public class RepairTransaction {
 
     private LocalDateTime deletedAt;
     private ObjectId deletedBy;
+
+    @Override
+    public boolean isNew() {
+        return createdAt == null;
+    }
 }

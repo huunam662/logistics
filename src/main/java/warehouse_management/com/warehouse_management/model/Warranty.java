@@ -10,6 +10,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.domain.Persistable;
 import org.springframework.data.mongodb.core.mapping.Document;
 import warehouse_management.com.warehouse_management.enumerate.WarrantyStatus;
 
@@ -21,7 +22,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "warranty")
-public class Warranty {
+public class Warranty implements Persistable<ObjectId> {
     @Id
     private ObjectId id;
     private InventoryItem warrantyInventoryItem;                // Sản phẩm được bảo hành
@@ -45,4 +46,9 @@ public class Warranty {
 
     private ObjectId deletedBy;
     private LocalDateTime deletedAt;
+
+    @Override
+    public boolean isNew() {
+        return createdAt == null;
+    }
 }

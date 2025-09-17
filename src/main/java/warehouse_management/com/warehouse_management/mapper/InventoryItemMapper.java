@@ -60,5 +60,7 @@ public interface InventoryItemMapper {
     @Mapping(target = "pricing", ignore = true)
     @Mapping(target = "serialNumber", ignore = true)
     @Mapping(target = "notes", ignore = true)
+    @Mapping(target = "isFullyComponent", ignore = true)
+    @Mapping(target = "initialCondition", ignore = true)
     InventoryItem cloneToComponent(InventoryItem inventoryItem);
 }

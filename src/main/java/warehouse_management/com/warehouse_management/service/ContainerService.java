@@ -244,7 +244,12 @@ public class ContainerService {
         BigDecimal totalAmounts = BigDecimal.ZERO;
         for(var item : container.getInventoryItems()){
             if(vehicleAccessory.contains(item.getInventoryType())){
-                totalAmounts = totalAmounts.add(item.getPricing().getPurchasePrice().multiply(BigDecimal.valueOf(item.getQuantity())));
+
+                BigDecimal purchasePrice = Optional.ofNullable(item.getPricing())
+                        .map(Container.InventoryItemContainer.Pricing::getPurchasePrice)
+                        .orElse(BigDecimal.ZERO);
+
+                totalAmounts = totalAmounts.add(purchasePrice.multiply(BigDecimal.valueOf(item.getQuantity())));
                 dtos.add(inventoryItemMapper.toInventoryProductDetailsDto(item));
             }
         }
