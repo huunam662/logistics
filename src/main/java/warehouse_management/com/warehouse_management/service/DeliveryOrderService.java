@@ -16,10 +16,7 @@ import warehouse_management.com.warehouse_management.enumerate.WarehouseType;
 import warehouse_management.com.warehouse_management.exceptions.LogicErrException;
 import warehouse_management.com.warehouse_management.mapper.DeliveryOrderMapper;
 import warehouse_management.com.warehouse_management.mapper.InventoryItemMapper;
-import warehouse_management.com.warehouse_management.model.Client;
-import warehouse_management.com.warehouse_management.model.DeliveryOrder;
-import warehouse_management.com.warehouse_management.model.InventoryItem;
-import warehouse_management.com.warehouse_management.model.Warehouse;
+import warehouse_management.com.warehouse_management.model.*;
 import warehouse_management.com.warehouse_management.dto.warehouse.response.IdAndNameWarehouseDto;
 import warehouse_management.com.warehouse_management.repository.delivery_order.DeliveryOrderRepository;
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
@@ -165,7 +162,12 @@ public class DeliveryOrderService {
                 .filter(e -> e.getInventoryType().equals(InventoryType.SPARE_PART.getId()))
                 .map(o -> {
                     DeliverySparePartDetailsDto dto = deliveryOrderMapper.toDeliverySparePartDetailsDto(o);
-                    dto.getPricing().setTotalPrice(o.getPricing().getPurchasePrice().multiply(BigDecimal.valueOf(o.getQuantity())));
+
+                    BigDecimal purchasePrice = Optional.ofNullable(o.getPricing())
+                            .map(DeliveryOrder.InventoryItemDelivery.Pricing::getPurchasePrice)
+                            .orElse(BigDecimal.ZERO);
+
+                    dto.getPricing().setTotalPrice(purchasePrice.multiply(BigDecimal.valueOf(o.getQuantity())));
                     return dto;
                 })
                 .toList();
