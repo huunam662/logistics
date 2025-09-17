@@ -17,7 +17,7 @@ public interface DeliveryOrderRepository extends MongoRepository<DeliveryOrder, 
     @Query("{'inventoryItems.commodityCode': ?0, 'inventoryItems.warehouseId': ?1}")
     List<DeliveryOrder> findByCommodityCode(String commodityCode, ObjectId warehouseId);
 
-    @Query("{'inventoryItems.productCode': ?0, 'inventoryItems.warehouseId': ?1}")
+    @Query("{'inventoryItems.productCode': ?0, 'inventoryItems.warehouseId': ?1, status: {$ne: 'REJECTED'}}")
     DeliveryOrder findByProductCode(String productCode, ObjectId warehouseId);
 
     @Query("{'inventoryItems._id': ?0, 'status': {$ne : ?1}, 'deletedBy': { '$exists': false }}")
