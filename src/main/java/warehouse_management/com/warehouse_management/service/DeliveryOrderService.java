@@ -255,6 +255,16 @@ public class DeliveryOrderService {
         if(itemsToDeliveryDto == null) throw LogicErrException.of("Sản phẩm cần thêm vào đơn hàng hiện đang rỗng.");
 
         pushItemsToDeliveryOrderLogic(itemsToDeliveryDto, deliveryOrder);
+
+
+        // Tự động cập nhật hoàn tất đơn hàng nếu tất cả hàng đều đã giao
+        boolean isExistsUnDelivered = deliveryOrder.getInventoryItems() == null ||
+                                     deliveryOrder.getInventoryItems()
+                                                    .stream()
+                                                    .anyMatch(o -> !o.getIsDelivered());
+
+        if(!isExistsUnDelivered) deliveryOrder.setStatus(DeliveryOrderStatus.COMPLETED.getValue());
+
         return deliveryOrderRepository.save(deliveryOrder);
     }
 
@@ -554,6 +564,7 @@ public class DeliveryOrderService {
                     .findFirst()
                     .ifPresent(o -> dto.getInventoryItemsDelivery().remove(o));
         }
+
         Map<ObjectId, DeliveryOrder.InventoryItemDelivery> deliveryOrderMap = deliveryOrder.getInventoryItems().stream()
                 .collect(Collectors.toMap(DeliveryOrder.InventoryItemDelivery::getId, e -> e));
 
@@ -634,6 +645,15 @@ public class DeliveryOrderService {
             // */
             else sparePartUpdateLogic(itemToUpdateReq, deliveryItem, deliveryOrder);
         }
+
+        // Tự động cập nhật hoàn tất đơn hàng nếu tất cả hàng đều đã giao
+        boolean isExistsUnDelivered = deliveryOrder.getInventoryItems() == null ||
+                deliveryOrder.getInventoryItems()
+                        .stream()
+                        .anyMatch(o -> !o.getIsDelivered());
+
+        if(!isExistsUnDelivered) deliveryOrder.setStatus(DeliveryOrderStatus.COMPLETED.getValue());
+
         return deliveryOrderRepository.save(deliveryOrder);
     }
 
@@ -694,9 +714,7 @@ public class DeliveryOrderService {
             if(itemInHolding.getQuantity() == 0) inventoryItemRepository.deleteById(itemInHolding.getId());
             else inventoryItemRepository.save(itemInHolding);
 
-            InventoryItem itemToClone = itemInStockOrSold != null ? itemInStockOrSold : itemInHolding;
-
-            updateItemSoldInDeliveryLogic(itemToUpdateReq, deliveryOrder, itemToClone, itemInHolding.getCommodityCode());
+            updateItemSoldInDeliveryLogic(itemToUpdateReq, deliveryOrder, itemInStockOrSold, itemInHolding.getCommodityCode());
 
             deliveryOrder.getInventoryItems().remove(deliveryItem);
         }
