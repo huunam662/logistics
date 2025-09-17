@@ -533,6 +533,12 @@ public class DeliveryOrderService {
 
         DeliveryOrder deliveryOrder = getDeliveryOrderToId(new ObjectId(dto.getDeliveryOrderId()));
 
+        List<String> statuses = List.of(DeliveryOrderStatus.COMPLETED.getValue(), DeliveryOrderStatus.REJECTED.getValue());
+
+        if(statuses.contains(deliveryOrder.getStatus())) {
+            throw LogicErrException.of("Đơn hàng đang ở trong phạm vi không được cập nhật sản phẩm.");
+        }
+
         if(dto.getInventoryItemsDelivery() == null || dto.getInventoryItemsDelivery().isEmpty())
             return deliveryOrder;
 
