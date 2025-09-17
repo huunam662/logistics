@@ -9,6 +9,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.domain.Persistable;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.mapping.FieldType;
@@ -21,7 +22,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "inventory_item")
-public class InventoryItem {
+public class InventoryItem implements Persistable<ObjectId> {
     @Id
     private ObjectId id; // _id – Khóa chính tự động tạo bởi MongoDB
     private String inventoryType;   //InventoryType
@@ -133,6 +134,11 @@ public class InventoryItem {
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;
 
+    @Override
+    public boolean isNew() {
+        return createdAt == null;
+    }
+
     public InventoryItemStatus getStatus() {
         return status == null ? null : InventoryItemStatus.fromId(status);
     }
@@ -165,5 +171,6 @@ public class InventoryItem {
                 && specifications.forkDimensions != null
                 && specifications.valveCount != null && !specifications.valveCount.equals("0");
     }
+
 }
 

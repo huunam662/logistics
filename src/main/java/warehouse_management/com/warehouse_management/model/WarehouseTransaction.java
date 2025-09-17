@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.*;
+import org.springframework.data.domain.Persistable;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.mapping.FieldType;
@@ -22,7 +23,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "warehouse_transaction")
-public class WarehouseTransaction {
+public class WarehouseTransaction implements Persistable<ObjectId> {
 
     @Id
     private ObjectId id; // _id – Khóa chính
@@ -59,6 +60,11 @@ public class WarehouseTransaction {
     private Department stockInDepartment;   // Bộ phận nhập kho
     private Department stockOutDepartment;  // Bộ phận xuất kho
     private ShipUnitInfo shipUnitInfo;  //  Thông tin vận chuyển
+
+    @Override
+    public boolean isNew() {
+        return createdAt == null;
+    }
 
     public WarehouseTransactionStatus getStatusEnum() {
         return status == null ? null : WarehouseTransactionStatus.fromId(status);

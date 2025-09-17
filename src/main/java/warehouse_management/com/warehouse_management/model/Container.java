@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.*;
+import org.springframework.data.domain.Persistable;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.mapping.FieldType;
@@ -18,7 +19,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "container")
-public class Container {
+public class Container implements Persistable<ObjectId> {
     @Id
     private ObjectId id;  // _id – Khóa chính
 
@@ -47,6 +48,11 @@ public class Container {
     @LastModifiedDate
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;
+
+    @Override
+    public boolean isNew() {
+        return createdAt == null;
+    }
 
     public ContainerStatus getContainerStatus() {
         return containerStatus == null ? null : ContainerStatus.fromId(containerStatus);

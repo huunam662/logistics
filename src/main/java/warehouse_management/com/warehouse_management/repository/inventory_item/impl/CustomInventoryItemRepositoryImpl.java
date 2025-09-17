@@ -13,6 +13,7 @@ import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
+import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -463,56 +464,69 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     @Override
     public void bulkUpdateTransfer(Collection<InventoryItem> inventoryItems) {
         if (inventoryItems.isEmpty()) return;
-        MongoCollection<Document> coll = mongoTemplate.getCollection(mongoTemplate.getCollectionName(InventoryItem.class));
+
+        BulkOperations ops = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, InventoryItem.class);
+
         List<WriteModel<Document>> writeModels = new ArrayList<>();
         for (var item : inventoryItems) {
-            Bson filter = Filters.eq("_id", item.getId());
-            Bson update = Updates.combine(
-                    Updates.set("quantity", item.getQuantity()),
-                    Updates.set("warehouseId", item.getWarehouseId()),
-                    Updates.set("status", item.getStatus().getId()),
-                    Updates.set("containerId", item.getContainerId()),
-                    Updates.set("logistics.departureDate", item.getLogistics().getDepartureDate()),
-                    Updates.set("logistics.arrivalDate", item.getLogistics().getArrivalDate()),
-                    Updates.set("logistics.consignmentDate", item.getLogistics().getConsignmentDate())
-            );
-            writeModels.add(new UpdateOneModel<>(filter, update));
+
+            Query query = new Query(Criteria.where("_id").is(item.getId()));
+
+            Update update = new Update()
+                    .set("quantity", item.getQuantity())
+                    .set("status", item.getStatus().getId())
+                    .set("warehouseId", item.getWarehouseId())
+                    .set("containerId", item.getContainerId())
+                    .set("logistics.departureDate", item.getLogistics().getDepartureDate())
+                    .set("logistics.arrivalDate", item.getLogistics().getArrivalDate())
+                    .set("logistics.consignmentDate", item.getLogistics().getConsignmentDate());
+
+            ops.updateOne(query, update);
         }
-        coll.bulkWrite(writeModels);
+
+        ops.execute();
     }
 
     @Transactional
     @Override
     public void bulkUpdateStatusAndQuantity(Collection<InventoryItem> inventoryItems) {
         if (inventoryItems.isEmpty()) return;
-        MongoCollection<Document> coll = mongoTemplate.getCollection(mongoTemplate.getCollectionName(InventoryItem.class));
-        List<WriteModel<Document>> writeModels = new ArrayList<>();
+
+        BulkOperations ops = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, InventoryItem.class);
+
         for (var item : inventoryItems) {
-            Bson filter = Filters.eq("_id", item.getId());
-            Bson update = Updates.combine(
-                    Updates.set("quantity", item.getQuantity()),
-                    Updates.set("status", item.getStatus().getId())
-            );
-            writeModels.add(new UpdateOneModel<>(filter, update));
+
+            Query query = new Query(Criteria.where("_id").is(item.getId()));
+
+            Update update = new Update()
+                    .set("quantity", item.getQuantity())
+                    .set("status", item.getStatus().getId());
+
+            ops.updateOne(query, update);
         }
-        coll.bulkWrite(writeModels);
+
+        ops.execute();
     }
 
     @Transactional
     @Override
     public void bulkUpdateSpecAndPricing(Collection<InventoryItem> inventoryItems) {
         if (inventoryItems.isEmpty()) return;
-        MongoCollection<Document> coll = mongoTemplate.getCollection(mongoTemplate.getCollectionName(InventoryItem.class));
-        List<WriteModel<Document>> writeModels = new ArrayList<>();
+
+        BulkOperations ops = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, InventoryItem.class);
+
         for (var item : inventoryItems) {
-            Bson filter = Filters.eq("_id", item.getId());
-            Bson update = Updates.combine(
-                    Updates.set("specifications", item.getSpecifications()),
-                    Updates.set("pricing", item.getPricing())
-            );
-            writeModels.add(new UpdateOneModel<>(filter, update));
+
+            Query query = new Query(Criteria.where("_id").is(item.getId()));
+
+            Update update = new Update()
+                    .set("specifications", item.getSpecifications())
+                    .set("pricing", item.getPricing());
+
+            ops.updateOne(query, update);
         }
-        coll.bulkWrite(writeModels);
+
+        ops.execute();
     }
 
     @Transactional
@@ -985,6 +999,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     public Page<ItemCodeModelSerialDto> findPageVehicleInStock(PageOptionsDto optionsDto){
         Aggregation aggregation = Aggregation.newAggregation(
                 Aggregation.match(new Criteria().andOperator(
+                        Criteria.where("inventoryType").is(InventoryType.VEHICLE.getId()),
                         Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
                         Criteria.where("deletedAt").isNull()
                 )),
@@ -992,7 +1007,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 Aggregation.unwind("warehouse"),
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("warehouse.deletedAt").isNull(),
-                        Criteria.where("warehouse.type").ne(WarehouseType.DEPARTURE.getId())
+                        Criteria.where("warehouse.type").is(WarehouseType.DESTINATION.getId())
                 )),
                 Aggregation.project("productCode", "model", "serialNumber")
                         .and("_id").as("vehicleId")

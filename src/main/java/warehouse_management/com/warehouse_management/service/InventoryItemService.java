@@ -84,7 +84,6 @@ public class InventoryItemService {
             List<InventoryItem> itemsToInsert = new ArrayList<>();
             if (InventoryType.VEHICLE.getId().equals(newItem.getInventoryType())) {
                 buildComponentItems(newItem, itemsToInsert);
-                newItem.setIsFullyComponent();
             } else {
                 itemsToInsert.add(newItem);
             }
@@ -132,6 +131,7 @@ public class InventoryItemService {
         item.getLogistics().setOrderDate(orderDate);
         item.getLogistics().setEstimateCompletionDate(estimateCompletionDate);
         item.setSpecificationsBase(item.getSpecifications());
+        item.setIsFullyComponent();
         return item;
     }
 
@@ -235,19 +235,20 @@ public class InventoryItemService {
             List<InventoryItem> itemToLog = new ArrayList<>();
             for (ExcelImportProductionProductDto dto : dtos) {
                 InventoryItem item = mapper.toInventoryItem(dto);
+                item.setIsFullyComponent();
                 item.setSpecificationsBase(item.getSpecifications());
                 itemToLog.add(item);
                 buildComponentItems(item, itemsToInsert);
-                item.setIsFullyComponent();
             }
             itemTicketToLog = itemToLog.stream().map(mapper::toInventoryItemTicket).collect(Collectors.toList());
         } else {
             ComponentType componentType = mapToComponentType(productType);
             for (ExcelImportProductionProductDto dto : dtos) {
                 InventoryItem item = mapper.toInventoryItem(dto);
-                item.setSpecificationsBase(item.getSpecifications());
+                item.setInventoryType(InventoryType.ACCESSORY.getId());
                 item.setStatus(InventoryItemStatus.IN_STOCK);
-                item.setComponentType(componentType.getId());
+                item.setComponentType(componentType == null ? null : componentType.getId());
+                item.setCategory(componentType == null ? null : componentType.getValue());
                 itemsToInsert.add(item);
             }
             itemTicketToLog = itemsToInsert.stream().map(mapper::toInventoryItemTicket).collect(Collectors.toList());
@@ -267,7 +268,7 @@ public class InventoryItemService {
         List<InventoryItem> itemsToInsert = new ArrayList<>();
         for (ExcelImportProductionSparePartDto dto : dtos) {
             InventoryItem item = mapper.toInventoryItem(dto);
-            item.setSpecificationsBase(item.getSpecifications());
+            item.setInventoryType(InventoryType.SPARE_PART.getId());
             item.setStatus(InventoryItemStatus.IN_STOCK);
             itemsToInsert.add(item);
         }
@@ -296,10 +297,10 @@ public class InventoryItemService {
                 && parentItem.getSpecifications().getLiftingCapacityKg() != null
         ) {
             InventoryItem liftingFrame = mapper.cloneToComponent(parentItem);
-            liftingFrame.setId(new ObjectId());
             liftingFrame.setQuantity(1);
             liftingFrame.setVehicleId(parentItem.getId());   // gán cha
             liftingFrame.setSerialNumber(parentItem.getSerialNumber());
+            liftingFrame.setInitialCondition(parentItem.getInitialCondition());
             liftingFrame.setInventoryType(InventoryType.ACCESSORY.getId());
             liftingFrame.setComponentType(ComponentType.LIFTING_FRAME.getId());
             liftingFrame.setStatus(InventoryItemStatus.OTHER);
@@ -317,10 +318,10 @@ public class InventoryItemService {
                 && parentItem.getSpecifications().getBatterySpecification() != null
         ) {
             InventoryItem battery = mapper.cloneToComponent(parentItem);
-            battery.setId(new ObjectId());
             battery.setQuantity(1);
             battery.setVehicleId(parentItem.getId());
             battery.setSerialNumber(parentItem.getSerialNumber());
+            battery.setInitialCondition(parentItem.getInitialCondition());
             battery.setInventoryType(InventoryType.ACCESSORY.getId());
             battery.setComponentType(ComponentType.BATTERY.getId());
             battery.setStatus(InventoryItemStatus.OTHER);
@@ -334,10 +335,10 @@ public class InventoryItemService {
 
         if (parentItem.getSpecifications().getChargerSpecification() != null) {
             InventoryItem charger = mapper.cloneToComponent(parentItem);
-            charger.setId(new ObjectId());
             charger.setQuantity(1);
             charger.setVehicleId(parentItem.getId());
             charger.setSerialNumber(parentItem.getSerialNumber());
+            charger.setInitialCondition(parentItem.getInitialCondition());
             charger.setInventoryType(InventoryType.ACCESSORY.getId());
             charger.setComponentType(ComponentType.CHARGER.getId());
             charger.setStatus(InventoryItemStatus.OTHER);
@@ -350,7 +351,6 @@ public class InventoryItemService {
 
         if(parentItem.getSpecifications().getEngineType() != null){
             InventoryItem engine = mapper.cloneToComponent(parentItem);
-            engine.setId(new ObjectId());
             engine.setQuantity(1);
             engine.setVehicleId(parentItem.getId());
             engine.setCommodityCode(parentItem.getSerialNumber());
@@ -366,7 +366,6 @@ public class InventoryItemService {
 
         if(parentItem.getSpecifications().getForkDimensions() != null){
             InventoryItem fork = mapper.cloneToComponent(parentItem);
-            fork.setId(new ObjectId());
             fork.setQuantity(1);
             fork.setVehicleId(parentItem.getId());
             fork.setCommodityCode(parentItem.getSerialNumber());
@@ -382,7 +381,6 @@ public class InventoryItemService {
 
         if (parentItem.getSpecifications().getValveCount() != null) {
             InventoryItem valve = mapper.cloneToComponent(parentItem);
-            valve.setId(new ObjectId());
             valve.setQuantity(1);
             valve.setVehicleId(parentItem.getId());
             valve.setCommodityCode(parentItem.getSerialNumber());
@@ -402,7 +400,6 @@ public class InventoryItemService {
                 && "true".equalsIgnoreCase(parentItem.getSpecifications().getHasSideShift())
         ) {
             InventoryItem sideShift = mapper.cloneToComponent(parentItem);
-            sideShift.setId(new ObjectId());
             sideShift.setQuantity(1);
             sideShift.setVehicleId(parentItem.getId());
             sideShift.setCommodityCode(parentItem.getSerialNumber());
