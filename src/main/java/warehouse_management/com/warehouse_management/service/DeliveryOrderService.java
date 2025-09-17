@@ -688,7 +688,9 @@ public class DeliveryOrderService {
             if(itemInHolding.getQuantity() == 0) inventoryItemRepository.deleteById(itemInHolding.getId());
             else inventoryItemRepository.save(itemInHolding);
 
-            updateItemSoldInDeliveryLogic(itemToUpdateReq, deliveryOrder, itemInStockOrSold, itemInHolding.getCommodityCode());
+            InventoryItem itemToClone = itemInStockOrSold != null ? itemInStockOrSold : itemInHolding;
+
+            updateItemSoldInDeliveryLogic(itemToUpdateReq, deliveryOrder, itemToClone, itemInHolding.getCommodityCode());
 
             deliveryOrder.getInventoryItems().remove(deliveryItem);
         }
@@ -759,14 +761,14 @@ public class DeliveryOrderService {
         updateItemSoldInDeliveryLogic(itemToUpdateReq, deliveryOrder, itemInStockOrSold, itemInStockOrSold.getCommodityCode());
     }
 
-    private void updateItemSoldInDeliveryLogic(PushItemToDeliveryDto itemToUpdateReq, DeliveryOrder deliveryOrder, InventoryItem itemInStockOrSold, String commodityCode) {
+    private void updateItemSoldInDeliveryLogic(PushItemToDeliveryDto itemToUpdateReq, DeliveryOrder deliveryOrder, InventoryItem sparePartToClone, String commodityCode) {
         DeliveryOrder.InventoryItemDelivery itemSoldInDeliveryOrder = deliveryOrder.getInventoryItems().stream()
                 .filter(e -> e.getInventoryType().equals(InventoryType.SPARE_PART.getId()) && e.getCommodityCode().equals(commodityCode) && e.getIsDelivered())
                 .findFirst().orElse(null);
 
         if(itemSoldInDeliveryOrder != null) itemSoldInDeliveryOrder.setQuantity(itemSoldInDeliveryOrder.getQuantity() + itemToUpdateReq.getQuantity());
         else {
-            DeliveryOrder.InventoryItemDelivery itemSold = inventoryItemMapper.toInventoryItemDelivery(itemInStockOrSold);
+            DeliveryOrder.InventoryItemDelivery itemSold = inventoryItemMapper.toInventoryItemDelivery(sparePartToClone);
             itemSold.setQuantity(itemToUpdateReq.getQuantity());
             itemSold.setIsDelivered(true);
             deliveryOrder.getInventoryItems().add(itemSold);
