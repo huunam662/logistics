@@ -11,7 +11,7 @@ import java.util.Optional;
 public interface RoleRepository extends MongoRepository<Role, ObjectId> {
     @Aggregation(pipeline = {
             "{ $lookup: { from: 'user', localField: 'roleIds', foreignField: '_id', as: 'userRoles' } }",
-            "{ $match: { 'userRoles._id': ?0 } }"
+            "{ $match: { 'userRoles._id': ?0, deletedAt: null } }"
     })
     Optional<List<Role>> findRolesByUserId(String userId);
 }

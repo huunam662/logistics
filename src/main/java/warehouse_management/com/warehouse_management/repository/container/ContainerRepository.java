@@ -15,20 +15,20 @@ CustomContainerRepository{
 
     Container findByContainerCode(String containerCode);
 
-    @Query(value = "{'containerCode': ?0}", exists = true)
+    @Query(value = "{'containerCode': ?0, deletedAt: null}", exists = true)
     boolean existsByContainerCode(String containerCode);
 
-    @Query(value = "{'containerCode': ?0, '_id': {$ne: ?1}}", exists = true)
+    @Query(value = "{'containerCode': ?0, '_id': {$ne: ?1}, deletedAt: null}", exists = true)
     boolean existsByContainerCode(String containerCode, ObjectId containerId);
 
     @Query("{ 'deletedAt': null }")
     List<Container> findAll();
 
-    @Query("{'_id': {'$in': ?0}}")
+    @Query("{'_id': {'$in': ?0}, deletedAt: null}")
     List<Container> findAllInIds(List<ObjectId> ids);
 
     @Aggregation(pipeline = {
-            "{$match:  {_id: ?0}}",
+            "{$match:  {_id: ?0}, deletedAt: null}",
             "{$project: {containerCode: 1, _id: 0}}"
     })
     String findCodeById(ObjectId id);
