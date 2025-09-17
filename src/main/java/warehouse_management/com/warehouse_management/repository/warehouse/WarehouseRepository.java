@@ -16,17 +16,17 @@ CustomWarehouseRepository {
     @Query("{ 'deletedAt': null }")
     List<Warehouse> findAll();
 
-    @Query(value = "{ 'type': ?0 }", fields = "{ '_id': 1 }")
+    @Query(value = "{ 'type': ?0, deletedAt: null }", fields = "{ '_id': 1 }")
     List<IdProjection> findAllIdsByType(WarehouseType type);
 
     @Aggregation(pipeline = {
-            "{$match:  {_id: ?0}}",
+            "{$match:  {_id: ?0, deletedAt: null}}",
             "{$project: {type: 1, _id: 0}}"
     })
     String findTypeById(ObjectId id);
 
     @Aggregation(pipeline = {
-            "{$match:  {_id: {$in: ?0}}}",
+            "{$match:  {_id: {$in: ?0}, deletedAt: null}}",
             "{$project: {type: 1, _id: 0}}"
     })
     List<String> findAllTypeInIds(List<ObjectId> ids);
