@@ -56,14 +56,11 @@ public class ConfigurationHistoryService {
         swapVehicleComponent(leftVeh, rightVeh, componentType);
         setVehiclePrices(leftVeh, rightVeh, request);
 
-        inventoryItemRepository.save(leftVeh);
-        inventoryItemRepository.save(rightVeh);
-
         ConfigurationHistory historyLeftVeh = buildSwapHistory(leftVeh, rightVeh, leftVehComponent, rightVehComponent, componentType);
         ConfigurationHistory historyRightVeh = buildSwapHistory(rightVeh, leftVeh, rightVehComponent, leftVehComponent, componentType);
 
-        configurationHistoryRepository.save(historyLeftVeh);
-        configurationHistoryRepository.save(historyRightVeh);
+        inventoryItemRepository.bulkUpdateSpecAndPricing(List.of(leftVeh, rightVeh));
+        configurationHistoryRepository.bulkInsert(List.of(historyLeftVeh, historyRightVeh));
 
         return true;
     }
@@ -175,7 +172,10 @@ public class ConfigurationHistoryService {
         configHistory.setVehicleId(vehicle.getId());
 
         configHistory.setComponentOldId(component.getId());
-        configHistory.setComponentOldSerial(component.getSerialNumber());;
+
+        if(InventoryType.SPARE_PART.getId().equals(component.getInventoryType()))
+            configHistory.setComponentOldSerial(component.getCommodityCode());
+        else configHistory.setComponentOldSerial(component.getSerialNumber());
 
         configHistory.setComponentType(componentType.getId());
         configHistory.setConfigType(ChangeConfigurationType.DISASSEMBLE.getId());
@@ -196,7 +196,10 @@ public class ConfigurationHistoryService {
         configHistory.setVehicleId(vehicle.getId());
 
         configHistory.setComponentReplaceId(component.getId());
-        configHistory.setComponentReplaceSerial(component.getSerialNumber());;
+
+        if(InventoryType.SPARE_PART.getId().equals(component.getInventoryType()))
+            configHistory.setComponentReplaceSerial(component.getCommodityCode());
+        else configHistory.setComponentReplaceSerial(component.getSerialNumber());
 
         configHistory.setComponentType(componentType.getId());
         configHistory.setConfigType(ChangeConfigurationType.ASSEMBLE.getId());
@@ -229,9 +232,14 @@ public class ConfigurationHistoryService {
             isAccessoryOrSparePartNotExists = true;
         }
         else if(itemType.equals(InventoryType.SPARE_PART)){
-            Optional<InventoryItem> componentExistsCodeAndDescription = inventoryItemRepository.findByCommodityCodeAndDescriptionAndWarehouseId(component.getCommodityCode(), component.getDescription(), vehicle.getWarehouseId());
-            if(componentExistsCodeAndDescription.isPresent()){
-                InventoryItem pt = componentExistsCodeAndDescription.get();
+            Optional<InventoryItem> ptExists = inventoryItemRepository.findByCommodityCodeAndDescriptionAndWarehouseId(component.getCommodityCode(), component.getDescription(), vehicle.getWarehouseId());
+            if(
+                    ptExists.isPresent()
+                    && !ptExists.get().getId().equals(component.getId())
+                    && InventoryItemStatus.IN_STOCK.equals(ptExists.get().getStatus())
+            ){
+
+                InventoryItem pt = ptExists.get();
                 pt.setQuantity(pt.getQuantity() + component.getQuantity());
                 inventoryItemRepository.bulkUpdateStatusAndQuantity(List.of(pt));
                 inventoryItemRepository.deleteById(component.getId());

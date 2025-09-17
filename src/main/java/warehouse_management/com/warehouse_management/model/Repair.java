@@ -10,6 +10,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.domain.Persistable;
 import org.springframework.data.mongodb.core.mapping.Document;
 import warehouse_management.com.warehouse_management.enumerate.RepairStatus;
 
@@ -22,7 +23,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "repair")
-public class Repair {
+public class Repair implements Persistable<ObjectId> {
     @Id
     private ObjectId id;
     private InventoryItem repairInventoryItem;                  // Sản phẩm được bảo hành
@@ -46,4 +47,9 @@ public class Repair {
 
     private ObjectId deletedBy;
     private LocalDateTime deletedAt;
+
+    @Override
+    public boolean isNew() {
+        return createdAt == null;
+    }
 }

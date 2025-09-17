@@ -10,12 +10,15 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.mongodb.config.EnableMongoAuditing;
+import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import warehouse_management.com.warehouse_management.app.ReadDateFromDb;
+import warehouse_management.com.warehouse_management.app.WriteLocalDateTimeToDb;
 import warehouse_management.com.warehouse_management.security.CustomUserDetail;
-
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 
 @Configuration
@@ -51,5 +54,10 @@ public class CoreInstance {
             }
             return Optional.of((user.getId()));
         };
+    }
+
+    @Bean
+    public MongoCustomConversions mongoCustomConversions(WriteLocalDateTimeToDb writeToDate, ReadDateFromDb readToLocalDateTime) {
+        return new MongoCustomConversions(List.of(writeToDate, readToLocalDateTime));
     }
 }

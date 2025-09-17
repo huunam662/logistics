@@ -11,7 +11,7 @@ public enum ComponentType {
     CHARGER("CHARGER", "SẠC"),
     ENGINE("ENGINE", "ĐỘNG CƠ"),       // Động cơ
     FORK("FORK", "CÀNG NÂNG"),         // Càng nâng
-    VALVE("VALVE", "VAN"),        // Van
+    VALVE("VALVE", "VALVE"),        // Van
     SIDE_SHIFT("SIDE_SHIFT", "SIDE SHIFT");// Side shift
 
     private final String id;
