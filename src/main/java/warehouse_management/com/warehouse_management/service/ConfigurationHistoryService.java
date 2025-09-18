@@ -599,8 +599,8 @@ public class ConfigurationHistoryService {
     @Transactional
     public void completedConfigurationVehicle(ConfigurationCompletedDto request){
         InventoryItem vehicle = inventoryItemService.getItemToId(new ObjectId(request.getVehicleId()));
-        if(!vehicle.isFullyComponent())
-            throw LogicErrException.of("Không được phép hoàn tất cấu hình khi còn thiếu bộ phận.");
+//        if(!vehicle.isFullyComponent())
+//            throw LogicErrException.of("Không được phép hoàn tất cấu hình khi còn thiếu bộ phận.");
 
         inventoryItemRepository.updateStatusByIdIn(List.of(vehicle.getId()), InventoryItemStatus.IN_STOCK.getId());
     }
