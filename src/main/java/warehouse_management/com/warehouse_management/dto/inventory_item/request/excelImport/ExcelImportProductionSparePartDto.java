@@ -24,7 +24,7 @@ public class ExcelImportProductionSparePartDto {
     @Validation(label = "Số lượng", required = true)
     private Integer quantity;
     private String description;
-
+    private String model;
     private String notes;                  // Ghi chú chung – Không bắt buộc
     private String contractNumber; // Số hợp đồng
 
