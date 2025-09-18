@@ -29,6 +29,8 @@ public class ConfigurationHistory implements Persistable<ObjectId> {
 
     private String description;
 
+    private String performedBy; // Tên người thao tác
+
     @CreatedBy
     private String createdBy;
     @LastModifiedBy

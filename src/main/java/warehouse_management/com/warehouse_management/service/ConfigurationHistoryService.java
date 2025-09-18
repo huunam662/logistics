@@ -6,6 +6,7 @@ import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import warehouse_management.com.warehouse_management.app.CustomAuthentication;
 import warehouse_management.com.warehouse_management.dto.configuration_history.request.*;
 import warehouse_management.com.warehouse_management.dto.configuration_history.response.*;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.ItemCodeModelSerialDto;
@@ -22,6 +23,7 @@ import warehouse_management.com.warehouse_management.model.ConfigurationHistory;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.repository.configuration_history.ConfigurationHistoryRepository;
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
+import warehouse_management.com.warehouse_management.security.CustomUserDetail;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -38,7 +40,7 @@ public class ConfigurationHistoryService {
     private final ConfigurationHistoryRepository configurationHistoryRepository;
     private final InventoryItemMapper inventoryItemMapper;
     private final ConfigurationHistoryMapper configurationVehicleMapper;
-
+    private final CustomAuthentication customAuthentication;
 
     @Transactional
     public boolean swapItems(VehiclePartSwapDto request) {
@@ -141,6 +143,8 @@ public class ConfigurationHistoryService {
 
         ConfigurationHistory configHistory = new ConfigurationHistory();
 
+        configHistory.setPerformedBy(customAuthentication.getUserOrThrow().getFullName());
+
         configHistory.setVehicleId(vehicleLeft.getId());
 
         configHistory.setComponentOldId(componentOld.getId());
@@ -168,7 +172,10 @@ public class ConfigurationHistoryService {
             ComponentType componentType
     ) {
 
+
         ConfigurationHistory configHistory = new ConfigurationHistory();
+
+        configHistory.setPerformedBy(customAuthentication.getUserOrThrow().getFullName());
 
         configHistory.setVehicleId(vehicle.getId());
 
@@ -193,6 +200,8 @@ public class ConfigurationHistoryService {
     ) {
 
         ConfigurationHistory configHistory = new ConfigurationHistory();
+
+        configHistory.setPerformedBy(customAuthentication.getUserOrThrow().getFullName());
 
         configHistory.setVehicleId(vehicle.getId());
 
@@ -317,11 +326,7 @@ public class ConfigurationHistoryService {
 
             case FORK -> veh.getSpecifications().setForkDimensions(component.getSpecifications().getForkDimensions());
 
-            case SIDE_SHIFT -> {
-
-                    veh.getSpecifications().setHasSideShift(component.getSpecifications().getHasSideShift());
-
-            }
+            case SIDE_SHIFT -> veh.getSpecifications().setHasSideShift("true");
 
             case VALVE -> veh.getSpecifications().setValveCount(component.getSpecifications().getValveCount());
         }

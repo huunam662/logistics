@@ -26,6 +26,8 @@ public class ConfigurationHistoryDto {
 
     private String description;
 
+    private String performedBy; // Tên người thao tác
+
     private String createdBy;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
