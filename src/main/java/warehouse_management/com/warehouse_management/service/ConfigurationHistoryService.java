@@ -241,6 +241,9 @@ public class ConfigurationHistoryService {
             if(component.getProductCode() == null){
                 if(dropPartRequest.getProductCode() == null) throw LogicErrException.of("Bắt buộc nhập Mã Sản Phẩm cho bộ phận bị tháo rời");
 
+                if(inventoryItemRepository.existsByProductCode(dropPartRequest.getProductCode()))
+                    throw LogicErrException.of("Mã sản phẩm " + dropPartRequest.getProductCode() + " đã tồn tại");
+
                 component.setProductCode(dropPartRequest.getProductCode());
             }
 

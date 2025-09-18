@@ -6,9 +6,12 @@ import warehouse_management.com.warehouse_management.model.InventoryItem;
 
 public enum ComponentType {
 
+    // ACCESSORY
     LIFTING_FRAME("LIFTING_FRAME", "KHUNG NÂNG"),   // KHUNG NÂNG
     BATTERY("BATTERY", "BÌNH ĐIỆN"), // BÌNH ĐIỆN
-    CHARGER("CHARGER", "SẠC"),
+    CHARGER("CHARGER", "SẠC"),      // SẠC
+
+    // SPARE PART
     ENGINE("ENGINE", "ĐỘNG CƠ"),       // Động cơ
     FORK("FORK", "CÀNG NÂNG"),         // Càng nâng
     VALVE("VALVE", "VALVE"),        // Van
