@@ -214,6 +214,9 @@ public class DeliveryOrderService {
         if(deliveryOrder.getInventoryItems() == null || deliveryOrder.getInventoryItems().isEmpty())
             throw LogicErrException.of("Đơn hàng hiện đang không có sản phẩm, hủy thay vì hoàn tất.");
 
+        if(deliveryOrder.getModelNotes() != null && !deliveryOrder.getModelNotes().isEmpty())
+            throw LogicErrException.of("Không được phép hoàn tất khi vẫn còn ghi chú nợ.");
+
         List<IdAndNameWarehouseDto> warehouseDepartures = warehouseRepository.findIdsByType(WarehouseType.DEPARTURE.getId());
 
         List<PushItemToDeliveryDto> itemsToDeliveredList = new ArrayList<>();
