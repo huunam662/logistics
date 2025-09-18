@@ -36,12 +36,8 @@ public class CreateInventorySparePartDto {
     @NotBlank(message = "Model là bắt buộc")
     private String model;
 
-    @NotNull(message = "Ghi chú là bắt buộc")
-    @NotBlank(message = "Ghi chú là bắt buộc")
     private String notes;                  // Ghi chú chung – Không bắt buộc
 
-    @NotNull(message = "Số hợp đồng là bắt buộc")
-    @NotBlank(message = "Số hợp đồng là bắt buộc")
     private String contractNumber; // Số hợp đồng
 
     @NotNull(message = "Giá sản phẩm là bắt buộc")

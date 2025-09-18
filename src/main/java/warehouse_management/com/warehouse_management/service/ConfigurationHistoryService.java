@@ -243,6 +243,9 @@ public class ConfigurationHistoryService {
                 component.setProductCode(dropPartRequest.getProductCode());
             }
 
+            if(component.getSerialNumber() == null)
+                component.setSerialNumber(vehicle.getSerialNumber());
+
             component.setInitialCondition(false);
             isAccessoryOrSparePartNotExists = true;
         }
@@ -251,7 +254,7 @@ public class ConfigurationHistoryService {
             if(
                     ptExists.isPresent()
                     && !ptExists.get().getId().equals(component.getId())
-                    && InventoryItemStatus.IN_STOCK.equals(ptExists.get().getStatus())
+                    && ptExists.get().getCommodityCode() != null
             ){
 
                 InventoryItem pt = ptExists.get();

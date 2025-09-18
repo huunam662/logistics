@@ -48,6 +48,8 @@ public interface CustomInventoryItemRepository {
 
     void bulkUpdateSpecAndPricing(Collection<InventoryItem> inventoryItems);
 
+    void bulkUpdateComponentSerial(Collection<InventoryItem> inventoryItems);
+
     void updateStatusAndUnRefContainer(Collection<ObjectId> ids, String status);
 
     void updateStatusAndWarehouseAndUnRefContainer(Collection<ObjectId> ids, ObjectId warehouseId, String status);
