@@ -97,7 +97,7 @@ public interface InventoryItemRepository extends MongoRepository<InventoryItem, 
             "{$match: {componentType: ?0, status: 'IN_STOCK', vehicleId: null, deletedAt: null}}",
             "{$lookup: {from: 'warehouse', localField: 'warehouseId', foreignField: '_id', as: 'warehouse'}}",
             "{$unwind: '$warehouse'}",
-            "{$match: {'warehouse.deletedAt': null}}",
+            "{$match: {'warehouse.deletedAt': null, 'warehouse.type': 'DESTINATION'}}",
             "{$project: {componentId: '$_id', componentType: 1, serialNumber: 1, commodityCode: 1, warehouseCode: '$warehouse.code', warehouseName: '$warehouse.name'}}"
     })
     List<Map<String, Object>> findWarehouseContainsComponent(String componentType);

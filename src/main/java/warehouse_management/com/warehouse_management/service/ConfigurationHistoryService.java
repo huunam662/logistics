@@ -154,6 +154,7 @@ public class ConfigurationHistoryService {
         else configHistory.setComponentOldSerial(componentOld.getSerialNumber());
 
         configHistory.setComponentReplaceId(componentReplace.getId());
+
         if(InventoryType.SPARE_PART.getId().equals(componentReplace.getInventoryType()))
             configHistory.setComponentReplaceSerial(componentReplace.getCommodityCode());
         else configHistory.setComponentReplaceSerial(componentReplace.getSerialNumber());
@@ -505,8 +506,7 @@ public class ConfigurationHistoryService {
         List<ObjectId> vehicleIds = request.getVehicleIds().stream().map(ObjectId::new).toList();
         List<InventoryItem> vehicles = inventoryItemRepository.findByIdInAndStatus(vehicleIds, InventoryItemStatus.IN_STOCK.getId());
         List<ObjectId> vehiclesToRepair = vehicles.stream()
-                .filter(o -> InventoryType.VEHICLE.getId().equalsIgnoreCase(o.getInventoryType())
-                            && InventoryItemStatus.IN_STOCK.equals(o.getStatus()))
+                .filter(o -> InventoryType.VEHICLE.getId().equalsIgnoreCase(o.getInventoryType()))
                 .map(InventoryItem::getId)
                 .toList();
         inventoryItemRepository.updateStatusByIdIn(vehiclesToRepair, InventoryItemStatus.IN_REPAIR.getId());

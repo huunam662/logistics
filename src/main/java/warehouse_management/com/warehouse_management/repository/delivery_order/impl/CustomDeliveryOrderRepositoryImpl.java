@@ -32,7 +32,7 @@ public class CustomDeliveryOrderRepositoryImpl implements CustomDeliveryOrderRep
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("deletedAt").isNull()
                 )),
-                Aggregation.project("deliveryOrderCode", "customerId", "createdAt", "deliveryDate", "holdingDays", "status")
+                Aggregation.project("deliveryOrderCode", "customerId", "createdAt", "updatedAt", "deliveryDate", "holdingDays", "status")
                         .and("client.name").as("customerName")
                         .and(
                                 ArithmeticOperators.Add.valueOf("$createdAt")
