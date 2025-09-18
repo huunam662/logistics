@@ -8,4 +8,5 @@ import java.util.List;
 public class DeleteItemsOrderDto {
     private String deliveryOrderId;
     private List<String> itemIds;
+    private String manualModel;
 }

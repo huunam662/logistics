@@ -463,6 +463,14 @@ public class DeliveryOrderService {
     public DeliveryOrder removeItem(DeleteItemsOrderDto dto){
         DeliveryOrder deliveryOrder = getDeliveryOrderToId(new ObjectId(dto.getDeliveryOrderId()));
 
+        if (dto.getManualModel() != null) {
+            List<DeliveryOrder.NoteDeliveryModel> removedList = deliveryOrder.getModelNotes().stream()
+                    .filter(item -> item.getModel().equals(dto.getManualModel()))
+                    .toList();
+            deliveryOrder.setModelNotes(removedList);
+            return deliveryOrderRepository.save(deliveryOrder);
+        }
+
         if(deliveryOrder.getInventoryItems() == null || deliveryOrder.getInventoryItems().isEmpty())
             throw LogicErrException.of("Đơn hàng hiện không có mặt hàng nào");
 
