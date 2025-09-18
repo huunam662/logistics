@@ -154,6 +154,7 @@ public class ConfigurationHistoryService {
         else configHistory.setComponentOldSerial(componentOld.getSerialNumber());
 
         configHistory.setComponentReplaceId(componentReplace.getId());
+
         if(InventoryType.SPARE_PART.getId().equals(componentReplace.getInventoryType()))
             configHistory.setComponentReplaceSerial(componentReplace.getCommodityCode());
         else configHistory.setComponentReplaceSerial(componentReplace.getSerialNumber());
@@ -239,6 +240,9 @@ public class ConfigurationHistoryService {
         if(itemType.equals(InventoryType.ACCESSORY)) {
             if(component.getProductCode() == null){
                 if(dropPartRequest.getProductCode() == null) throw LogicErrException.of("Bắt buộc nhập Mã Sản Phẩm cho bộ phận bị tháo rời");
+
+                if(inventoryItemRepository.existsByProductCode(dropPartRequest.getProductCode()))
+                    throw LogicErrException.of("Mã sản phẩm " + dropPartRequest.getProductCode() + " đã tồn tại");
 
                 component.setProductCode(dropPartRequest.getProductCode());
             }
@@ -505,8 +509,7 @@ public class ConfigurationHistoryService {
         List<ObjectId> vehicleIds = request.getVehicleIds().stream().map(ObjectId::new).toList();
         List<InventoryItem> vehicles = inventoryItemRepository.findByIdInAndStatus(vehicleIds, InventoryItemStatus.IN_STOCK.getId());
         List<ObjectId> vehiclesToRepair = vehicles.stream()
-                .filter(o -> InventoryType.VEHICLE.getId().equalsIgnoreCase(o.getInventoryType())
-                            && InventoryItemStatus.IN_STOCK.equals(o.getStatus()))
+                .filter(o -> InventoryType.VEHICLE.getId().equalsIgnoreCase(o.getInventoryType()))
                 .map(InventoryItem::getId)
                 .toList();
         inventoryItemRepository.updateStatusByIdIn(vehiclesToRepair, InventoryItemStatus.IN_REPAIR.getId());
