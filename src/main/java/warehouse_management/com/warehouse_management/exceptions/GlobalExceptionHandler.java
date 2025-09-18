@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -19,13 +20,10 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
-
 import warehouse_management.com.warehouse_management.dto.ValidationErrRes;
 import warehouse_management.com.warehouse_management.integration.IntegrationException;
 import warehouse_management.com.warehouse_management.integration.auth.exceptions.AuthIntegrationException;
 import warehouse_management.com.warehouse_management.utils.Msg;
-
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,27 +44,24 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<ApiResponse<List<ValidationErrRes>>> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ApiResponse<ValidationErrRes>> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
         ex.printStackTrace();
         // Collect all field error messages from the exception
-        List<FieldError> fieldErrors = ex.getBindingResult().getFieldErrors();
+        BindingResult bindingResult = ex.getBindingResult();
+        List<FieldError> fieldErrors = bindingResult.getFieldErrors();
+        ValidationErrRes validationErrRes = new ValidationErrRes();
+        if(!fieldErrors.isEmpty()) {
+            FieldError fieldError = fieldErrors.getFirst();
+            validationErrRes.setField(fieldError.getField());
+            validationErrRes.setMessage(fieldError.getDefaultMessage());
+        }
+        // Local Development
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.fail(validationErrRes.getMessage(), validationErrRes));
 
-        // Optionally, log these errors for debugging purposes
-        fieldErrors.forEach(fieldError -> {
-            // Using a logger instead of System.out.println for better logging practices
-            log.error("Validation failed for field: {}. Message: {}", fieldError.getField(), fieldError.getDefaultMessage());
-        });
-
-        // Construct a list of ValidationError objects from the field errors
-        List<ValidationErrRes> validationErrors = fieldErrors.stream()
-                .map(fieldError -> {
-                    return new ValidationErrRes(fieldError.getField(), fieldError.getDefaultMessage());
-                })
-                .collect(Collectors.toList());
-
-        // Return a custom ApiResponse to return a structured error response
-        return ResponseEntity.badRequest().body(ApiResponse.fail("Validation failed", validationErrors));
-
+//        // Production Development
+//        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+//                .body(ApiResponse.fail(validationErrRes.getMessage()));
     }
 
     @ExceptionHandler(HandlerMethodValidationException.class)
@@ -197,6 +192,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.fail( "Unexpected server error."+ ex.getMessage()+ex.toString()));
     }
+
 
 //next 1 2 3 four 5 6 7 8 9 10
 }
