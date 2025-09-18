@@ -18,10 +18,14 @@ public interface InventoryItemRepository extends MongoRepository<InventoryItem, 
 
     Optional<InventoryItem> findBySerialNumber(String serialNumber);
 
+    @Query("{commodityCode: ?0, description: ?1, warehouseId: ?2, status: 'IN_STOCK'}")
     Optional<InventoryItem> findByCommodityCodeAndDescriptionAndWarehouseId(String commodityCode, String description, ObjectId warehouseId);
 
     @Query("{'componentType': ?0, warehouseId: ?1, deletedAt: null}")
     Optional<InventoryItem> findByComponentTypeAndWarehouseId(String componentType, ObjectId warehouseId);
+
+    @Query("{vehicleId: ?0, deletedAt: null}")
+    List<InventoryItem> findByVehicleId(ObjectId vehicleId);
 
     boolean existsBySerialNumber(String serialNumber);
 

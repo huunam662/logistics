@@ -38,8 +38,6 @@ public class CreateInventoryProductDto {
     @NotBlank(message = "Chủng loại là bắt buộc")
     private String category; // Ví dụ: Reach Truck, Pallet Truck...7
 
-    @NotNull(message = "Số Serial là bắt buộc")
-    @NotBlank(message = "Số Serial là bắt buộc")
     private String serialNumber; // Số series nhà máy 8
     private String notes; // Ghi chú  26
 
