@@ -150,7 +150,6 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         );
         Aggregation aggregation = Aggregation.newAggregation(pipelines);
         return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryProductionDto.class, aggregation, optionsReq);
-
     }
 
     @Override
@@ -252,7 +251,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("vehicleId").isNull(),
                         Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId())
                 )),
-                Aggregation.project("poNumber", "model", "commodityCode", "quantity", "description", "warehouseType")
+                Aggregation.project("poNumber", "model", "commodityCode", "quantity", "description", "notes", "warehouseType")
                         .and("_id").as("id")
                         .and("logistics.orderDate").as("orderDate") //
                         .and("pricing.purchasePrice").as("purchasePrice")   //
@@ -523,6 +522,30 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
             Update update = new Update()
                     .set("specifications", item.getSpecifications())
                     .set("pricing", item.getPricing());
+
+            ops.updateOne(query, update);
+        }
+
+        ops.execute();
+    }
+
+    @Transactional
+    @Override
+    public void bulkUpdateComponentSerial(Collection<InventoryItem> inventoryItems) {
+        if (inventoryItems.isEmpty()) return;
+
+        BulkOperations ops = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, InventoryItem.class);
+
+        for (var item : inventoryItems) {
+
+            Query query = new Query(Criteria.where("_id").is(item.getId()));
+
+            Update update = new Update();
+
+            if(InventoryType.SPARE_PART.getId().equals(item.getInventoryType())) {
+                update = update.set("commodityCode", item.getCommodityCode());
+            }
+            else update = update.set("serialNumber", item.getSerialNumber());
 
             ops.updateOne(query, update);
         }
@@ -1002,6 +1025,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("inventoryType").is(InventoryType.VEHICLE.getId()),
                         Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
+                        Criteria.where("serialNumber").ne(null),
                         Criteria.where("deletedAt").isNull()
                 )),
                 Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),

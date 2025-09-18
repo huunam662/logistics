@@ -392,7 +392,6 @@ public class InventoryItemService {
             itemsToInsert.add(valve);
         }
 
-
         if (
                 parentItem.getSpecifications().getHasSideShift() != null
                 && "true".equalsIgnoreCase(parentItem.getSpecifications().getHasSideShift())
@@ -445,8 +444,8 @@ public class InventoryItemService {
         InventoryItem item = getItemToId(new ObjectId(id));
         item.setPoNumber(req.getPoNumber());
         item.setCommodityCode(req.getCommodityCode());
+        item.setContractNumber(req.getContactNumber());
         return inventoryItemRepository.save(item);
-
     }
 
 
@@ -587,8 +586,24 @@ public class InventoryItemService {
         InventoryItem inventoryItem = getItemToId(new ObjectId(id));
         inventoryItem.setPoNumber(dto.getPoNumber());
         inventoryItem.setProductCode(dto.getProductCode());
+        if(InventoryType.VEHICLE.getId().equals(inventoryItem.getInventoryType())){
+            if(
+                    inventoryItem.getSerialNumber() == null
+                    && dto.getSerialNumber() != null
+                    && !dto.getSerialNumber().isBlank()
+            ){
+                List<InventoryItem> componentList = inventoryItemRepository.findByVehicleId(inventoryItem.getId());
+                for(var component : componentList){
+                    if(InventoryType.ACCESSORY.getId().equals(component.getInventoryType()))
+                        component.setSerialNumber(dto.getSerialNumber());
+                    else if(InventoryType.SPARE_PART.getId().equals(component.getInventoryType()))
+                        component.setCommodityCode(dto.getSerialNumber());
+                }
+                inventoryItemRepository.bulkUpdateComponentSerial(componentList);
+            }
+            inventoryItem.setSerialNumber(dto.getSerialNumber());
+        }
         return inventoryItemRepository.save(inventoryItem);
-
     }
 
     @Transactional

@@ -6,4 +6,5 @@ import lombok.Data;
 public class UpdateInventoryProductDto {
     private String poNumber;
     private String productCode;
+    private String serialNumber;
 }
