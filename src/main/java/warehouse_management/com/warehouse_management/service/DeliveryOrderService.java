@@ -658,12 +658,14 @@ public class DeliveryOrderService {
         }
 
         // Tự động cập nhật hoàn tất đơn hàng nếu tất cả hàng đều đã giao
-        boolean isExistsUnDelivered = deliveryOrder.getInventoryItems() == null ||
-                deliveryOrder.getInventoryItems()
+        boolean isExistsAllDelivered = deliveryOrder.getInventoryItems() != null
+                && deliveryOrder.getInventoryItems()
                         .stream()
-                        .anyMatch(o -> !o.getIsDelivered());
+                        .allMatch(DeliveryOrder.InventoryItemDelivery::getIsDelivered)
+                && (deliveryOrder.getModelNotes() == null || deliveryOrder.getModelNotes().isEmpty());
 
-        if(!isExistsUnDelivered) deliveryOrder.setStatus(DeliveryOrderStatus.COMPLETED.getValue());
+
+        if(isExistsAllDelivered) deliveryOrder.setStatus(DeliveryOrderStatus.COMPLETED.getValue());
 
         return deliveryOrderRepository.save(deliveryOrder);
     }
