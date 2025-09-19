@@ -8,7 +8,6 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.Date;
 
-@Component
 @ReadingConverter
 public class ReadDateFromDb implements Converter<Date, LocalDateTime> {
 
