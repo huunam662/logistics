@@ -625,6 +625,7 @@ public class InventoryItemService {
         }
         List<InventoryItem> itemsSparePartToNew = new ArrayList<>();
         List<InventoryItem> itemsResults = new ArrayList<>();
+
         for (var item : itemsToTransfer) {
 
             if(item.getLogistics() == null) item.setLogistics(new InventoryItem.Logistics());
@@ -701,6 +702,11 @@ public class InventoryItemService {
             if (consignmentDate != null) {
                 item.getLogistics().setConsignmentDate(consignmentDate);
             }
+
+            String warehouseType = warehouseRepository.findTypeById(toWarehouseId);
+            if(WarehouseType.DEPARTURE.getId().equals(warehouseType))
+                item.setManufacturingYear(LocalDate.now().getYear());
+
             itemsResults.add(item);
         }
 
