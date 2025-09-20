@@ -468,7 +468,7 @@ public class DeliveryOrderService {
 
         if (dto.getManualModel() != null) {
             List<DeliveryOrder.NoteDeliveryModel> removedList = deliveryOrder.getModelNotes().stream()
-                    .filter(item -> item.getModel().equals(dto.getManualModel()))
+                    .filter(item -> !item.getModel().equals(dto.getManualModel()))
                     .toList();
             deliveryOrder.setModelNotes(removedList);
             return deliveryOrderRepository.save(deliveryOrder);
