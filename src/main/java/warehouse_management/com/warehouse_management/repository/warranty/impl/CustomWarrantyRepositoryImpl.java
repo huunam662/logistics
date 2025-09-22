@@ -15,6 +15,7 @@ import warehouse_management.com.warehouse_management.dto.pagination.request.Page
 import warehouse_management.com.warehouse_management.dto.warranty.response.WarrantyResponseDTO;
 import warehouse_management.com.warehouse_management.enumerate.WarrantyStatus;
 import warehouse_management.com.warehouse_management.model.Warranty;
+import warehouse_management.com.warehouse_management.model.WarrantyTransaction;
 import warehouse_management.com.warehouse_management.repository.warranty.CustomWarrantyRepository;
 import warehouse_management.com.warehouse_management.utils.MongoRsqlUtils;
 
@@ -55,6 +56,11 @@ public class CustomWarrantyRepositoryImpl implements CustomWarrantyRepository {
 
         if (status == WarrantyStatus.COMPLETE) {
             update.set("completedDate", LocalDateTime.now());
+
+            // Nếu đơn bảo hành hoàn thành thì cho tất cả các phiếu bảo hành hoàn thành
+            Query subQuery = new Query(Criteria.where("warrantyId").is(id));
+            Update subUpdate = new Update().set("isCompleted", true);
+            mongoTemplate.updateMulti(subQuery, subUpdate, WarrantyTransaction.class);
         }
 
         return mongoTemplate.findAndModify(query,
