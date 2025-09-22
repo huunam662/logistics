@@ -283,6 +283,11 @@ public class ConfigurationHistoryService {
         disassembleSpecifications(vehicle, componentType);
         vehicle.setInitialCondition(false);
         vehicle.setIsFullyComponent();
+
+        if(vehicle.getPricing() == null) vehicle.setPricing(new InventoryItem.Pricing());
+        vehicle.getPricing().setSalePriceR0(dropPartRequest.getVehiclePriceR0());
+        vehicle.getPricing().setSalePriceR1(dropPartRequest.getVehiclePriceR1());
+
         inventoryItemRepository.save(vehicle);
 
         ConfigurationHistory disassembleHistory = buildDisassembleHistory(vehicle, component, componentType);
@@ -374,6 +379,11 @@ public class ConfigurationHistoryService {
         assembleSpecifications(vehicle, componentType, component);
 
         vehicle.setIsFullyComponent();
+
+        if(vehicle.getPricing() == null) vehicle.setPricing(new InventoryItem.Pricing());
+        vehicle.getPricing().setSalePriceR0(assemblePart.getVehiclePriceR0());
+        vehicle.getPricing().setSalePriceR1(assemblePart.getVehiclePriceR1());
+
         inventoryItemRepository.save(vehicle);
 
         ConfigurationHistory assembleHistory = buildAssembleHistory(vehicle, component, componentType);
