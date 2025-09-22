@@ -259,14 +259,14 @@ public class DeliveryOrderService {
 
         pushItemsToDeliveryOrderLogic(itemsToDeliveryDto, deliveryOrder);
 
-
         // Tự động cập nhật hoàn tất đơn hàng nếu tất cả hàng đều đã giao
-        boolean isExistsUnDelivered = deliveryOrder.getInventoryItems() == null ||
-                                     deliveryOrder.getInventoryItems()
-                                                    .stream()
-                                                    .anyMatch(o -> !o.getIsDelivered());
+        boolean isExistsAllDelivered = deliveryOrder.getInventoryItems() != null
+                                        && deliveryOrder.getInventoryItems()
+                                                        .stream()
+                                                        .allMatch(DeliveryOrder.InventoryItemDelivery::getIsDelivered)
+                                        && (deliveryOrder.getModelNotes() == null || deliveryOrder.getModelNotes().isEmpty());
 
-        if(!isExistsUnDelivered) deliveryOrder.setStatus(DeliveryOrderStatus.COMPLETED.getValue());
+        if(isExistsAllDelivered) deliveryOrder.setStatus(DeliveryOrderStatus.COMPLETED.getValue());
 
         return deliveryOrderRepository.save(deliveryOrder);
     }
@@ -318,11 +318,11 @@ public class DeliveryOrderService {
             InventoryItem item = itemsToDeliveryMap.getOrDefault(new ObjectId(itemToPush.getId()), null);
             if(item == null) throw LogicErrException.of("Mặt hàng cần thêm vào đơn hiện không tồn tại.");
 
-            if(InventoryItemStatus.HOLD.equals(item.getStatus()))
-                throw LogicErrException.of("Mặt hàng cần thêm vào đơn hiện không sẵn hàng.");
-
             Warehouse warehouse = warehouseService.getWarehouseToId(item.getWarehouseId());
             if(warehouse.getType() == null) throw LogicErrException.of("Kho "+warehouse.getName()+" không tồn tại loại kho.");
+
+            if(InventoryItemStatus.HOLD.equals(item.getStatus()) || item.getVehicleId() != null)
+                throw LogicErrException.of("Mặt hàng cần thêm vào đơn hiện không sẵn hàng.");
 
             if(WarehouseType.DEPARTURE.getId().equals(warehouse.getTypeString()) && itemToPush.getIsDelivered()){
                 if(!item.getInventoryType().equals(InventoryType.SPARE_PART.getId()))
@@ -660,10 +660,9 @@ public class DeliveryOrderService {
         // Tự động cập nhật hoàn tất đơn hàng nếu tất cả hàng đều đã giao
         boolean isExistsAllDelivered = deliveryOrder.getInventoryItems() != null
                 && deliveryOrder.getInventoryItems()
-                        .stream()
-                        .allMatch(DeliveryOrder.InventoryItemDelivery::getIsDelivered)
+                                .stream()
+                                .allMatch(DeliveryOrder.InventoryItemDelivery::getIsDelivered)
                 && (deliveryOrder.getModelNotes() == null || deliveryOrder.getModelNotes().isEmpty());
-
 
         if(isExistsAllDelivered) deliveryOrder.setStatus(DeliveryOrderStatus.COMPLETED.getValue());
 

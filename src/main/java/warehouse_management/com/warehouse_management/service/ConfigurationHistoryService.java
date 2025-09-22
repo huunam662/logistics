@@ -534,7 +534,7 @@ public class ConfigurationHistoryService {
 
         InventoryItem vehicle = inventoryItemService.getItemToId(vehicleId);
 
-        Optional<Map<String, Object>> resultQuery = inventoryItemRepository.findCodeAndPriceByVehicleIdAndComponentType(vehicleId, componentType);
+        Optional<Map<String, Object>> resultQuery = inventoryItemRepository.findCodeAndPriceByVehicleIdAndComponentType(vehicle.getId(), componentType);
 
         if(resultQuery.isPresent()){
 
@@ -550,13 +550,6 @@ public class ConfigurationHistoryService {
 
             res.setSalePriceR0(priceR0 == null ? null : priceR0.bigDecimalValue());
             res.setSalePriceR1(priceR1 == null ? null : priceR1.bigDecimalValue());
-
-            if(vehicle.getPricing() != null){
-                res.setVehiclePriceR0(vehicle.getPricing().getSalePriceR0());
-                res.setVehiclePriceR1(vehicle.getPricing().getSalePriceR1());
-            }
-
-            res.setVehicleId(vehicle.getId());
 
             return res;
         }
