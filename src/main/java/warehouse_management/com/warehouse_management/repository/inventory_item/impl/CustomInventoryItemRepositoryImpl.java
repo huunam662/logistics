@@ -821,7 +821,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("poNumber").regex(poNumber, "i"),
                         Criteria.where("containerId").isNull()
                 )),
-                Aggregation.project("model", "category", "serialNumber", "productCode", "poNumber", "inventoryType", "initialCondition", "notes", "specifications", "pricing", "logistics")
+                Aggregation.project("model", "category", "serialNumber", "productCode", "poNumber", "inventoryType", "initialCondition", "warehouseId", "notes", "specifications", "pricing", "logistics")
                         .and("_id").as("id")
         ));
 
@@ -847,7 +847,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("vehicleId").isNull(),
                         Criteria.where("containerId").isNull()
                 )),
-                Aggregation.project("commodityCode", "poNumber", "quantity", "description", "inventoryType", "contractNumber", "pricing")
+                Aggregation.project("commodityCode", "poNumber", "quantity", "description", "inventoryType", "contractNumber", "pricing", "warehouseId", "model", "notes")
                         .and("_id").as("id")
                         .and("logistics.orderDate").as("orderDate")
         ));

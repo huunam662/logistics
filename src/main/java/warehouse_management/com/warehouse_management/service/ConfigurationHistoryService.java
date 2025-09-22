@@ -11,6 +11,7 @@ import warehouse_management.com.warehouse_management.dto.configuration_history.r
 import warehouse_management.com.warehouse_management.dto.configuration_history.response.*;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.ItemCodeModelSerialDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.ItemCodePriceDto;
+import warehouse_management.com.warehouse_management.dto.inventory_item.response.VehiclePricingR0R1Dto;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.enumerate.ChangeConfigurationType;
 import warehouse_management.com.warehouse_management.enumerate.ComponentType;
@@ -283,6 +284,11 @@ public class ConfigurationHistoryService {
         disassembleSpecifications(vehicle, componentType);
         vehicle.setInitialCondition(false);
         vehicle.setIsFullyComponent();
+
+        if(vehicle.getPricing() == null) vehicle.setPricing(new InventoryItem.Pricing());
+        vehicle.getPricing().setSalePriceR0(dropPartRequest.getVehiclePriceR0());
+        vehicle.getPricing().setSalePriceR1(dropPartRequest.getVehiclePriceR1());
+
         inventoryItemRepository.save(vehicle);
 
         ConfigurationHistory disassembleHistory = buildDisassembleHistory(vehicle, component, componentType);
@@ -374,6 +380,11 @@ public class ConfigurationHistoryService {
         assembleSpecifications(vehicle, componentType, component);
 
         vehicle.setIsFullyComponent();
+
+        if(vehicle.getPricing() == null) vehicle.setPricing(new InventoryItem.Pricing());
+        vehicle.getPricing().setSalePriceR0(assemblePart.getVehiclePriceR0());
+        vehicle.getPricing().setSalePriceR1(assemblePart.getVehiclePriceR1());
+
         inventoryItemRepository.save(vehicle);
 
         ConfigurationHistory assembleHistory = buildAssembleHistory(vehicle, component, componentType);
@@ -521,6 +532,8 @@ public class ConfigurationHistoryService {
 
     public ItemCodePriceDto getCodeAndPriceToVehicleIdAndComponentType(ObjectId vehicleId, String componentType){
 
+        InventoryItem vehicle = inventoryItemService.getItemToId(vehicleId);
+
         Optional<Map<String, Object>> resultQuery = inventoryItemRepository.findCodeAndPriceByVehicleIdAndComponentType(vehicleId, componentType);
 
         if(resultQuery.isPresent()){
@@ -538,10 +551,33 @@ public class ConfigurationHistoryService {
             res.setSalePriceR0(priceR0 == null ? null : priceR0.bigDecimalValue());
             res.setSalePriceR1(priceR1 == null ? null : priceR1.bigDecimalValue());
 
+            if(vehicle.getPricing() != null){
+                res.setVehiclePriceR0(vehicle.getPricing().getSalePriceR0());
+                res.setVehiclePriceR1(vehicle.getPricing().getSalePriceR1());
+            }
+
+            res.setVehicleId(vehicle.getId());
+
             return res;
         }
 
         return new ItemCodePriceDto();
+    }
+
+    public VehiclePricingR0R1Dto getVehiclePriceToVehicleId(ObjectId vehicleId){
+
+        InventoryItem vehicle = inventoryItemService.getItemToId(vehicleId);
+
+        VehiclePricingR0R1Dto res = new VehiclePricingR0R1Dto();
+
+        if(vehicle.getPricing() != null){
+            res.setVehiclePriceR0(vehicle.getPricing().getSalePriceR0());
+            res.setVehiclePriceR1(vehicle.getPricing().getSalePriceR1());
+        }
+
+        res.setVehicleId(vehicle.getId());
+
+        return res;
     }
 
     @Transactional
