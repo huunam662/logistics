@@ -153,6 +153,17 @@ public class ConfigurationHistoryController {
     }
 
     @Operation(
+            summary = "GET Lấy giá R0, R1 của Xe.",
+            description = "GET Lấy giá R0, R1 của Xe."
+    )
+    @GetMapping("/vehicle-price")
+    public ApiResponse<?> getVehiclePriceToVehicleId(
+            @RequestParam("vehicleId") String vehicleId
+    ){
+        return ApiResponse.success(configurationHistoryService.getVehiclePriceToVehicleId(new ObjectId(vehicleId)));
+    }
+
+    @Operation(
             summary = "POST Hoán đổi cấu hình cho nhiều xe nâng.",
             description = "POST Hoán đổi cấu hình cho nhiều xe nâng."
     )
