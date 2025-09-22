@@ -5,9 +5,8 @@ import lombok.EqualsAndHashCode;
 
 import java.math.BigDecimal;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
-public class ItemCodePriceDto extends VehiclePricingR0R1Dto{
+public class ItemCodePriceDto {
 
     private String code;
     private BigDecimal salePriceR0;         // Giá bán đề xuất R0
