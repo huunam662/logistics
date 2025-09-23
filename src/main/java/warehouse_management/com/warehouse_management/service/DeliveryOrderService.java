@@ -321,8 +321,11 @@ public class DeliveryOrderService {
             Warehouse warehouse = warehouseService.getWarehouseToId(item.getWarehouseId());
             if(warehouse.getType() == null) throw LogicErrException.of("Kho "+warehouse.getName()+" không tồn tại loại kho.");
 
-            if(InventoryItemStatus.HOLD.equals(item.getStatus()) || item.getVehicleId() != null)
-                throw LogicErrException.of("Mặt hàng cần thêm vào đơn hiện không sẵn hàng.");
+            if(InventoryItemStatus.HOLD.equals(item.getStatus()) || item.getVehicleId() != null){
+                if(!item.getInventoryType().equals(InventoryType.SPARE_PART.getId()))
+                    throw LogicErrException.of("Sản phẩm "+item.getProductCode()+" cần thêm vào đơn hiện không sẵn hàng.");
+                else throw LogicErrException.of("Hàng "+item.getCommodityCode()+" cần thêm vào đơn hiện không sẵn hàng.");
+            }
 
             if(WarehouseType.DEPARTURE.getId().equals(warehouse.getTypeString()) && itemToPush.getIsDelivered()){
                 if(!item.getInventoryType().equals(InventoryType.SPARE_PART.getId()))
@@ -726,7 +729,7 @@ public class DeliveryOrderService {
             if(itemInHolding.getQuantity() == 0) inventoryItemRepository.deleteById(itemInHolding.getId());
             else inventoryItemRepository.save(itemInHolding);
 
-            updateItemSoldInDeliveryLogic(itemToUpdateReq, deliveryOrder, itemInStockOrSold, itemInHolding.getCommodityCode());
+            updateItemSoldInDeliveryLogic(itemToUpdateReq, deliveryOrder, itemInHolding, itemInHolding.getCommodityCode());
 
             deliveryOrder.getInventoryItems().remove(deliveryItem);
         }
