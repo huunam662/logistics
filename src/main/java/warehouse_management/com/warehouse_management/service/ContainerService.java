@@ -69,9 +69,7 @@ public class ContainerService {
                                                         ArithmeticOperators.Multiply.valueOf(
                                                                         ConditionalOperators.ifNull("$$this.pricing.purchasePrice").then(0)
                                                                 )
-                                                                .multiplyBy(
-                                                                        ConditionalOperators.ifNull("$$this.quantity").then(0)
-                                                                )
+                                                                .multiplyBy("$$this.quantity")
                                                 )
 
                                 )

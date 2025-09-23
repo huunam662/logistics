@@ -46,7 +46,9 @@ public class CustomDeliveryOrderRepositoryImpl implements CustomDeliveryOrderRep
                                 .reduce(
                                         ArithmeticOperators.Add.valueOf("$$value")
                                                 .add(
-                                                        ArithmeticOperators.Multiply.valueOf("$$this.pricing.purchasePrice")
+                                                        ArithmeticOperators.Multiply.valueOf(
+                                                                        ConditionalOperators.ifNull("$$this.pricing.purchasePrice").then(0)
+                                                                )
                                                                 .multiplyBy("$$this.quantity")
                                                 )
 
@@ -56,7 +58,9 @@ public class CustomDeliveryOrderRepositoryImpl implements CustomDeliveryOrderRep
                                 .reduce(
                                         ArithmeticOperators.Add.valueOf("$$value")
                                                 .add(
-                                                        ArithmeticOperators.Multiply.valueOf("$$this.pricing.actualSalePrice")
+                                                        ArithmeticOperators.Multiply.valueOf(
+                                                                        ConditionalOperators.ifNull("$$this.pricing.actualSalePrice").then(0)
+                                                                )
                                                                 .multiplyBy("$$this.quantity")
                                                 )
 
