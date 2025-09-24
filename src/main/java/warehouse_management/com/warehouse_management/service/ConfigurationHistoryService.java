@@ -175,7 +175,7 @@ public class ConfigurationHistoryService {
         else configHistory.setComponentReplaceSerial(componentReplace.getSerialNumber());
 
         configHistory.setComponentType(componentType.getId());
-        configHistory.setConfigType(ChangeConfigurationType.SWAP.getId());
+        configHistory.setConfigType(ConfigurationType.SWAP.getId());
 
         configHistory.setDescription("Hoán đối " + componentType.getValue() + " với xe " + vehicleRight.getProductCode());
 
@@ -199,7 +199,7 @@ public class ConfigurationHistoryService {
         else configHistory.setComponentOldSerial(component.getSerialNumber());
 
         configHistory.setComponentType(componentType.getId());
-        configHistory.setConfigType(ChangeConfigurationType.DISASSEMBLE.getId());
+        configHistory.setConfigType(ConfigurationType.DISASSEMBLE.getId());
 
         configHistory.setDescription("Tháo rời " + componentType.getValue() + " ra khỏi xe " + vehicle.getProductCode());
 
@@ -223,7 +223,7 @@ public class ConfigurationHistoryService {
         else configHistory.setComponentReplaceSerial(component.getSerialNumber());
 
         configHistory.setComponentType(componentType.getId());
-        configHistory.setConfigType(ChangeConfigurationType.ASSEMBLE.getId());
+        configHistory.setConfigType(ConfigurationType.ASSEMBLE.getId());
 
         configHistory.setDescription("Lắp ráp " + componentType.getValue() + " vào xe " + vehicle.getProductCode());
 
@@ -641,8 +641,18 @@ public class ConfigurationHistoryService {
     @Transactional
     public void completedConfigurationVehicle(ConfigurationCompletedDto request){
         InventoryItem vehicle = inventoryItemService.getItemToId(new ObjectId(request.getVehicleId()));
-//        if(!vehicle.isFullyComponent())
-//            throw LogicErrException.of("Không được phép hoàn tất cấu hình khi còn thiếu bộ phận.");
+
+        List<ConfigurationHistory> configurationHistoryList = configurationHistoryRepository.findAllUnCompletedByVehicleId(vehicle.getId());
+        if(!configurationHistoryList.isEmpty()){
+
+            ConfigurationHistory configurationHistory = configurationHistoryList.getFirst();
+
+            ConfigurationStatus configStatus = ConfigurationStatus.fromId(configurationHistory.getStatus());
+            ComponentType componentType = ComponentType.fromId(configurationHistory.getComponentType());
+            ConfigurationType configurationType = ConfigurationType.fromId(configurationHistory.getConfigType());
+
+            throw LogicErrException.of("Bộ phận " + componentType.getValue() + " hiện " + configStatus.getValue() + " để " + configurationType.getValue());
+        }
 
         inventoryItemRepository.updateStatusByIdIn(List.of(vehicle.getId()), InventoryItemStatus.IN_STOCK.getId());
     }
@@ -757,7 +767,7 @@ public class ConfigurationHistoryService {
         if(ConfigurationStatus.COMPLETED.getValue().equals(configurationHistory.getStatus()))
             throw LogicErrException.of("Cấu hình đã được hoàn tất trước đó.");
 
-        ConfigurationStatus status = ConfigurationStatus.fromValue(dto.getStatus());
+        ConfigurationStatus status = ConfigurationStatus.fromId(dto.getStatus());
         if(status == null) throw LogicErrException.of("Trạng thái cần thay đổi không hợp lệ.");
 
         CustomUserDetail customUserDetail = customAuthentication.getUserOrThrow();

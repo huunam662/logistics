@@ -181,7 +181,7 @@ public class ConfigurationHistoryController {
     @PostMapping("/vehicle-configuration-completed")
     public ApiResponse<?> completedConfigurationVehicle(
             @RequestBody ConfigurationCompletedDto request
-            ){
+    ){
         configurationHistoryService.completedConfigurationVehicle(request);
         return ApiResponse.success();
     }
@@ -230,7 +230,7 @@ public class ConfigurationHistoryController {
             description = "POST Gửi yêu cầu thay đổi bộ phận của xe."
     )
     @GetMapping("/page/repair-department")
-    public ApiResponse<?> getPageVehicleConfigurationPage(PageOptionsDto optionsReq){
+    public ApiResponse<?> getPageVehicleConfigurationPage(@ModelAttribute PageOptionsDto optionsReq){
         return ApiResponse.success(new PageInfoDto<>(configurationHistoryService.getPageVehicleConfigurationPage(optionsReq)));
     }
 
@@ -240,11 +240,11 @@ public class ConfigurationHistoryController {
     )
     @GetMapping("/code-status")
     public ApiResponse<?> checkConfiguration(
-            @RequestParam("vehicleId") ObjectId vehicleId,
+            @RequestParam("vehicleId") String vehicleId,
             @RequestParam("componentType") String componentType,
             @RequestParam("configType") String configType
     ){
-        return ApiResponse.success(configurationHistoryService.checkConfiguration(vehicleId, componentType, configType));
+        return ApiResponse.success(configurationHistoryService.checkConfiguration(new ObjectId(vehicleId), componentType, configType));
     }
 
     @Operation(
