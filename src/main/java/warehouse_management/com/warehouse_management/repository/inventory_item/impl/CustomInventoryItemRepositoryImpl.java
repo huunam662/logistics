@@ -982,7 +982,27 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                                 )
                         ).build(),
 
+                Aggregation.lookup("configuration_hist", "_id", "vehicleId", "configurations"),
+
+                Aggregation.match(Criteria.where("configurations.status").ne(ConfigurationStatus.COMPLETED.getId())),
+
                 Aggregation.addFields()
+                        .addField("configurationsObj")
+                        .withValue(
+                                new Document("$arrayToObject",
+                                        new Document("$map", new Document()
+                                                .append("input", "$configurations")
+                                                .append("as", "c")
+                                                .append("in", List.of(
+                                                        new Document("$ifNull", List.of("$$c.componentType", "UNKNOWN")),
+                                                        "$$c"
+                                                ))
+                                        )
+                                )
+                        ).build(),
+
+                Aggregation.addFields()
+                        // Khung nâng
                         .addField("liftingFrame.value")
                         .withValue(
                                 StringOperators.Concat.valueOf(ConditionalOperators.IfNull.ifNull(ConvertOperators.ToString.toString("$specifications.chassisType")).then(""))
@@ -993,6 +1013,8 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                                         .concat(" mm")
                         )
                         .addField("liftingFrame.serialNumber").withValue("$componentsObj.LIFTING_FRAME.serialNumber")
+                        .addField("liftingFrame.configStatus").withValue("$configurationsObj.LIFTING_FRAME.status")
+                        // Bình điện
                         .addField("battery.value")
                         .withValue(
                                 StringOperators.Concat.valueOf(ConditionalOperators.IfNull.ifNull(ConvertOperators.ToString.toString("$specifications.batteryInfo")).then(""))
@@ -1000,16 +1022,28 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                                         .concatValueOf(ConditionalOperators.IfNull.ifNull(ConvertOperators.ToString.toString("$specifications.batterySpecification")).then(""))
                         )
                         .addField("battery.serialNumber").withValue("$componentsObj.BATTERY.serialNumber")
+                        .addField("battery.configStatus").withValue("$configurationsObj.BATTERY.status")
+                        // Sạc
                         .addField("charger.value").withValue("$specifications.chargerSpecification")
                         .addField("charger.serialNumber").withValue("$componentsObj.CHARGER.serialNumber")
+                        .addField("charger.configStatus").withValue("$configurationsObj.CHARGER.status")
+                        // Động cơ
                         .addField("engine.value").withValue("$specifications.engineType")
                         .addField("engine.serialNumber").withValue("$componentsObj.ENGINE.commodityCode")
+                        .addField("engine.configStatus").withValue("$configurationsObj.ENGINE.status")
+                        // Càng nâng
                         .addField("fork.value").withValue("$specifications.forkDimensions")
                         .addField("fork.serialNumber").withValue("$componentsObj.FORK.commodityCode")
+                        .addField("fork.configStatus").withValue("$configurationsObj.FORK.status")
+                        // Van
                         .addField("valve.value").withValue("$specifications.valveCount")
                         .addField("valve.serialNumber").withValue("$componentsObj.VALVE.commodityCode")
+                        .addField("valve.configStatus").withValue("$configurationsObj.VALVE.status")
+                        // Side shift
                         .addField("sideShift.value").withValue("$specifications.hasSideShift")
                         .addField("sideShift.serialNumber").withValue("$componentsObj.SIDE_SHIFT.commodityCode")
+                        .addField("sideShift.configStatus").withValue("$configurationsObj.SIDE_SHIFT.status")
+
                         .build(),
 
                 Aggregation.project()

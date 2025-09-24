@@ -24,6 +24,7 @@ public class ConfigVehicleSpecPageDto {
     public static class ComponentVehicle{
         private Object value;
         private String serialNumber;
+        private String configStatus;
     }
 
 }

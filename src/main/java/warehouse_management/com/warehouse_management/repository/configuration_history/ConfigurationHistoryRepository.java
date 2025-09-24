@@ -24,4 +24,6 @@ public interface ConfigurationHistoryRepository extends CustomConfigurationHisto
     @Query("{vehicleId: ?0, componentType: ?1, configType: ?1, performedBy: null}")
     Optional<ConfigurationHistory> findByVehicleIdAndComponentTypeAndConfigType(ObjectId vehicleId, String componentType, String configType);
 
+    @Query(value = "{vehicleId: ?0, status: {$ne: 'COMPLETED'}}", sort = "{createdAt: -1}")
+    List<ConfigurationHistory> findAllUnCompletedByVehicleId(ObjectId vehicleId);
 }
