@@ -13,10 +13,7 @@ import warehouse_management.com.warehouse_management.dto.inventory_item.response
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.ItemCodePriceDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.VehiclePricingR0R1Dto;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
-import warehouse_management.com.warehouse_management.enumerate.ChangeConfigurationType;
-import warehouse_management.com.warehouse_management.enumerate.ComponentType;
-import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
-import warehouse_management.com.warehouse_management.enumerate.InventoryType;
+import warehouse_management.com.warehouse_management.enumerate.*;
 import warehouse_management.com.warehouse_management.exceptions.LogicErrException;
 import warehouse_management.com.warehouse_management.mapper.ConfigurationHistoryMapper;
 import warehouse_management.com.warehouse_management.mapper.InventoryItemMapper;
@@ -26,7 +23,7 @@ import warehouse_management.com.warehouse_management.repository.configuration_hi
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
 import warehouse_management.com.warehouse_management.security.CustomUserDetail;
 
-import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -43,6 +40,16 @@ public class ConfigurationHistoryService {
     private final ConfigurationHistoryMapper configurationVehicleMapper;
     private final CustomAuthentication customAuthentication;
 
+    public ConfigurationHistory getToId(ObjectId id){
+        return configurationHistoryRepository.findById(id)
+                .orElseThrow(() -> LogicErrException.of("Lịch sử cấu hình không tồn tại."));
+    }
+
+    public ConfigurationHistory getToCodeAndVehicleId(String code, ObjectId vehicleId){
+        return configurationHistoryRepository.findByCodeAndVehicleId(code, vehicleId)
+                .orElseThrow(() -> LogicErrException.of("Lịch sử cấu hình không tồn tại."));
+    }
+
     @Transactional
     public boolean swapItems(VehiclePartSwapDto request) {
         // 1. Lấy vehicle và accessory tương ứng
@@ -54,17 +61,26 @@ public class ConfigurationHistoryService {
 
         InventoryItem leftVehComponent = inventoryItemService.getComponentItemToVehicleIdAndType(leftVeh.getId(), componentType, leftVeh.getProductCode());
         InventoryItem rightVehComponent = inventoryItemService.getComponentItemToVehicleIdAndType(rightVeh.getId(), componentType, rightVeh.getProductCode());
-        inventoryItemRepository.updateVehicleIdById(leftVehComponent.getId(), rightVeh.getId());
-        inventoryItemRepository.updateVehicleIdById(rightVehComponent.getId(), leftVeh.getId());
 
-        swapVehicleComponent(leftVeh, rightVeh, componentType);
+        ConfigurationHistory configurationHistory = getToCodeAndVehicleId(request.getConfigurationCode(), leftVeh.getId());
+
+        String componentLeftSerial = InventoryType.SPARE_PART.getId().equals(leftVehComponent.getInventoryType())
+                                    ? leftVehComponent.getCommodityCode() : leftVehComponent.getSerialNumber();
+
+        if(!configurationHistory.getComponentReplaceSerial().equals(componentLeftSerial)){
+            inventoryItemRepository.updateVehicleIdById(leftVehComponent.getId(), rightVeh.getId());
+            inventoryItemRepository.updateVehicleIdById(rightVehComponent.getId(), leftVeh.getId());
+
+            swapVehicleComponent(leftVeh, rightVeh, componentType);
+        }
+
         setVehiclePrices(leftVeh, rightVeh, request);
 
-        ConfigurationHistory historyLeftVeh = buildSwapHistory(leftVeh, rightVeh, leftVehComponent, rightVehComponent, componentType);
-        ConfigurationHistory historyRightVeh = buildSwapHistory(rightVeh, leftVeh, rightVehComponent, leftVehComponent, componentType);
-
         inventoryItemRepository.bulkUpdateSpecAndPricing(List.of(leftVeh, rightVeh));
-        configurationHistoryRepository.bulkInsert(List.of(historyLeftVeh, historyRightVeh));
+
+        CustomUserDetail customUserDetail = customAuthentication.getUserOrThrow();
+
+        configurationHistoryRepository.updatePerformed(configurationHistory.getId(), customUserDetail.getFullName());
 
         return true;
     }
@@ -144,8 +160,6 @@ public class ConfigurationHistoryService {
 
         ConfigurationHistory configHistory = new ConfigurationHistory();
 
-        configHistory.setPerformedBy(customAuthentication.getUserOrThrow().getFullName());
-
         configHistory.setVehicleId(vehicleLeft.getId());
 
         configHistory.setComponentOldId(componentOld.getId());
@@ -174,10 +188,7 @@ public class ConfigurationHistoryService {
             ComponentType componentType
     ) {
 
-
         ConfigurationHistory configHistory = new ConfigurationHistory();
-
-        configHistory.setPerformedBy(customAuthentication.getUserOrThrow().getFullName());
 
         configHistory.setVehicleId(vehicle.getId());
 
@@ -202,8 +213,6 @@ public class ConfigurationHistoryService {
     ) {
 
         ConfigurationHistory configHistory = new ConfigurationHistory();
-
-        configHistory.setPerformedBy(customAuthentication.getUserOrThrow().getFullName());
 
         configHistory.setVehicleId(vehicle.getId());
 
@@ -231,6 +240,7 @@ public class ConfigurationHistoryService {
         InventoryItem vehicle = inventoryItemService.getItemToId(new ObjectId(dropPartRequest.getVehicleId()));
 
         ComponentType componentType = ComponentType.fromId(dropPartRequest.getComponentType());
+
         if(componentType == null) throw LogicErrException.of("Loại bộ phận cần tháo rời không hợp lệ.");
 
         InventoryItem component = inventoryItemService.getComponentItemToVehicleIdAndType(vehicle.getId(), componentType, vehicle.getProductCode());
@@ -291,9 +301,9 @@ public class ConfigurationHistoryService {
 
         inventoryItemRepository.save(vehicle);
 
-        ConfigurationHistory disassembleHistory = buildDisassembleHistory(vehicle, component, componentType);
+        CustomUserDetail customUserDetail = customAuthentication.getUserOrThrow();
 
-        configurationHistoryRepository.save(disassembleHistory);
+        configurationHistoryRepository.updatePerformed(dropPartRequest.getConfigurationCode(), customUserDetail.getFullName());
 
         return true;
     }
@@ -387,9 +397,9 @@ public class ConfigurationHistoryService {
 
         inventoryItemRepository.save(vehicle);
 
-        ConfigurationHistory assembleHistory = buildAssembleHistory(vehicle, component, componentType);
+        CustomUserDetail customUserDetail = customAuthentication.getUserOrThrow();
 
-        configurationHistoryRepository.save(assembleHistory);
+        configurationHistoryRepository.updatePerformed(assemblePart.getConfigurationCode(), customUserDetail.getFullName());
 
         return true;
     }
@@ -652,5 +662,117 @@ public class ConfigurationHistoryService {
         res.getVehicleRightPricing().setSalePriceR1(vehicleRight.getPricing() == null ? null : vehicleRight.getPricing().getSalePriceR1());
 
         return res;
+    }
+
+    @Transactional
+    public ConfigurationHistory sendAssembleVehicle(SendAssembleComponentDto dto){
+
+        InventoryItem vehicle = inventoryItemService.getItemToId(new ObjectId(dto.getVehicleId()));
+
+        InventoryItem component = inventoryItemService.getItemToId(new ObjectId(dto.getComponentId()));
+
+        ComponentType componentType = ComponentType.fromId(component.getComponentType());
+
+        if(componentType == null) throw LogicErrException.of("Loại bộ phận không hợp lệ");
+
+        if(vehicle.getId().equals(component.getVehicleId())){
+            throw LogicErrException.of("Bộ phận " + componentType.getValue() + " đã có sẵn trong xe " + vehicle.getProductCode());
+        }
+
+        inventoryItemRepository.updateStatusByIdIn(List.of(component.getId()), InventoryItemStatus.IN_CONFIG.getId());
+
+        ConfigurationHistory assembleRequest = buildAssembleHistory(vehicle, component, componentType);
+
+        assembleRequest.setStatus(ConfigurationStatus.PENDING.getValue());
+
+        return configurationHistoryRepository.save(assembleRequest);
+    }
+
+    @Transactional
+    public ConfigurationHistory sendDisassembleVehicle(SendDisassembleComponentDto dto){
+
+        InventoryItem vehicle = inventoryItemService.getItemToId(new ObjectId(dto.getVehicleId()));
+
+        ComponentType componentType = ComponentType.fromId(dto.getComponentType());
+
+        if(componentType == null) throw LogicErrException.of("Loại bộ phận cần tháo rời không hợp lệ.");
+
+        InventoryItem component = inventoryItemService.getComponentItemToVehicleIdAndType(vehicle.getId(), componentType, vehicle.getProductCode());
+
+        ConfigurationHistory disassembleRequest = buildDisassembleHistory(vehicle, component, componentType);
+
+        disassembleRequest.setStatus(ConfigurationStatus.PENDING.getValue());
+
+        return configurationHistoryRepository.save(disassembleRequest);
+    }
+
+    @Transactional
+    public List<ConfigurationHistory> sendSwapVehicle(SendSwapComponentDto dto){
+
+        // 1. Lấy vehicle và accessory tương ứng
+        InventoryItem leftVeh = inventoryItemService.findByIdOrThrow(dto.getLeftVehicleId());
+        InventoryItem rightVeh = inventoryItemService.findByIdOrThrow(dto.getRightVehicleId());
+
+        ComponentType componentType = ComponentType.fromId(dto.getComponentType());
+        if(componentType == null) throw LogicErrException.of("Loại bộ phận cần tháo rời không hợp lệ.");
+
+        InventoryItem leftVehComponent = inventoryItemService.getComponentItemToVehicleIdAndType(leftVeh.getId(), componentType, leftVeh.getProductCode());
+        InventoryItem rightVehComponent = inventoryItemService.getComponentItemToVehicleIdAndType(rightVeh.getId(), componentType, rightVeh.getProductCode());
+
+        ConfigurationHistory leftSwapRequest = buildSwapHistory(leftVeh, rightVeh, leftVehComponent, rightVehComponent, componentType);
+        leftSwapRequest.setStatus(ConfigurationStatus.PENDING.getValue());
+
+        ConfigurationHistory rightSwapRequest = buildSwapHistory(rightVeh, leftVeh, rightVehComponent, leftVehComponent, componentType);
+        rightSwapRequest.setConfigurationCode(leftSwapRequest.getConfigurationCode());
+        rightSwapRequest.setStatus(ConfigurationStatus.PENDING.getValue());
+
+        return List.of(
+                configurationHistoryRepository.save(leftSwapRequest),
+                configurationHistoryRepository.save(rightSwapRequest)
+        );
+    }
+
+    public Page<VehicleConfigurationPageDto> getPageVehicleConfigurationPage(PageOptionsDto optionsReq) {
+        return configurationHistoryRepository.findPageVehicleConfigurationPage(optionsReq);
+    }
+
+    public CheckConfigurationDto checkConfiguration(ObjectId vehicleId, String componentType, String configType){
+
+        ConfigurationHistory configurationHistory = configurationHistoryRepository.findByVehicleIdAndComponentTypeAndConfigType(vehicleId, componentType, configType)
+                .orElse(null);
+
+        if(configurationHistory == null) return null;
+
+        CheckConfigurationDto res = new CheckConfigurationDto();
+        res.setConfigurationCode(configurationHistory.getConfigurationCode());
+        res.setStatus(configurationHistory.getStatus());
+
+        return res;
+    }
+
+    public ConfigurationHistory updateStatusConfiguration(UpdateStatusConfigurationDto dto){
+
+        ConfigurationHistory configurationHistory = getToId(new ObjectId(dto.getConfigurationId()));
+
+        if(ConfigurationStatus.COMPLETED.getValue().equals(configurationHistory.getStatus()))
+            throw LogicErrException.of("Cấu hình đã được hoàn tất trước đó.");
+
+        ConfigurationStatus status = ConfigurationStatus.fromValue(dto.getStatus());
+        if(status == null) throw LogicErrException.of("Trạng thái cần thay đổi không hợp lệ.");
+
+        CustomUserDetail customUserDetail = customAuthentication.getUserOrThrow();
+
+        configurationHistory.setStatus(status.getValue());
+
+        if(ConfigurationStatus.REPAIRING.getValue().equals(status.getValue())){
+            configurationHistory.setConfirmedBy(customUserDetail.getFullName());
+            configurationHistory.setConfirmedAt(LocalDateTime.now());
+        }
+        else if(ConfigurationStatus.COMPLETED.getValue().equals(status.getValue())){
+            configurationHistory.setCompletedBy(customUserDetail.getFullName());
+            configurationHistory.setCompletedAt(LocalDateTime.now());
+        }
+
+        return configurationHistoryRepository.save(configurationHistory);
     }
 }

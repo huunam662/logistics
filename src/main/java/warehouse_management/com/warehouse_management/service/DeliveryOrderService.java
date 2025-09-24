@@ -171,6 +171,7 @@ public class DeliveryOrderService {
                     return dto;
                 })
                 .toList();
+
         List<DeliverySparePartDetailsDto> noteDeliveryModels = Optional.ofNullable(deliveryOrder.getModelNotes())
                 .orElse(Collections.emptyList())
                 .stream()
@@ -186,25 +187,34 @@ public class DeliveryOrderService {
 
     @Transactional
     public DeliveryOrder changeStatusDeliveryOrder(ObjectId id, ChangeStatusDeliveryOrderDto dto){
+
         DeliveryOrder deliveryOrder = getDeliveryOrderToId(id);
+
         if(deliveryOrder.getStatus().equals(DeliveryOrderStatus.UN_DELIVERED.getValue()))
             if(deliveryOrder.getInventoryItems() == null || deliveryOrder.getInventoryItems().isEmpty())
                 throw LogicErrException.of("Đơn hàng hiện đang không có sản phẩm.");
+
         if(deliveryOrder.getStatus().equals(DeliveryOrderStatus.REJECTED.getValue()))
             throw LogicErrException.of("Đơn hàng đã được hủy trước đó.");
+
         if(!dto.getStatus().equals(DeliveryOrderStatus.REJECTED.getValue())
                 && deliveryOrder.getStatus().equals(DeliveryOrderStatus.COMPLETED.getValue()))
             throw LogicErrException.of("Đơn hàng đã được hoàn tất trước đó.");
+
         DeliveryOrderStatus status = DeliveryOrderStatus.fromValue(dto.getStatus());
+
         if(status == null) throw LogicErrException.of("Trạng thái cần cập nhật không hợp lệ.");
+
         if(status.equals(DeliveryOrderStatus.REJECTED)){
             if(deliveryOrder.getInventoryItems() != null && !deliveryOrder.getInventoryItems().isEmpty()){
                 restoreDeliveryItemsLogic(deliveryOrder.getInventoryItems());
             }
         }
+
         if(status.equals(DeliveryOrderStatus.COMPLETED)){
             deliveryOrder = completedDeliveryLogic(deliveryOrder);
         }
+
         deliveryOrder.setStatus(status.getValue());
         return deliveryOrderRepository.save(deliveryOrder);
     }
