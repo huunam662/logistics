@@ -4,7 +4,7 @@ import org.springframework.lang.Nullable;
 
 import java.util.Arrays;
 
-public enum WarehouseTransactionStatus implements EnumClass<String> {
+public enum WarehouseTransactionStatus  {
 
     PENDING("PENDING"),
     APPROVED("APPROVED"),

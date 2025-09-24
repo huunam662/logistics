@@ -2,7 +2,7 @@ package warehouse_management.com.warehouse_management.enumerate;
 
 import org.springframework.lang.Nullable;
 
-public enum WarrantyStatus implements EnumClass<String>  {
+public enum WarrantyStatus   {
     IN_WARRANTY("IN_WARRANTY"),
     COMPLETE("COMPLETE"),
     EXPIRED("EXPIRED");

@@ -2,7 +2,7 @@ package warehouse_management.com.warehouse_management.enumerate;
 
 import org.springframework.lang.Nullable;
 
-public enum WarehouseType implements EnumClass<String> {
+public enum WarehouseType  {
     PRODUCTION("PRODUCTION"),               // Kho chờ sản xuất
     DEPARTURE("DEPARTURE"),                 // Kho Trung Quốc (Kho đi)
     DESTINATION("DESTINATION"),             // Kho đích (VN)

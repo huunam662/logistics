@@ -14,6 +14,8 @@ public class VehiclePartSwapDto {
     private VehiclePrice leftPrice;
     private VehiclePrice rightPrice;
 
+    private String configurationCode;
+
     @Data
     public static class VehiclePrice {
         private BigDecimal salePriceR0;
