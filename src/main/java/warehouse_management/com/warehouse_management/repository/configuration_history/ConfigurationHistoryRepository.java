@@ -24,6 +24,12 @@ public interface ConfigurationHistoryRepository extends CustomConfigurationHisto
     @Query("{vehicleId: ?0, componentType: ?1, configType: ?2, performedBy: null, deletedAt: null}")
     Optional<ConfigurationHistory> findByVehicleIdAndComponentTypeAndConfigType(ObjectId vehicleId, String componentType, String configType);
 
+    @Aggregation(pipeline = {
+            "{$match: {componentType: ?0, configType: 'SWAP', status: {$ne: 'COMPLETED'}, deletedAt: null}}",
+            "{$project: {_id: 0, vehicleId: 1}}"
+    })
+    List<ObjectId> findAllVehicleIdSwapAndUnCompletedByComponentType(String componentType);
+
     @Query(value = "{vehicleId: ?0, status: {$ne: 'COMPLETED'}, deletedAt: null}", sort = "{createdAt: -1}")
     List<ConfigurationHistory> findAllUnCompletedByVehicleId(ObjectId vehicleId);
 
