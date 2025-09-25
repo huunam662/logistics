@@ -19,6 +19,7 @@ import warehouse_management.com.warehouse_management.mapper.ConfigurationHistory
 import warehouse_management.com.warehouse_management.mapper.InventoryItemMapper;
 import warehouse_management.com.warehouse_management.model.ConfigurationHistory;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
+import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.repository.configuration_history.ConfigurationHistoryRepository;
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
 import warehouse_management.com.warehouse_management.security.CustomUserDetail;
@@ -39,6 +40,7 @@ public class ConfigurationHistoryService {
     private final InventoryItemMapper inventoryItemMapper;
     private final ConfigurationHistoryMapper configurationVehicleMapper;
     private final CustomAuthentication customAuthentication;
+    private final WarehouseService warehouseService;
 
     public ConfigurationHistory getToId(ObjectId id){
         return configurationHistoryRepository.findById(id)
@@ -453,16 +455,26 @@ public class ConfigurationHistoryService {
         return inventoryItemRepository.findPageConfigVehicleSpec(optionsDto);
     }
 
-    public List<VehicleComponentTypeDto> getComponentTypeToVehicleId(ObjectId vehicleId){
+    public List<VehicleComponentTypeDto> getComponentTypeToVehicleId(ObjectId vehicleId, Boolean isSwap){
         List<String> componentTypes = inventoryItemRepository.findComponentTypeByVehicleId(vehicleId);
-        return componentTypes.stream().map(elm -> {
-            ComponentType componentType = ComponentType.fromId(elm);
-            if(componentType == null) return null;
-            VehicleComponentTypeDto res = new VehicleComponentTypeDto();
-            res.setComponentType(componentType.getId());
-            res.setComponentName(componentType.getValue());
-            return res;
-        }).filter(Objects::nonNull).toList();
+
+        List<String> componentTypesToFilter;
+
+        if(isSwap) componentTypesToFilter = configurationHistoryRepository.findAllComponentUnSwapAndUnCompletedByVehicleId(vehicleId);
+        else componentTypesToFilter = configurationHistoryRepository.findAllComponentSwapAndUnCompletedByVehicleId(vehicleId);
+
+        return componentTypes
+                .stream()
+                .filter(elm -> !componentTypesToFilter.contains(elm))
+                .map(elm -> {
+                    ComponentType componentType = ComponentType.fromId(elm);
+                    if(componentType == null) return null;
+                    VehicleComponentTypeDto res = new VehicleComponentTypeDto();
+                    res.setComponentType(componentType.getId());
+                    res.setComponentName(componentType.getValue());
+                    return res;
+                })
+                .toList();
     }
 
     public List<VehicleComponentTypeDto> getComponentTypeMissingToVehicleId(ObjectId vehicleId){
@@ -693,7 +705,7 @@ public class ConfigurationHistoryService {
 
         ConfigurationHistory assembleRequest = buildAssembleHistory(vehicle, component, componentType);
 
-        assembleRequest.setStatus(ConfigurationStatus.PENDING.getValue());
+        assembleRequest.setStatus(ConfigurationStatus.PENDING.getId());
 
         return configurationHistoryRepository.save(assembleRequest);
     }
@@ -711,7 +723,7 @@ public class ConfigurationHistoryService {
 
         ConfigurationHistory disassembleRequest = buildDisassembleHistory(vehicle, component, componentType);
 
-        disassembleRequest.setStatus(ConfigurationStatus.PENDING.getValue());
+        disassembleRequest.setStatus(ConfigurationStatus.PENDING.getId());
 
         return configurationHistoryRepository.save(disassembleRequest);
     }
@@ -730,11 +742,11 @@ public class ConfigurationHistoryService {
         InventoryItem rightVehComponent = inventoryItemService.getComponentItemToVehicleIdAndType(rightVeh.getId(), componentType, rightVeh.getProductCode());
 
         ConfigurationHistory leftSwapRequest = buildSwapHistory(leftVeh, rightVeh, leftVehComponent, rightVehComponent, componentType);
-        leftSwapRequest.setStatus(ConfigurationStatus.PENDING.getValue());
+        leftSwapRequest.setStatus(ConfigurationStatus.PENDING.getId());
 
         ConfigurationHistory rightSwapRequest = buildSwapHistory(rightVeh, leftVeh, rightVehComponent, leftVehComponent, componentType);
         rightSwapRequest.setConfigurationCode(leftSwapRequest.getConfigurationCode());
-        rightSwapRequest.setStatus(ConfigurationStatus.PENDING.getValue());
+        rightSwapRequest.setStatus(ConfigurationStatus.PENDING.getId());
 
         return List.of(
                 configurationHistoryRepository.save(leftSwapRequest),
@@ -746,39 +758,90 @@ public class ConfigurationHistoryService {
         return configurationHistoryRepository.findPageVehicleConfigurationPage(optionsReq);
     }
 
-    public CheckConfigurationDto checkConfiguration(ObjectId vehicleId, String componentType, String configType){
+    public CheckConfigurationDisassembleDto checkConfigurationDisassemble(ObjectId vehicleId, String componentType){
 
-        ConfigurationHistory configurationHistory = configurationHistoryRepository.findByVehicleIdAndComponentTypeAndConfigType(vehicleId, componentType, configType)
+        ConfigurationHistory configurationHistory = configurationHistoryRepository.findByVehicleIdAndComponentTypeAndConfigType(vehicleId, componentType, ConfigurationType.DISASSEMBLE.getId())
                 .orElse(null);
 
         if(configurationHistory == null) return null;
 
-        CheckConfigurationDto res = new CheckConfigurationDto();
+        CheckConfigurationDisassembleDto res = new CheckConfigurationDisassembleDto();
         res.setConfigurationCode(configurationHistory.getConfigurationCode());
         res.setStatus(configurationHistory.getStatus());
 
         return res;
     }
 
+    public CheckConfigurationAssembleDto checkConfigurationAssemble(ObjectId vehicleId, String componentType){
+
+        ConfigurationHistory configurationHistory = configurationHistoryRepository.findByVehicleIdAndComponentTypeAndConfigType(vehicleId, componentType, ConfigurationType.ASSEMBLE.getId())
+                .orElse(null);
+
+        if(configurationHistory == null) return null;
+
+        InventoryItem componentReplace = inventoryItemService.getItemToId(configurationHistory.getComponentReplaceId());
+
+        Warehouse warehouseComponent = warehouseService.getWarehouseToId(componentReplace.getWarehouseId());
+
+        CheckConfigurationAssembleDto res = new CheckConfigurationAssembleDto();
+        res.setConfigurationCode(configurationHistory.getConfigurationCode());
+        res.setStatus(configurationHistory.getStatus());
+        res.setComponentId(configurationHistory.getComponentReplaceId());
+        res.setSerialNumber(configurationHistory.getComponentReplaceSerial());
+        res.setWarehouseCode(warehouseComponent.getCode());
+        res.setWarehouseName(warehouseComponent.getName());
+
+        ComponentType componentTypeEnum = ComponentType.fromId(configurationHistory.getComponentType());
+        res.setComponentName(componentTypeEnum == null ? null : componentTypeEnum.getValue());
+
+        return res;
+    }
+
+    public CheckConfigurationSwapDto checkConfigurationSwap(ObjectId vehicleId, String componentType){
+
+        ConfigurationHistory configurationHistory = configurationHistoryRepository.findByVehicleIdAndComponentTypeAndConfigType(vehicleId, componentType, ConfigurationType.SWAP.getId())
+                .orElse(null);
+
+        if(configurationHistory == null) return null;
+
+        ConfigurationHistory configurationVehicleRight = configurationHistoryRepository.findByConfigurationCodeAndDiffVehicleId(configurationHistory.getConfigurationCode(), configurationHistory.getVehicleId())
+                .orElse(null);
+
+        if(configurationVehicleRight == null) return null;
+
+        InventoryItem vehicleRight = inventoryItemService.getItemToId(configurationVehicleRight.getVehicleId());
+
+        CheckConfigurationSwapDto res = new CheckConfigurationSwapDto();
+        res.setConfigurationCode(configurationHistory.getConfigurationCode());
+        res.setStatus(configurationHistory.getStatus());
+        res.setVehicleId(vehicleRight.getId());
+        res.setProductCode(vehicleRight.getProductCode());
+        res.setSerialNumber(vehicleRight.getSerialNumber());
+        res.setModel(vehicleRight.getModel());
+
+        return res;
+    }
+
+    @Transactional
     public ConfigurationHistory updateStatusConfiguration(UpdateStatusConfigurationDto dto){
 
         ConfigurationHistory configurationHistory = getToId(new ObjectId(dto.getConfigurationId()));
 
-        if(ConfigurationStatus.COMPLETED.getValue().equals(configurationHistory.getStatus()))
+        if(ConfigurationStatus.COMPLETED.getId().equals(configurationHistory.getStatus()))
             throw LogicErrException.of("Cấu hình đã được hoàn tất trước đó.");
 
         ConfigurationStatus status = ConfigurationStatus.fromId(dto.getStatus());
         if(status == null) throw LogicErrException.of("Trạng thái cần thay đổi không hợp lệ.");
 
+        configurationHistory.setStatus(status.getId());
+
         CustomUserDetail customUserDetail = customAuthentication.getUserOrThrow();
 
-        configurationHistory.setStatus(status.getValue());
-
-        if(ConfigurationStatus.REPAIRING.getValue().equals(status.getValue())){
+        if(ConfigurationStatus.REPAIRING.getId().equals(status.getId())){
             configurationHistory.setConfirmedBy(customUserDetail.getFullName());
             configurationHistory.setConfirmedAt(LocalDateTime.now());
         }
-        else if(ConfigurationStatus.COMPLETED.getValue().equals(status.getValue())){
+        else if(ConfigurationStatus.COMPLETED.getId().equals(status.getId())){
             configurationHistory.setCompletedBy(customUserDetail.getFullName());
             configurationHistory.setCompletedAt(LocalDateTime.now());
         }

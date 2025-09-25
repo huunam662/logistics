@@ -92,7 +92,6 @@ public interface InventoryItemRepository extends MongoRepository<InventoryItem, 
     })
     List<String> findComponentTypeByVehicleId(ObjectId vehicleId);
 
-
     @Aggregation(pipeline = {
             "{$match: {componentType: ?0, status: 'IN_STOCK', vehicleId: null, deletedAt: null}}",
             "{$lookup: {from: 'warehouse', localField: 'warehouseId', foreignField: '_id', as: 'warehouse'}}",

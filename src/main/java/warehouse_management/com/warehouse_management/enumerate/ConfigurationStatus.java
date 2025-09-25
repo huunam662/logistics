@@ -22,7 +22,7 @@ public enum ConfigurationStatus {
         if(id == null) return null;
 
         for (ConfigurationStatus status : ConfigurationStatus.values()){
-            if (status.value.equals(id)){
+            if (status.id.equals(id)){
                 return status;
             }
         }
