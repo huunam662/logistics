@@ -534,7 +534,24 @@ public class ConfigurationHistoryService {
     }
 
     public List<ItemCodeModelSerialDto> getVehicleByComponentTypeAndInRepair(String componentType){
-        return inventoryItemRepository.findVehicleByComponentTypeAndInRepair(componentType);
+
+        List<ItemCodeModelSerialDto> items = inventoryItemRepository.findVehicleByComponentTypeAndInRepair(componentType);
+
+        List<ObjectId> vehicleIdsSwapConfig = configurationHistoryRepository.findAllVehicleIdSwapAndUnCompletedByComponentType(componentType);
+
+        for(var vehicleId : vehicleIdsSwapConfig){
+            ItemCodeModelSerialDto itemDto = items
+                    .stream()
+                    .filter(o -> vehicleId.equals(o.getVehicleId()))
+                    .findFirst()
+                    .orElse(null);
+
+            if(itemDto == null) continue;
+
+            items.remove(itemDto);
+        }
+
+        return items;
     }
 
     @Transactional
