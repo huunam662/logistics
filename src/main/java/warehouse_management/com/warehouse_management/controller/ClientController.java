@@ -16,7 +16,7 @@ import warehouse_management.com.warehouse_management.service.ClientService;
 import java.util.List;
 
 @RestController
-@Tag(name = "Client controller")
+@Tag(name = "Client")
 @RequestMapping("/v1/clients")
 @RequiredArgsConstructor
 public class ClientController {

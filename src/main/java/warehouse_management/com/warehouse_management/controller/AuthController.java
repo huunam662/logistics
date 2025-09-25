@@ -14,7 +14,7 @@ import warehouse_management.com.warehouse_management.dto.auth.response.LoginResp
 import warehouse_management.com.warehouse_management.service.AuthService;
 
 @RestController
-@Tag(name = "Client controller")
+@Tag(name = "Auth")
 @RequestMapping("/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {

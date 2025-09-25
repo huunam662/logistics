@@ -87,9 +87,9 @@ public class CustomConfigurationHistoryRepositoryImpl implements CustomConfigura
         Aggregation aggregation = Aggregation.newAggregation(
                 Aggregation.match(Criteria.where("deletedAt").isNull()),
 
-                Aggregation.lookup("vehicle", "vehicleId", "_id", "vehicle"),
+                Aggregation.lookup("inventory_item", "vehicleId", "_id", "vehicle"),
                 Aggregation.unwind("vehicle"),
-                Aggregation.lookup("warehouseVehicle", "vehicle.warehouseId", "_id", "warehouseVehicle"),
+                Aggregation.lookup("warehouse", "vehicle.warehouseId", "_id", "warehouseVehicle"),
                 Aggregation.unwind("warehouseVehicle"),
 
                 Aggregation.match(new Criteria().andOperator(
