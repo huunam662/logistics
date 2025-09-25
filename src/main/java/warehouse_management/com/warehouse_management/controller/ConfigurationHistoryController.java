@@ -133,8 +133,8 @@ public class ConfigurationHistoryController {
     }
 
     @Operation(
-            summary = "GET Danh sách các xe nâng sẵn hàng chưa thêm vào cấu hình.",
-            description = "GET Danh sách các xe nâng sẵn hàng chưa thêm vào cấu hình."
+            summary = "GET Danh sách các xe nâng sẵn hàng chưa thêm vào cấu hình (Phân trang).",
+            description = "GET Danh sách các xe nâng sẵn hàng chưa thêm vào cấu hình (Phân trang)."
     )
     @GetMapping("/page/vehicles-to-configuration")
     public ApiResponse<?> getPageVehicleInStock(@ModelAttribute PageOptionsDto optionsDto){
@@ -229,8 +229,8 @@ public class ConfigurationHistoryController {
     }
 
     @Operation(
-            summary = "POST Gửi yêu cầu thay đổi bộ phận của xe.",
-            description = "POST Gửi yêu cầu thay đổi bộ phận của xe."
+            summary = "GET Danh sách xe nâng đang sữa chữa cấu hình (Phân trang).",
+            description = "GET Danh sách xe nâng đang sữa chữa cấu hình (Phân trang)."
     )
     @GetMapping("/page/repair-department")
     public ApiResponse<?> getPageVehicleConfigurationPage(@ModelAttribute PageOptionsDto optionsReq){

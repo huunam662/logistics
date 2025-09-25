@@ -12,6 +12,7 @@ public class VehicleConfigurationPageDto {
     private ObjectId id;
     private String configurationCode;   // Mã cấu hình
     private ObjectId vehicleId;
+    private String vehicleProductCode;  // Mã sản phẩm (Xe)
     private String vehicleSerial;   // Serial của Xe
     private String vehicleModel;    // Model của Xe
     private String warehouseName;   // Tên kho chứa Xe

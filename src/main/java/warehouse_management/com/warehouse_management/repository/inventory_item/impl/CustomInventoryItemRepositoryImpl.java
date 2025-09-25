@@ -982,9 +982,17 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                                 )
                         ).build(),
 
-                Aggregation.lookup("configuration_hist", "_id", "vehicleId", "configurations"),
+                Aggregation.lookup("configuration_hist", "_id", "vehicleId", "configurationsHist"),
 
-                Aggregation.match(Criteria.where("configurations.status").ne(ConfigurationStatus.COMPLETED.getId())),
+                Aggregation.addFields()
+                        .addField("configurations")
+                        .withValue(
+                                ArrayOperators.Filter.filter("configurationsHist")
+                                        .as("c")
+                                        .by(ComparisonOperators.Ne.valueOf("$$c.status")
+                                                .notEqualToValue(ConfigurationStatus.COMPLETED.getId()))
+                        )
+                        .build(),
 
                 Aggregation.addFields()
                         .addField("configurationsObj")
