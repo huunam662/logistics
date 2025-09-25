@@ -478,10 +478,13 @@ public class ConfigurationHistoryService {
     }
 
     public List<VehicleComponentTypeDto> getComponentTypeMissingToVehicleId(ObjectId vehicleId){
+
         List<String> componentTypes = inventoryItemRepository.findComponentTypeByVehicleId(vehicleId);
+
         List<ComponentType> componentTypesMissing = Arrays.stream(ComponentType.values())
                 .filter(o -> !componentTypes.contains(o.getId()))
                 .toList();
+
         return componentTypesMissing.stream()
                 .map(o -> {
                     VehicleComponentTypeDto res = new VehicleComponentTypeDto();
@@ -519,10 +522,15 @@ public class ConfigurationHistoryService {
     }
 
     public List<VehicleComponentTypeDto> getComponentsTypeCommon(ObjectId vehicleLeftId, ObjectId vehicleRightId){
+
         List<String> componentTypesLeft = inventoryItemRepository.findComponentTypeByVehicleId(vehicleLeftId);
+
         List<String> componentTypesRight = inventoryItemRepository.findComponentTypeByVehicleId(vehicleRightId);
+
         Set<String> componentTypesCommon = new HashSet<>(componentTypesLeft);
+
         componentTypesCommon.retainAll(componentTypesRight);
+
         return componentTypesCommon.stream().map(elm -> {
             ComponentType componentType = ComponentType.fromId(elm);
             if(componentType == null) return null;
@@ -539,19 +547,9 @@ public class ConfigurationHistoryService {
 
         List<ObjectId> vehicleIdsSwapConfig = configurationHistoryRepository.findAllVehicleIdSwapAndUnCompletedByComponentType(componentType);
 
-        for(var vehicleId : vehicleIdsSwapConfig){
-            ItemCodeModelSerialDto itemDto = items
-                    .stream()
-                    .filter(o -> vehicleId.equals(o.getVehicleId()))
-                    .findFirst()
-                    .orElse(null);
-
-            if(itemDto == null) continue;
-
-            items.remove(itemDto);
-        }
-
-        return items;
+        return items.stream()
+                .filter(o -> !vehicleIdsSwapConfig.contains(o.getVehicleId()))
+                .toList();
     }
 
     @Transactional
