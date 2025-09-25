@@ -34,13 +34,13 @@ public interface ConfigurationHistoryRepository extends CustomConfigurationHisto
     List<ConfigurationHistory> findAllUnCompletedByVehicleId(ObjectId vehicleId);
 
     @Aggregation(pipeline = {
-            "{$match: {vehicleId: ?0, configType: 'SWAP'}, status: {$ne: 'COMPLETED'}, deletedAt: null}",
+            "{$match: {vehicleId: ?0, configType: 'SWAP', status: {$ne: 'COMPLETED'}, deletedAt: null}}",
             "{$project: {_id: 0, componentType: 1}}"
     })
     List<String> findAllComponentSwapAndUnCompletedByVehicleId(ObjectId vehicleId);
 
     @Aggregation(pipeline = {
-            "{$match: {vehicleId: ?0, configType: {$ne: 'SWAP'}}, status: {$ne: 'COMPLETED'}, deletedAt: null}",
+            "{$match: {vehicleId: ?0, configType: {$ne: 'SWAP'}, status: {$ne: 'COMPLETED'}, deletedAt: null}}",
             "{$project: {_id: 0, componentType: 1}}"
     })
     List<String> findAllComponentUnSwapAndUnCompletedByVehicleId(ObjectId vehicleId);
