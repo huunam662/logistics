@@ -115,6 +115,7 @@ public class CustomConfigurationHistoryRepositoryImpl implements CustomConfigura
                         )
                         .and("_id").as("id")
                         .and(componentNameCase).as("componentName")
+                        .and("vehicle.productCode").as("vehicleProductCode")
                         .and("vehicle.model").as("vehicleModel")
                         .and("vehicle.serialNumber").as("vehicleSerial")
                         .and("warehouseVehicle.name").as("warehouseName")
