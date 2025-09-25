@@ -8,12 +8,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
 import warehouse_management.com.warehouse_management.dto.configuration_history.request.*;
-import warehouse_management.com.warehouse_management.dto.configuration_history.response.CheckConfigurationDto;
 import warehouse_management.com.warehouse_management.dto.configuration_history.response.ConfigVehicleSpecPageDto;
-import warehouse_management.com.warehouse_management.dto.configuration_history.response.VehicleConfigurationPageDto;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.pagination.response.PageInfoDto;
-import warehouse_management.com.warehouse_management.model.ConfigurationHistory;
 import warehouse_management.com.warehouse_management.service.ConfigurationHistoryService;
 import java.util.List;
 
@@ -77,8 +74,11 @@ public class ConfigurationHistoryController {
             description = "GET Các bộ phận có sẵn trong xe nâng."
     )
     @GetMapping("/vehicle-components-exists")
-    public ApiResponse<?> getComponentByVehicleId(@RequestParam("vehicleId") String vehicleId){
-        return ApiResponse.success(configurationHistoryService.getComponentTypeToVehicleId(new ObjectId(vehicleId)));
+    public ApiResponse<?> getComponentByVehicleId(
+            @RequestParam("vehicleId") String vehicleId,
+            @RequestParam("isSwap") Boolean isSwap
+    ){
+        return ApiResponse.success(configurationHistoryService.getComponentTypeToVehicleId(new ObjectId(vehicleId), isSwap));
     }
 
     @Operation(
@@ -202,27 +202,30 @@ public class ConfigurationHistoryController {
             summary = "POST Gửi yêu cầu lắp ráp bộ phận vào xe.",
             description = "POST Gửi yêu cầu lắp ráp bộ phận vào xe."
     )
-    @PostMapping("/send/assemble-component")
+    @PostMapping("/send-repair/assemble")
     public ApiResponse<?> sendAssembleVehicle(@RequestBody SendAssembleComponentDto dto){
-        return ApiResponse.success(configurationHistoryService.sendAssembleVehicle(dto));
+        configurationHistoryService.sendAssembleVehicle(dto);
+        return ApiResponse.success();
     }
 
     @Operation(
             summary = "POST Gửi yêu cầu tháo rời bộ phận ra khỏi xe.",
             description = "POST Gửi yêu cầu tháo rời bộ phận ra khỏi xe."
     )
-    @PostMapping("/send/disassemble-component")
+    @PostMapping("/send-repair/disassemble")
     public ApiResponse<?> sendDisassembleVehicle(@RequestBody SendDisassembleComponentDto dto){
-        return ApiResponse.success(configurationHistoryService.sendDisassembleVehicle(dto));
+        configurationHistoryService.sendDisassembleVehicle(dto);
+        return ApiResponse.success();
     }
 
     @Operation(
             summary = "POST Gửi yêu cầu thay đổi bộ phận của xe.",
             description = "POST Gửi yêu cầu thay đổi bộ phận của xe."
     )
-    @PostMapping("/send/swap-component")
+    @PostMapping("/send-repair/swap")
     public ApiResponse<?> sendDisassembleVehicle(@RequestBody SendSwapComponentDto dto){
-        return ApiResponse.success(configurationHistoryService.sendSwapVehicle(dto));
+        configurationHistoryService.sendSwapVehicle(dto);
+        return ApiResponse.success();
     }
 
     @Operation(
@@ -235,16 +238,39 @@ public class ConfigurationHistoryController {
     }
 
     @Operation(
-            summary = "GET Mã cấu hình và trạng thái cấu hình.",
-            description = "GET Mã cấu hình và trạng thái cấu hình."
+            summary = "GET Mã cấu hình và trạng thái cấu hình (Tháo rời).",
+            description = "GET Mã cấu hình và trạng thái cấu hình (Tháo rời)."
     )
-    @GetMapping("/code-status")
-    public ApiResponse<?> checkConfiguration(
+    @GetMapping("/code-status/disassemble")
+    public ApiResponse<?> checkConfigurationDisassemble(
             @RequestParam("vehicleId") String vehicleId,
-            @RequestParam("componentType") String componentType,
-            @RequestParam("configType") String configType
+            @RequestParam("componentType") String componentType
     ){
-        return ApiResponse.success(configurationHistoryService.checkConfiguration(new ObjectId(vehicleId), componentType, configType));
+        return ApiResponse.success(configurationHistoryService.checkConfigurationDisassemble(new ObjectId(vehicleId), componentType));
+    }
+
+    @Operation(
+            summary = "GET Mã cấu hình và trạng thái cấu hình (Lắp ráp).",
+            description = "GET Mã cấu hình và trạng thái cấu hình (Lắp ráp)."
+    )
+    @GetMapping("/code-status/assemble")
+    public ApiResponse<?> checkConfigurationAssemble(
+            @RequestParam("vehicleId") String vehicleId,
+            @RequestParam("componentType") String componentType
+    ){
+        return ApiResponse.success(configurationHistoryService.checkConfigurationAssemble(new ObjectId(vehicleId), componentType));
+    }
+
+    @Operation(
+            summary = "GET Mã cấu hình và trạng thái cấu hình (Hoán đổi).",
+            description = "GET Mã cấu hình và trạng thái cấu hình (Hoán đổi)."
+    )
+    @GetMapping("/code-status/swap")
+    public ApiResponse<?> checkConfigurationSwap(
+            @RequestParam("vehicleId") String vehicleId,
+            @RequestParam("componentType") String componentType
+    ){
+        return ApiResponse.success(configurationHistoryService.checkConfigurationSwap(new ObjectId(vehicleId), componentType));
     }
 
     @Operation(
