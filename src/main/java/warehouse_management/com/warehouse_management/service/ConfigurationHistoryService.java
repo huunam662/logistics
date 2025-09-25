@@ -712,6 +712,10 @@ public class ConfigurationHistoryService {
 
         if(componentType == null) throw LogicErrException.of("Loại bộ phận không hợp lệ");
 
+        boolean isExistsAssembleComponent = configurationHistoryRepository.existsByVehicleIdAndComponentTypeAndConfigType(vehicle.getId(), componentType.getId(), ConfigurationType.ASSEMBLE.getId());
+
+        if(isExistsAssembleComponent) throw LogicErrException.of("Xe " + vehicle.getProductCode() + " hiện đang lắp ráp " + componentType.getValue());
+
         if(vehicle.getId().equals(component.getVehicleId())){
             throw LogicErrException.of("Bộ phận " + componentType.getValue() + " đã có sẵn trong xe " + vehicle.getProductCode());
         }
@@ -734,6 +738,10 @@ public class ConfigurationHistoryService {
 
         if(componentType == null) throw LogicErrException.of("Loại bộ phận cần tháo rời không hợp lệ.");
 
+        boolean isExistsDisassembleComponent = configurationHistoryRepository.existsByVehicleIdAndComponentTypeAndConfigType(vehicle.getId(), componentType.getId(), ConfigurationType.DISASSEMBLE.getId());
+
+        if(isExistsDisassembleComponent) throw LogicErrException.of("Xe " + vehicle.getProductCode() + " hiện đang tháo rời " + componentType.getValue());
+
         InventoryItem component = inventoryItemService.getComponentItemToVehicleIdAndType(vehicle.getId(), componentType, vehicle.getProductCode());
 
         ConfigurationHistory disassembleRequest = buildDisassembleHistory(vehicle, component, componentType);
@@ -752,6 +760,14 @@ public class ConfigurationHistoryService {
 
         ComponentType componentType = ComponentType.fromId(dto.getComponentType());
         if(componentType == null) throw LogicErrException.of("Loại bộ phận cần tháo rời không hợp lệ.");
+
+        boolean isExistsSwapComponentLeft = configurationHistoryRepository.existsByVehicleIdAndComponentTypeAndConfigType(leftVeh.getId(), componentType.getId(), ConfigurationType.SWAP.getId());
+
+        if(isExistsSwapComponentLeft) throw LogicErrException.of("Xe " + leftVeh.getProductCode() + " hiện đang hoán đổi " + componentType.getValue());
+
+        boolean isExistsSwapComponentRight = configurationHistoryRepository.existsByVehicleIdAndComponentTypeAndConfigType(rightVeh.getId(), componentType.getId(), ConfigurationType.SWAP.getId());
+
+        if(isExistsSwapComponentRight) throw LogicErrException.of("Xe " + rightVeh.getProductCode() + " hiện đang hoán đổi " + componentType.getValue());
 
         InventoryItem leftVehComponent = inventoryItemService.getComponentItemToVehicleIdAndType(leftVeh.getId(), componentType, leftVeh.getProductCode());
         InventoryItem rightVehComponent = inventoryItemService.getComponentItemToVehicleIdAndType(rightVeh.getId(), componentType, rightVeh.getProductCode());
