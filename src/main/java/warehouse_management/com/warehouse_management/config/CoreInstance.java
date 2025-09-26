@@ -20,6 +20,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import warehouse_management.com.warehouse_management.app.WritePriceToDb;
 import warehouse_management.com.warehouse_management.security.CustomUserDetail;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
@@ -71,7 +72,20 @@ public class CoreInstance {
     public Jackson2ObjectMapperBuilderCustomizer jacksonCustomizer() {
         return builder -> {
             builder.timeZone(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
-            builder.serializers(new LocalDateTimeSerializer(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+            builder.serializerByType(LocalDateTime.class, new JsonSerializer<LocalDateTime>() {
+                @Override
+                public void serialize(LocalDateTime value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+                    if (value != null) {
+                        LocalDateTime timeToSerialize = value.plusHours(7);
+                        gen.writeString(formatter.format(timeToSerialize));
+                    } else {
+                        gen.writeNull();
+                    }
+                }
+            });
         };
     }
 
