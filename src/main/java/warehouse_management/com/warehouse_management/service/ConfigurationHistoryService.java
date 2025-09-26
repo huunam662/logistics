@@ -38,7 +38,7 @@ public class ConfigurationHistoryService {
     private final InventoryItemService inventoryItemService;
     private final ConfigurationHistoryRepository configurationHistoryRepository;
     private final InventoryItemMapper inventoryItemMapper;
-    private final ConfigurationHistoryMapper configurationVehicleMapper;
+    private final ConfigurationHistoryMapper configurationHistoryMapper;
     private final CustomAuthentication customAuthentication;
     private final WarehouseService warehouseService;
 
@@ -413,14 +413,14 @@ public class ConfigurationHistoryService {
 
         List<ConfigurationHistory> configHistories = configurationHistoryRepository.findByVehicleIdOrderByCreatedAtDesc(vehicle.getId());
 
-        ConfigVehicleSpecHistoryDto configVehicleSpecHistory = configurationVehicleMapper.toConfigVehicleSpecHistoryResponse(vehicle);
+        ConfigVehicleSpecHistoryDto configVehicleSpecHistory = configurationHistoryMapper.toConfigVehicleSpecHistoryResponse(vehicle);
 
         configVehicleSpecHistory.setSpecificationsBase(buildSpecificationsBaseResponse(vehicle));
 
         configVehicleSpecHistory.setConfigHistories(
                 configHistories.stream()
                         .map(o -> {
-                            ConfigurationHistoryDto res = configurationVehicleMapper.toConfigurationHistoryResponse(o);
+                            ConfigurationHistoryDto res = configurationHistoryMapper.toConfigurationHistoryResponse(o);
                             ComponentType componentType = ComponentType.fromId(o.getComponentType());
                             res.setComponentName(componentType == null ? null : componentType.getValue());
                             return res;
@@ -456,6 +456,7 @@ public class ConfigurationHistoryService {
     }
 
     public List<VehicleComponentTypeDto> getComponentTypeToVehicleId(ObjectId vehicleId, Boolean isSwap){
+
         List<String> componentTypes = inventoryItemRepository.findComponentTypeByVehicleId(vehicleId);
 
         List<String> componentTypesToFilter;
@@ -667,6 +668,7 @@ public class ConfigurationHistoryService {
 
     @Transactional
     public void completedConfigurationVehicle(ConfigurationCompletedDto request){
+
         InventoryItem vehicle = inventoryItemService.getItemToId(new ObjectId(request.getVehicleId()));
 
         List<ConfigurationHistory> configurationHistoryList = configurationHistoryRepository.findAllUnCompletedByVehicleId(vehicle.getId());
@@ -679,6 +681,18 @@ public class ConfigurationHistoryService {
             ConfigurationType configurationType = ConfigurationType.fromId(configurationHistory.getConfigType());
 
             throw LogicErrException.of("Bộ phận " + componentType.getValue() + " hiện " + configStatus.getValue() + " để " + configurationType.getValue());
+        }
+
+        configurationHistoryList = configurationHistoryRepository.findAllCompletedAndUnPerformedByVehicleId(vehicle.getId());
+
+        if(!configurationHistoryList.isEmpty()){
+
+            ConfigurationHistory configurationHistory = configurationHistoryList.getFirst();
+
+            ComponentType componentType = ComponentType.fromId(configurationHistory.getComponentType());
+            ConfigurationType configurationType = ConfigurationType.fromId(configurationHistory.getConfigType());
+
+            throw LogicErrException.of("Bộ phận " + componentType.getValue() + " hiện đã HOÀN TẤT sữa chữa, hãy THỰC HIỆN " + configurationType.getValue());
         }
 
         inventoryItemRepository.updateStatusByIdIn(List.of(vehicle.getId()), InventoryItemStatus.IN_STOCK.getId());
