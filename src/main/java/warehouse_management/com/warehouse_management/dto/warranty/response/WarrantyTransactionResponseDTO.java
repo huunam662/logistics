@@ -16,6 +16,6 @@ public class WarrantyTransactionResponseDTO {
     private String updateByName;        // Fullname của người cập nhật phiếu bảo hành
     private Boolean isCompleted;        // Trạng thái hoàn thành của phiếu
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    
     private LocalDateTime createdAt;
 }

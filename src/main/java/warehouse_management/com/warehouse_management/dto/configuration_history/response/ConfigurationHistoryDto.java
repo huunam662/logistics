@@ -28,7 +28,7 @@ public class ConfigurationHistoryDto {
 
     private String performedBy; // Tên người thao tác
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
+    
     private LocalDateTime performedAt;
 
 

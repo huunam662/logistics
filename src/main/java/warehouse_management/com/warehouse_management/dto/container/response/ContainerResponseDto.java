@@ -13,11 +13,11 @@ public class ContainerResponseDto {
     private String containerCode;       // Mã định danh duy nhất
     private String containerStatus;     // EMPTY, LOADING, IN_TRANSIT, COMPLETED
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    
     private LocalDateTime departureDate;  // Ngày khởi hành
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    
     private LocalDateTime arrivalDate;    // Ngày đến nơi
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    
     private LocalDateTime completionDate; // Ngày hoàn tất
 
     private String note;

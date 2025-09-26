@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 public class InventoryProductionDto {
     private ObjectId id; // _id – Khóa chính tự động tạo bởi MongoDB
     private String poNumber;       // PO      //*
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    
     private LocalDateTime orderDate;        // Ngày đặt hàng
     private String productCode;    // Mã sản phẩm       //*
     private String model;          // Model                 //*
