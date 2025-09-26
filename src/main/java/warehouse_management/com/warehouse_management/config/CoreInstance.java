@@ -15,6 +15,7 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import warehouse_management.com.warehouse_management.app.ReadDateFromDb;
+import warehouse_management.com.warehouse_management.app.WriteDateToDb;
 import warehouse_management.com.warehouse_management.app.WritePriceToDb;
 import warehouse_management.com.warehouse_management.security.CustomUserDetail;
 import java.io.IOException;
@@ -60,6 +61,7 @@ public class CoreInstance {
     public MongoCustomConversions mongoCustomConversions() {
         return new MongoCustomConversions(List.of(
                 new ReadDateFromDb(),
+                new WriteDateToDb(),
                 new WritePriceToDb()
         ));
     }
