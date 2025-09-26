@@ -4,7 +4,9 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.bson.types.ObjectId;
+import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -14,13 +16,12 @@ import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import warehouse_management.com.warehouse_management.app.ReadDateFromDb;
-import warehouse_management.com.warehouse_management.app.WriteDateToDb;
 import warehouse_management.com.warehouse_management.app.WritePriceToDb;
 import warehouse_management.com.warehouse_management.security.CustomUserDetail;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.TimeZone;
 
 @Configuration
 @EnableMongoAuditing
@@ -60,9 +61,15 @@ public class CoreInstance {
     @Bean
     public MongoCustomConversions mongoCustomConversions() {
         return new MongoCustomConversions(List.of(
-                new ReadDateFromDb(),
-                new WriteDateToDb(),
                 new WritePriceToDb()
         ));
     }
+
+    @Bean
+    public Jackson2ObjectMapperBuilderCustomizer jacksonCustomizer() {
+        return builder -> {
+            builder.timeZone(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
+        };
+    }
+
 }
