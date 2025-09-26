@@ -21,6 +21,9 @@ import warehouse_management.com.warehouse_management.app.WritePriceToDb;
 import warehouse_management.com.warehouse_management.security.CustomUserDetail;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
@@ -71,16 +74,18 @@ public class CoreInstance {
     @Bean
     public Jackson2ObjectMapperBuilderCustomizer jacksonCustomizer() {
         return builder -> {
-            builder.timeZone(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
-
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
             builder.serializerByType(LocalDateTime.class, new JsonSerializer<LocalDateTime>() {
                 @Override
                 public void serialize(LocalDateTime value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
                     if (value != null) {
-                        LocalDateTime timeToSerialize = value.plusHours(7);
-                        gen.writeString(formatter.format(timeToSerialize));
+
+                        ZonedDateTime utcZdt = value.atZone(ZoneOffset.UTC);
+
+                        ZonedDateTime hcmZdt = utcZdt.withZoneSameInstant(ZoneId.of("Asia/Ho_Chi_Minh"));
+
+                        LocalDateTime timeToSerialize = hcmZdt.toLocalDateTime();
+
+                        gen.writeString(timeToSerialize.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
                     } else {
                         gen.writeNull();
                     }
