@@ -56,29 +56,37 @@ public class ConfigurationHistoryService {
     public boolean swapItems(VehiclePartSwapDto request) {
         // 1. Lấy vehicle và accessory tương ứng
         InventoryItem leftVeh = inventoryItemService.findByIdOrThrow(request.getLeftVehicleId());
-        InventoryItem rightVeh = inventoryItemService.findByIdOrThrow(request.getRightVehicleId());
 
         ComponentType componentType = ComponentType.fromId(request.getComponentType());
         if(componentType == null) throw LogicErrException.of("Loại bộ phận cần tháo rời không hợp lệ.");
 
         InventoryItem leftVehComponent = inventoryItemService.getComponentItemToVehicleIdAndType(leftVeh.getId(), componentType, leftVeh.getProductCode());
-        InventoryItem rightVehComponent = inventoryItemService.getComponentItemToVehicleIdAndType(rightVeh.getId(), componentType, rightVeh.getProductCode());
 
         ConfigurationHistory configurationHistory = getToCodeAndVehicleId(request.getConfigurationCode(), leftVeh.getId());
 
-        String componentLeftSerial = InventoryType.SPARE_PART.getId().equals(leftVehComponent.getInventoryType())
-                                    ? leftVehComponent.getCommodityCode() : leftVehComponent.getSerialNumber();
+        List<InventoryItem> vehicleToUpdateSpecAndPricingList = new ArrayList<>();
 
-        if(!configurationHistory.getComponentReplaceSerial().equals(componentLeftSerial)){
+        if(!leftVehComponent.getId().equals(configurationHistory.getComponentReplaceId())){
+
+            InventoryItem rightVeh = inventoryItemService.findByIdOrThrow(request.getRightVehicleId());
+            InventoryItem rightVehComponent = inventoryItemService.getComponentItemToVehicleIdAndType(rightVeh.getId(), componentType, rightVeh.getProductCode());
+
             inventoryItemRepository.updateVehicleIdById(leftVehComponent.getId(), rightVeh.getId());
             inventoryItemRepository.updateVehicleIdById(rightVehComponent.getId(), leftVeh.getId());
 
             swapVehicleComponent(leftVeh, rightVeh, componentType);
+
+            vehicleToUpdateSpecAndPricingList.add(rightVeh);
         }
 
-        setVehiclePrices(leftVeh, rightVeh, request);
+        if (request.getLeftPrice() != null) {
+            if(leftVeh.getPricing() == null) leftVeh.setPricing(new InventoryItem.Pricing());
+            leftVeh.getPricing().setSalePriceR0(request.getLeftPrice().getSalePriceR0());
+            leftVeh.getPricing().setSalePriceR1(request.getLeftPrice().getSalePriceR1());
+        }
 
-        inventoryItemRepository.bulkUpdateSpecAndPricing(List.of(leftVeh, rightVeh));
+        vehicleToUpdateSpecAndPricingList.add(leftVeh);
+        inventoryItemRepository.bulkUpdateSpecAndPricing(vehicleToUpdateSpecAndPricingList);
 
         CustomUserDetail customUserDetail = customAuthentication.getUserOrThrow();
 
@@ -138,17 +146,6 @@ public class ConfigurationHistoryService {
                 leftVeh.getSpecifications().setValveCount(rightVeh.getSpecifications().getValveCount());
                 rightVeh.getSpecifications().setValveCount(tmpValve);
             }
-        }
-    }
-
-    private void setVehiclePrices(InventoryItem leftVeh, InventoryItem rightVeh, VehiclePartSwapDto request) {
-        if (request.getLeftPrice() != null) {
-            leftVeh.getPricing().setSalePriceR0(request.getLeftPrice().getSalePriceR0());
-            leftVeh.getPricing().setSalePriceR1(request.getLeftPrice().getSalePriceR1());
-        }
-        if (request.getRightPrice() != null) {
-            rightVeh.getPricing().setSalePriceR0(request.getRightPrice().getSalePriceR0());
-            rightVeh.getPricing().setSalePriceR1(request.getRightPrice().getSalePriceR1());
         }
     }
 
@@ -651,7 +648,7 @@ public class ConfigurationHistoryService {
             inventoryItemRepository.updateVehicleIdById(rightVehComponent.getId(), vehicleLeft.getId());
 
             swapVehicleComponent(vehicleLeft, vehicleRight, componentType);
-            setVehiclePrices(vehicleLeft, vehicleRight, swap);
+//            setVehiclePrices(vehicleLeft, vehicleRight, swap);
 
             ConfigurationHistory historyLeftVeh = buildSwapHistory(vehicleLeft, vehicleRight, leftVehComponent, rightVehComponent, componentType);
             ConfigurationHistory historyRightVeh = buildSwapHistory(vehicleRight, vehicleLeft, rightVehComponent, leftVehComponent, componentType);
