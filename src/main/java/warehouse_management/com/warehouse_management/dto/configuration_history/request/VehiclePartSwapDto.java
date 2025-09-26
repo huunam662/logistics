@@ -12,7 +12,7 @@ public class VehiclePartSwapDto {
     private String componentType;
 
     private VehiclePrice leftPrice;
-    private VehiclePrice rightPrice;
+//    private VehiclePrice rightPrice;
 
     private String configurationCode;
 
