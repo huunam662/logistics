@@ -52,9 +52,9 @@ public class InventoryProductDetailsDto {
 
     @Data
     public static class Logistics {
-        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+        
         private LocalDateTime orderDate; // Ngày đặt hàng 2
-        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+        
         private LocalDateTime estimateCompletionDate; // Chỉ dùng trong báo cáo hàng chờ SX 27
     }
 }

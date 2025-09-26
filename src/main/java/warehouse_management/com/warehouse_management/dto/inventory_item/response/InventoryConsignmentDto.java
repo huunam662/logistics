@@ -38,8 +38,8 @@ public class InventoryConsignmentDto {
     private BigDecimal salePriceR1;         // Giá R1
     private BigDecimal actualSalePrice;     // Giá bán thực tế
     private String agent;       // Đại lý
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    
     private LocalDateTime arrivalDate;    // Ngày giao hàng
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    
     private LocalDateTime consignmentDate;  // Ngày ký gửi
 }
