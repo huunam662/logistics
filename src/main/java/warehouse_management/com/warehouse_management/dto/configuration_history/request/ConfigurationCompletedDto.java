@@ -2,9 +2,13 @@ package warehouse_management.com.warehouse_management.dto.configuration_history.
 
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 @Data
 public class ConfigurationCompletedDto {
 
-    String vehicleId;
+    private String vehicleId;
+    private BigDecimal vehiclePriceR0;
+    private BigDecimal vehiclePriceR1;
 
 }
