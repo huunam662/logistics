@@ -15,9 +15,9 @@ public class InventoryConsignmentSparePartsDto {
     private String poNumber;       // Số của Đơn đặt hàng (Purchase Order) – Bắt buộc
     private String warehouseName;       // Tên kho (bắt buộc)
     private String contractNumber;      // Số hợp đồng
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    
     private LocalDateTime orderDate;        // Ngày đặt hàng
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    
     private LocalDateTime consignmentDate;  // Ngày ký gửi (nếu có)
     private String model;          // Model sản phẩm – Bắt buộc
     private String commodityCode;  // Mã hàng hóa (đôi với phụ tùng)

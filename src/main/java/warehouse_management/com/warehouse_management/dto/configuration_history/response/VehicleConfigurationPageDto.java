@@ -23,11 +23,11 @@ public class VehicleConfigurationPageDto {
     private String configType;    // Kiểu cấu hình thay đổi
     private String description; // Mô tả cấu hình
     private String status;  // Trạng thái phiên thay đổi cấu hình
-    @JsonFormat(shape =  JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
+    
     private LocalDateTime confirmedAt;
-    @JsonFormat(shape =  JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
+    
     private LocalDateTime completedAt;
-    @JsonFormat(shape =  JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
+    
     private LocalDateTime createdAt;
     private String confirmedBy; // người xác nhận
     private String completedBy; // Người hoàn tất
