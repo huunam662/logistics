@@ -5,6 +5,7 @@ import org.springframework.data.convert.WritingConverter;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.Date;
 
 
@@ -13,7 +14,7 @@ public class WriteDateToDb implements Converter<LocalDateTime, Date> {
 
     @Override
     public Date convert(LocalDateTime source) {
-        return source == null ? null : Date.from(source.atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toInstant());
+        return source == null ? null : Date.from(source.atZone(ZoneOffset.UTC).toInstant());
     }
 }
 
