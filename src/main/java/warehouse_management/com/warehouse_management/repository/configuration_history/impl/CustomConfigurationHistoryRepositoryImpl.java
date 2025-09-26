@@ -143,4 +143,14 @@ public class CustomConfigurationHistoryRepositoryImpl implements CustomConfigura
                 .set("performedAt", LocalDateTime.now());
         mongoTemplate.updateMulti(query, update, ConfigurationHistory.class);
     }
+
+    @Transactional
+    @Override
+    public void bulkUpdatePerformed(Collection<ObjectId> ids, String performedBy) {
+        Query query = new Query(Criteria.where("_id").in(ids));
+        Update update = new Update()
+                .set("performedBy", performedBy)
+                .set("performedAt", LocalDateTime.now());
+        mongoTemplate.updateMulti(query, update, ConfigurationHistory.class);
+    }
 }
