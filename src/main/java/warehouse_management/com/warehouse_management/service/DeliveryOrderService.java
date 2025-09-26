@@ -168,6 +168,8 @@ public class DeliveryOrderService {
                             .orElse(BigDecimal.ZERO);
 
                     dto.getPricing().setTotalPrice(purchasePrice.multiply(BigDecimal.valueOf(o.getQuantity())));
+                    dto.getPricing().setSalePriceR0(o.getPricing().getSalePriceR0());
+                    dto.getPricing().setSalePriceR1(o.getPricing().getSalePriceR1());
                     return dto;
                 })
                 .toList();

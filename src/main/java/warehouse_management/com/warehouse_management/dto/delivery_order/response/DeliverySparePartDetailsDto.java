@@ -26,6 +26,8 @@ public class DeliverySparePartDetailsDto {
         private BigDecimal purchasePrice;       // Giá mua vào
         private BigDecimal totalPrice;  // Tổng thành tiền
         private BigDecimal actualSalePrice;     // Giá bán thực tế
+        private BigDecimal salePriceR0;
+        private BigDecimal salePriceR1;
     }
 
     @Data
