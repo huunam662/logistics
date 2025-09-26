@@ -970,15 +970,17 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 Aggregation.addFields()
                         .addField("componentsObj")
                         .withValue(
-                                new Document("$arrayToObject",
-                                        new Document("$map", new Document()
-                                                .append("input", "$components")
-                                                .append("as", "c")
-                                                .append("in", List.of(
-                                                        new Document("$ifNull", List.of("$$c.componentType", "UNKNOWN")),
-                                                        "$$c"
-                                                ))
-                                        )
+                                ArrayOperators.ArrayToObject.arrayToObject(
+                                        VariableOperators.Map.itemsOf("components")
+                                                .as("c")
+                                                .andApply(
+                                                        ArrayOperators.ConcatArrays.arrayOf(
+                                                                List.of(
+                                                                        ConditionalOperators.ifNull("$$c.componentType").then("UNKNOWN"),
+                                                                        "$$c"
+                                                                )
+                                                        )
+                                                )
                                 )
                         ).build(),
 
@@ -989,23 +991,28 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .withValue(
                                 ArrayOperators.Filter.filter("configurationsHist")
                                         .as("c")
-                                        .by(ComparisonOperators.Ne.valueOf("$$c.status")
-                                                .notEqualToValue(ConfigurationStatus.COMPLETED.getId()))
+                                        .by(
+                                                ComparisonOperators.Eq.valueOf(
+                                                        ConditionalOperators.IfNull.ifNull("$$c.performedBy").then("NULL")
+                                                ).equalToValue("NULL")
+                                        )
                         )
                         .build(),
 
                 Aggregation.addFields()
                         .addField("configurationsObj")
                         .withValue(
-                                new Document("$arrayToObject",
-                                        new Document("$map", new Document()
-                                                .append("input", "$configurations")
-                                                .append("as", "c")
-                                                .append("in", List.of(
-                                                        new Document("$ifNull", List.of("$$c.componentType", "UNKNOWN")),
-                                                        "$$c"
-                                                ))
-                                        )
+                                ArrayOperators.ArrayToObject.arrayToObject(
+                                        VariableOperators.Map.itemsOf("configurations")
+                                                .as("c")
+                                                .andApply(
+                                                        ArrayOperators.ConcatArrays.arrayOf(
+                                                                List.of(
+                                                                        ConditionalOperators.ifNull("$$c.componentType").then("UNKNOWN"),
+                                                                        "$$c"
+                                                                )
+                                                        )
+                                                )
                                 )
                         ).build(),
 
