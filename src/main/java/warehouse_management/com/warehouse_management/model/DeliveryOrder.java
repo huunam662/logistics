@@ -26,6 +26,7 @@ public class DeliveryOrder implements Persistable<ObjectId> {
     private String deliveryOrderCode;   // Mã đơn giao hàng (tự sinh hoặc nhập tay).
 
     private ObjectId customerId;    // Mã khách hàng (chọn từ danh sách tài khoản).
+    private ObjectId deliveryDepartmentId; // Bộ phận giao hàng
 
     private LocalDateTime deliveryDate;  // Ngày giao hàng (hỗ trợ chọn quá khứ).
 
