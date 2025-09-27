@@ -7,7 +7,7 @@ import java.util.TimeZone;
 
 @SpringBootApplication
 public class WarehouseManagementApplication {
-	// Version 1
+	// Version 2
 	public static void main(String[] args) {
 		SpringApplication.run(WarehouseManagementApplication.class, args);
 	}
