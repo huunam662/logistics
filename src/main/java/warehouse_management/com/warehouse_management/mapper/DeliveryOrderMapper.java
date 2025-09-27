@@ -1,5 +1,6 @@
 package warehouse_management.com.warehouse_management.mapper;
 
+import org.bson.types.ObjectId;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -56,5 +57,12 @@ public interface DeliveryOrderMapper {
     @Named("mapIsDelivered")
     default Boolean mapIsDelivered(DeliveryOrder.NoteDeliveryModel noteDeliveryModel) {
         return Boolean.FALSE;
+    }
+
+    default ObjectId map(String value) {
+        if (value == null || value.isEmpty()) {
+            return null;
+        }
+        return new ObjectId(value);
     }
 }
