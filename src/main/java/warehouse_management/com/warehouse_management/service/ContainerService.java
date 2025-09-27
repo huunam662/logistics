@@ -41,55 +41,7 @@ public class ContainerService {
     private final DeliveryOrderRepository deliveryOrderRepository;
 
     public Page<ContainerResponseDto> getContainers(PageOptionsDto req) {
-        MatchOperation matchStage = Aggregation.match(new Criteria().andOperator(
-                Criteria.where("deletedAt").is(null)
-        ));
-        LookupOperation lookupFromWarehouse = Aggregation.lookup("warehouse", "fromWareHouseId", "_id", "fromWarehouseInfo");
-        UnwindOperation unwindFromWarehouse = Aggregation.unwind("fromWarehouseInfo", true);
-
-        LookupOperation lookupToWarehouse = Aggregation.lookup("warehouse", "toWarehouseId", "_id", "toWarehouseInfo");
-        UnwindOperation unwindToWarehouse = Aggregation.unwind("toWarehouseInfo", true);
-
-        ProjectionOperation projectStage = Aggregation.project()
-                .and("_id").as("id")
-                .and("containerCode").as("containerCode")
-                .and("containerStatus").as("containerStatus")
-                .and("departureDate").as("departureDate")
-                .and("arrivalDate").as("arrivalDate")
-                .and("completionDate").as("completionDate")
-                .and("note").as("note")
-                .and("fromWarehouseInfo").as("fromWarehouse")
-                .and("toWarehouseInfo").as("toWarehouse")
-                .and(
-                        ArrayOperators.Reduce.arrayOf("$inventoryItems")
-                                .withInitialValue(0)
-                                .reduce(
-                                        ArithmeticOperators.Add.valueOf("$$value")
-                                                .add(
-                                                        ArithmeticOperators.Multiply.valueOf(
-                                                                        ConditionalOperators.ifNull("$$this.pricing.purchasePrice").then(0)
-                                                                )
-                                                                .multiplyBy("$$this.quantity")
-                                                )
-
-                                )
-                ).as("totalAmounts");
-
-        Aggregation aggregation = Aggregation.newAggregation(
-                matchStage,
-                lookupFromWarehouse,
-                unwindFromWarehouse,
-                lookupToWarehouse,
-                unwindToWarehouse,
-                projectStage
-        );
-
-        return MongoRsqlUtils.queryAggregatePage(
-                Container.class,
-                ContainerResponseDto.class,
-                aggregation,
-                req
-        );
+        return containerRepository.getPageContainers(req);
     }
 
     public Map<String, Boolean> checkIsExistsContainerCode(ObjectId containerId, String containerCode){
