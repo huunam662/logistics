@@ -54,6 +54,7 @@ public class DeliveryOrderService {
         Client client = clientService.getClientToId(new ObjectId(dto.getCustomerId()));
         deliveryOrder = deliveryOrderMapper.toCreateDeliveryOrder(dto);
         deliveryOrder.setCustomerId(client.getId());
+        deliveryOrder.setDeliveryDepartmentId(new ObjectId(dto.getDeliveryDepartmentId()));
         if(dto.getHoldingDays() == null || dto.getHoldingDays() <= 0)
             deliveryOrder.setStatus(DeliveryOrderStatus.UN_DELIVERED.getValue());
         else deliveryOrder.setStatus(DeliveryOrderStatus.HOLD.getValue());
@@ -74,6 +75,9 @@ public class DeliveryOrderService {
             //TODO: Kiểm tra sự tồn tại của khách hàng từ bảng user và gán lại customerId nếu cần cập nhật khách hàng liên quan
             Client client = clientService.getClientToId(new ObjectId(dto.getCustomerId()));
             deliveryOrder.setCustomerId(client.getId());
+        }
+        if (dto.getDeliveryDepartmentId() != null) {
+            deliveryOrder.setDeliveryDepartmentId(new ObjectId(dto.getDeliveryDepartmentId()));
         }
         if(DeliveryOrderStatus.fromValue(dto.getStatus()) == null)
             throw LogicErrException.of("Trạng thái đơn giao hàng không hợp lệ.");

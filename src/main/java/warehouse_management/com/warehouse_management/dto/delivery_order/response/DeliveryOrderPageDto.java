@@ -12,7 +12,8 @@ public class DeliveryOrderPageDto {
     private ObjectId id;    // Khóa chính
     private String deliveryOrderCode;   // Mã đơn giao hàng (tự sinh hoặc nhập tay).
     private String customerId;      // Mã khách hàng
-    private String customerName;    // Tên khách hàng
+    private String customerName; // Tên khách hàng
+    private String deliveryDepartmentId; // Bộ phận giao hàng
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt; // Ngày tạo
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")

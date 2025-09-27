@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 public class CreateDeliveryOrderDto {
     private String deliveryOrderCode; // Mã đơn giao haàng
     private String customerId; // Id khách hàng
+    private String deliveryDepartmentId; // Bộ phận giao hàng
     private LocalDateTime deliveryDate; // Ngày giao hàng
     private Integer holdingDays; // Số ngày giữ hàng
 }
