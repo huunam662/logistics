@@ -17,12 +17,12 @@ public class RepairResponseDTO {
     private String status; // Trạng thái
     private List<RepairTransactionResponseDTO> repairTransactions; // Phiếu bảo hành của sản phẩm
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    
     private LocalDateTime createdAt; // Ngày bảo hành
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    
     private LocalDateTime completedDate; // Ngày hoàn tất
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    
     private LocalDateTime expectedCompletionDate; // Ngày dự kiến hoàn tất
 }

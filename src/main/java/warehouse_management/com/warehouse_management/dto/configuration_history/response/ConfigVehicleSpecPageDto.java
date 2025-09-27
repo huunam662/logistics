@@ -26,6 +26,7 @@ public class ConfigVehicleSpecPageDto {
         private String serialNumber;
         private String configStatus;
         private String configType;
+        private String configComponentType;
     }
 
 }

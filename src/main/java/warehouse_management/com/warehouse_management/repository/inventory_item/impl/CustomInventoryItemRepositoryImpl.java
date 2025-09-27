@@ -1030,6 +1030,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .addField("liftingFrame.serialNumber").withValue("$componentsObj.LIFTING_FRAME.serialNumber")
                         .addField("liftingFrame.configStatus").withValue("$configurationsObj.LIFTING_FRAME.status")
                         .addField("liftingFrame.configType").withValue("$configurationsObj.LIFTING_FRAME.configType")
+                        .addField("liftingFrame.configComponentType").withValue("$configurationsObj.LIFTING_FRAME.componentType")
                         // Bình điện
                         .addField("battery.value")
                         .withValue(
@@ -1040,31 +1041,37 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .addField("battery.serialNumber").withValue("$componentsObj.BATTERY.serialNumber")
                         .addField("battery.configStatus").withValue("$configurationsObj.BATTERY.status")
                         .addField("battery.configType").withValue("$configurationsObj.BATTERY.configType")
+                        .addField("battery.configComponentType").withValue("$configurationsObj.BATTERY.componentType")
                         // Sạc
                         .addField("charger.value").withValue("$specifications.chargerSpecification")
                         .addField("charger.serialNumber").withValue("$componentsObj.CHARGER.serialNumber")
                         .addField("charger.configStatus").withValue("$configurationsObj.CHARGER.status")
                         .addField("charger.configType").withValue("$configurationsObj.CHARGER.configType")
+                        .addField("charger.configComponentType").withValue("$configurationsObj.CHARGER.componentType")
                         // Động cơ
                         .addField("engine.value").withValue("$specifications.engineType")
                         .addField("engine.serialNumber").withValue("$componentsObj.ENGINE.commodityCode")
                         .addField("engine.configStatus").withValue("$configurationsObj.ENGINE.status")
                         .addField("engine.configType").withValue("$configurationsObj.ENGINE.configType")
+                        .addField("engine.configComponentType").withValue("$configurationsObj.ENGINE.componentType")
                         // Càng nâng
                         .addField("fork.value").withValue("$specifications.forkDimensions")
                         .addField("fork.serialNumber").withValue("$componentsObj.FORK.commodityCode")
                         .addField("fork.configStatus").withValue("$configurationsObj.FORK.status")
                         .addField("fork.configType").withValue("$configurationsObj.FORK.configType")
+                        .addField("fork.configComponentType").withValue("$configurationsObj.FORK.componentType")
                         // Van
                         .addField("valve.value").withValue("$specifications.valveCount")
                         .addField("valve.serialNumber").withValue("$componentsObj.VALVE.commodityCode")
                         .addField("valve.configStatus").withValue("$configurationsObj.VALVE.status")
                         .addField("valve.configType").withValue("$configurationsObj.VALVE.configType")
+                        .addField("valve.configComponentType").withValue("$configurationsObj.VALVE.componentType")
                         // Side shift
                         .addField("sideShift.value").withValue("$specifications.hasSideShift")
                         .addField("sideShift.serialNumber").withValue("$componentsObj.SIDE_SHIFT.commodityCode")
                         .addField("sideShift.configStatus").withValue("$configurationsObj.SIDE_SHIFT.status")
                         .addField("sideShift.configType").withValue("$configurationsObj.SIDE_SHIFT.configType")
+                        .addField("sideShift.configComponentType").withValue("$configurationsObj.SIDE_SHIFT.componentType")
 
                         .build(),
 

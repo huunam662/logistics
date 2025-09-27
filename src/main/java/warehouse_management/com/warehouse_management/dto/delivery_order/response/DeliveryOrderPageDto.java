@@ -16,12 +16,12 @@ public class DeliveryOrderPageDto {
     private String deliveryDepartmentId; // Bộ phận giao hàng
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt; // Ngày tạo
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+
     private LocalDateTime updatedAt;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+
     private LocalDateTime deliveryDate;  // Ngày giao hàng (hỗ trợ chọn quá khứ).
     private Integer holdingDays;    // Số ngày giữ hàng (số nguyên dương).
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+
     private LocalDateTime holdingDeadlineDate;  // Hạn giữ hàng
     private String status; // Trạng thái đơn giao hàng
     private BigDecimal totalPurchasePrice;       // Giá mua vào

@@ -199,9 +199,9 @@ public class MongoRsqlUtils {
                     if (val.startsWith("*") && val.endsWith("*"))
                         yield result.regex(val.substring(0, val.length() - 1).substring(1), "i");
                     else if (val.startsWith("*"))
-                        yield result.regex(val.replaceFirst("\\*", "^"), "i");
+                        yield result.regex(val.replaceFirst("\\*", "") + "$", "i");
                     else if (val.endsWith("*"))
-                        yield result.regex(val.substring(0, val.length() - 1) + "$", "i");
+                        yield result.regex("^" + val.substring(0, val.length() - 1), "i");
                     else {
                         if (op.equals("==")) yield result.is(parseTypeValue(val));
                         else yield Criteria.where(field).ne(parseTypeValue(val));

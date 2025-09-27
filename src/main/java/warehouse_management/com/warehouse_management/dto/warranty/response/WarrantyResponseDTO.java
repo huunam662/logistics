@@ -18,12 +18,12 @@ public class WarrantyResponseDTO {
     private String status; // Trạng thái
     private List<WarrantyTransactionResponseDTO> warrantyTransactions; // Phiếu bảo hành của sản phẩm
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    
     private LocalDateTime arrivalDate; // Ngày giao hàng
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    
     private LocalDateTime createdAt; // Ngày bảo hành
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    
     private LocalDateTime completedDate;
 }

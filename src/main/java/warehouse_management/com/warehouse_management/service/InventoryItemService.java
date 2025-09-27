@@ -301,7 +301,7 @@ public class InventoryItemService {
             liftingFrame.setInitialCondition(parentItem.getInitialCondition());
             liftingFrame.setInventoryType(InventoryType.ACCESSORY.getId());
             liftingFrame.setComponentType(ComponentType.LIFTING_FRAME.getId());
-            liftingFrame.setStatus(InventoryItemStatus.OTHER);
+            liftingFrame.setStatus(InventoryItemStatus.IN_VEHICLE);
             liftingFrame.setCategory(ComponentType.LIFTING_FRAME.getValue());
             liftingFrame.setSpecifications(new InventoryItem.Specifications());
             liftingFrame.getSpecifications().setChassisType(parentItem.getSpecifications().getChassisType());
@@ -322,7 +322,7 @@ public class InventoryItemService {
             battery.setInitialCondition(parentItem.getInitialCondition());
             battery.setInventoryType(InventoryType.ACCESSORY.getId());
             battery.setComponentType(ComponentType.BATTERY.getId());
-            battery.setStatus(InventoryItemStatus.OTHER);
+            battery.setStatus(InventoryItemStatus.IN_VEHICLE);
             battery.setCategory(ComponentType.BATTERY.getValue());
             battery.setSpecifications(new InventoryItem.Specifications());
             battery.getSpecifications().setBatteryInfo(parentItem.getSpecifications().getBatteryInfo());
@@ -339,7 +339,7 @@ public class InventoryItemService {
             charger.setInitialCondition(parentItem.getInitialCondition());
             charger.setInventoryType(InventoryType.ACCESSORY.getId());
             charger.setComponentType(ComponentType.CHARGER.getId());
-            charger.setStatus(InventoryItemStatus.OTHER);
+            charger.setStatus(InventoryItemStatus.IN_VEHICLE);
             charger.setCategory(ComponentType.CHARGER.getValue());
             charger.setSpecifications(new InventoryItem.Specifications());
             charger.getSpecifications().setChargerSpecification(parentItem.getSpecifications().getChargerSpecification());
@@ -354,7 +354,7 @@ public class InventoryItemService {
             engine.setCommodityCode(parentItem.getSerialNumber());
             engine.setInventoryType(InventoryType.SPARE_PART.getId());
             engine.setComponentType(ComponentType.ENGINE.getId());
-            engine.setStatus(InventoryItemStatus.OTHER);
+            engine.setStatus(InventoryItemStatus.IN_VEHICLE);
             engine.setDescription(ComponentType.ENGINE.getValue());
             engine.setSpecifications(new InventoryItem.Specifications());
             engine.getSpecifications().setEngineType(parentItem.getSpecifications().getEngineType());
@@ -369,7 +369,7 @@ public class InventoryItemService {
             fork.setCommodityCode(parentItem.getSerialNumber());
             fork.setInventoryType(InventoryType.SPARE_PART.getId());
             fork.setComponentType(ComponentType.FORK.getId());
-            fork.setStatus(InventoryItemStatus.OTHER);
+            fork.setStatus(InventoryItemStatus.IN_VEHICLE);
             fork.setDescription(ComponentType.FORK.getValue());
             fork.setSpecifications(new InventoryItem.Specifications());
             fork.getSpecifications().setForkDimensions(parentItem.getSpecifications().getForkDimensions());
@@ -384,7 +384,7 @@ public class InventoryItemService {
             valve.setCommodityCode(parentItem.getSerialNumber());
             valve.setInventoryType(InventoryType.SPARE_PART.getId());
             valve.setComponentType(ComponentType.VALVE.getId());
-            valve.setStatus(InventoryItemStatus.OTHER);
+            valve.setStatus(InventoryItemStatus.IN_VEHICLE);
             valve.setDescription(ComponentType.VALVE.getValue());
             valve.setSpecifications(new InventoryItem.Specifications());
             valve.getSpecifications().setValveCount(parentItem.getSpecifications().getValveCount());
@@ -402,7 +402,7 @@ public class InventoryItemService {
             sideShift.setCommodityCode(parentItem.getSerialNumber());
             sideShift.setInventoryType(InventoryType.SPARE_PART.getId());
             sideShift.setComponentType(ComponentType.SIDE_SHIFT.getId());
-            sideShift.setStatus(InventoryItemStatus.OTHER);
+            sideShift.setStatus(InventoryItemStatus.IN_VEHICLE);
             sideShift.setDescription(ComponentType.SIDE_SHIFT.getValue());
 
             itemsToInsert.add(sideShift);

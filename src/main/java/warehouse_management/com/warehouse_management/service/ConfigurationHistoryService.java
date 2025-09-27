@@ -382,7 +382,7 @@ public class ConfigurationHistoryService {
         }
 
         component.setVehicleId(vehicle.getId());
-        component.setStatus(InventoryItemStatus.OTHER.getId());
+        component.setStatus(InventoryItemStatus.IN_VEHICLE.getId());
 
         component = inventoryItemRepository.save(component);
 
