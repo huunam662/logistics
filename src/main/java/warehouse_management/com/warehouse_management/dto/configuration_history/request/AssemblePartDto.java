@@ -9,6 +9,7 @@ public class AssemblePartDto {
     private String vehicleId;
     private BigDecimal vehiclePriceR0;  // Giá xe R0
     private BigDecimal vehiclePriceR1;  // Giá xe R1
+    private BigDecimal vehicleOtherPrice; // Giá xe Khác
     private String componentId;
     private String configurationCode;
 }

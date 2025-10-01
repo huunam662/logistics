@@ -196,13 +196,37 @@ public class WarehouseController {
 
     @GetMapping("/page/inventory-central-warehouse/spare-part")
     @Operation(
-            summary = "GET data hàng hóa tồn tại các kho đến. (phân trang)",
-            description = "GET data hàng hóa tồn tại các kho đến. (phân trang)"
+            summary = "GET data hàng hóa tồn tại các kho ký gửi. (phân trang)",
+            description = "GET data hàng hóa tồn tại các kho ký gửi. (phân trang)"
     )
     public ApiResponse<?> getPageInventoryCentralWarehouseSparePart(
             @ModelAttribute PageOptionsDto optionsReq
     ) {
         Page<InventoryCentralWarehouseSparePartDto> inventoryItemPage = warehouseService.getPageInventoryCentralWarehouseSparePart(optionsReq);
+        return ApiResponse.success(new PageInfoDto<>(inventoryItemPage));
+    }
+
+    @GetMapping("/page/inventory-central-consignment/product")
+    @Operation(
+            summary = "GET data sản phẩm tồn tại các kho ký gửi. (phân trang)",
+            description = "GET data sản phẩm tồn tại các kho ký gửi. (phân trang)"
+    )
+    public ApiResponse<?> getPageInventoryCentralWarehouseConsignment(
+            @ModelAttribute PageOptionsDto optionsReq
+    ) {
+        Page<InventoryCentralWarehouseProductDto> inventoryItemPage = warehouseService.getPageInventoryCentralWarehouseConsignment(optionsReq);
+        return ApiResponse.success(new PageInfoDto<>(inventoryItemPage));
+    }
+
+    @GetMapping("/page/inventory-central-consignment/spare-part")
+    @Operation(
+            summary = "GET data hàng hóa tồn tại các kho đến. (phân trang)",
+            description = "GET data hàng hóa tồn tại các kho đến. (phân trang)"
+    )
+    public ApiResponse<?> getPageInventoryCentralWarehouseConsignmentSparePart(
+            @ModelAttribute PageOptionsDto optionsReq
+    ) {
+        Page<InventoryCentralWarehouseSparePartDto> inventoryItemPage = warehouseService.getPageInventoryCentralWarehouseConsignmentSparePart(optionsReq);
         return ApiResponse.success(new PageInfoDto<>(inventoryItemPage));
     }
 
@@ -232,22 +256,55 @@ public class WarehouseController {
     }
 
     @GetMapping("/{id}/products")
+    @Operation(
+            summary = "GET danh sách Sản Phẩm thuộc kho.",
+            description = "GET danh sách Sản Phẩm thuộc kho."
+    )
     public ResponseEntity<?> getProductsByWarehouseId(
             @PathVariable("id") String warehouseId,
-            @RequestParam(value = "poNumber", defaultValue = "") String poNumber,
             @RequestParam(value = "filter", required = false) String filter
     ){
-        List<InventoryProductDetailsDto> productDetails = inventoryItemService.getProductsByWarehouseId(warehouseId, poNumber, filter);
+        List<InventoryProductDetailsDto> productDetails = inventoryItemService.getProductsByWarehouseId(warehouseId, filter);
         return ResponseEntity.ok(ApiResponse.success(productDetails));
     }
 
     @GetMapping("/{id}/spare-part")
+    @Operation(
+            summary = "GET danh sách Phụ Tùng thuộc kho.",
+            description = "GET danh sách Phụ Tùng thuộc kho."
+    )
     public ResponseEntity<?> getSparePartByWarehouseId(
             @PathVariable("id") String warehouseId,
-            @RequestParam(value = "poNumber", defaultValue = "") String poNumber,
             @RequestParam(value = "filter", required = false) String filter
     ){
-        List<InventorySparePartDetailsDto> sparePartDetailsDtos = inventoryItemService.getSparePartByWarehouseId(warehouseId, poNumber, filter);
+        List<InventorySparePartDetailsDto> sparePartDetailsDtos = inventoryItemService.getSparePartByWarehouseId(warehouseId, filter);
+        return ResponseEntity.ok(ApiResponse.success(sparePartDetailsDtos));
+    }
+
+
+    @GetMapping("/products")
+    @Operation(
+            summary = "GET danh sách Sản Phẩm thuộc nhiều kho.",
+            description = "GET danh sách Sản Phẩm thuộc nhiều kho."
+    )
+    public ResponseEntity<?> getProductsByWarehouseIdIn(
+            @RequestParam("warehouseIds") List<String> warehouseIds,
+            @RequestParam(value = "filter", required = false) String filter
+    ){
+        List<InventoryProductDetailsDto> productDetails = inventoryItemService.getProductsByWarehouseIdList(warehouseIds, filter);
+        return ResponseEntity.ok(ApiResponse.success(productDetails));
+    }
+
+    @GetMapping("/spare-part")
+    @Operation(
+            summary = "GET danh sách Phụ Tùng thuộc nhiều kho.",
+            description = "GET danh sách Phụ Tùng thuộc nhiều kho."
+    )
+    public ResponseEntity<?> getSparePartByWarehouseIdIn(
+            @RequestParam("warehouseIds") List<String> warehouseIds,
+            @RequestParam(value = "filter", required = false) String filter
+    ){
+        List<InventorySparePartDetailsDto> sparePartDetailsDtos = inventoryItemService.getSparePartByWarehouseIdList(warehouseIds, filter);
         return ResponseEntity.ok(ApiResponse.success(sparePartDetailsDtos));
     }
 

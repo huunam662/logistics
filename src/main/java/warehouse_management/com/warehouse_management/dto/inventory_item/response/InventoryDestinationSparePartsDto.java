@@ -23,4 +23,5 @@ public class InventoryDestinationSparePartsDto {
     private BigDecimal purchasePrice;       // Giá mua vào
     private BigDecimal salePriceR0;         // Giá bán đề xuất R0
     private BigDecimal salePriceR1;         // Giá bán đề xuất R1
+    private BigDecimal otherPrice;      // Giá khác
 }

@@ -28,6 +28,7 @@ public class InventoryCentralWarehouseProductDto {
     private String batterySpecification;    // Thông số bình điện
     private String forkDimensions;          // Thông số càng
     private String chargerSpecification;    // Thông số bộ sạc
+    private String wheelInfo;       // Thông tin bánh xe
     private String valveCount;             // Số lượng van
     private String hasSideShift;           // Có side shift không
     private String otherDetails;            // Chi tiết khác
@@ -35,6 +36,7 @@ public class InventoryCentralWarehouseProductDto {
     private BigDecimal salePriceR0;         // Giá bán đề xuất R0
     private BigDecimal salePriceR1;         // Giá bán đề xuất R1
     private BigDecimal actualSalePrice;     // Giá bán thực tế
+    private BigDecimal otherPrice;      // Giá khác
     private String agent;                   // Đại lý (nếu có)
     private String warehouseName;           // Tên kho
     private String warehouseCode;           // Mã kho

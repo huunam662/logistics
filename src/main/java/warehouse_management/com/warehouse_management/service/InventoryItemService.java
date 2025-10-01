@@ -407,6 +407,19 @@ public class InventoryItemService {
 
             itemsToInsert.add(sideShift);
         }
+
+        if (parentItem.getSpecifications().getWheelInfo() != null) {
+            InventoryItem wheel = mapper.cloneToComponent(parentItem);
+            wheel.setQuantity(1);
+            wheel.setVehicleId(parentItem.getId());
+            wheel.setCommodityCode(parentItem.getSerialNumber());
+            wheel.setInventoryType(InventoryType.SPARE_PART.getId());
+            wheel.setComponentType(ComponentType.WHEEL.getId());
+            wheel.setStatus(InventoryItemStatus.IN_VEHICLE);
+            wheel.setDescription(ComponentType.WHEEL.getValue());
+
+            itemsToInsert.add(wheel);
+        }
     }
 
 
@@ -445,6 +458,7 @@ public class InventoryItemService {
         item.setPoNumber(req.getPoNumber());
         item.setCommodityCode(req.getCommodityCode());
         item.setContractNumber(req.getContactNumber());
+        item.setNotes(req.getNotes());
         return inventoryItemRepository.save(item);
     }
 
@@ -521,20 +535,40 @@ public class InventoryItemService {
     public Warehouse transferItemsDestinationToConsignment(@RequestBody InventoryTransferDestinationConsignmentDto dto) {
         Warehouse warehouseConsignment = warehouseService.getWarehouseToId(new ObjectId(dto.getConsignmentWarehouseId()));
         if (!warehouseConsignment.getType().equals(WarehouseType.CONSIGNMENT))
-            throw LogicErrException.of("Kho cần nhập hàng không phải là kho đi.");
+            throw LogicErrException.of("Kho cần nhập hàng không phải là kho ký gửi.");
         if (dto.getInventoryItems().isEmpty())
-            throw LogicErrException.of("Hàng hóa cần nhập sang kho đi hiện đang rỗng.");
+            throw LogicErrException.of("Hàng hóa cần nhập sang kho ký gửi hiện đang rỗng.");
 
         try {
             LocalDateTime consignmentDate = LocalDate.parse(dto.getConsignmentDate()).atStartOfDay();
             transferItems(dto.getInventoryItems(), warehouseConsignment.getId(), null, null, consignmentDate, InventoryItemStatus.IN_STOCK);
 
-            // TODO: Ghi nhận log chuyển kho (người thực hiện, thời gian, PO, số lượng)
+            // TODO: Tạo phiếu xuất hàng ở kho đích
 
             return warehouseConsignment;
         } catch (Exception e) {
             if (e instanceof LogicErrException l) throw l;
             throw LogicErrException.of("Nhập hàng sang kho " + warehouseConsignment.getName() + " thất bại, hãy thử lại.");
+        }
+    }
+
+    @Transactional
+    public Warehouse transferItemsConsignmentToDestination(@RequestBody InventoryTransferConsignmentDestinationDto dto) {
+        Warehouse warehouseDestination = warehouseService.getWarehouseToId(new ObjectId(dto.getDestinationWarehouseId()));
+        if (!warehouseDestination.getType().equals(WarehouseType.DESTINATION))
+            throw LogicErrException.of("Kho cần nhập hàng không phải là kho đến.");
+        if (dto.getInventoryItems().isEmpty())
+            throw LogicErrException.of("Hàng hóa cần nhập sang kho đến hiện đang rỗng.");
+
+        try {
+            transferItems(dto.getInventoryItems(), warehouseDestination.getId(), null, null, null, InventoryItemStatus.IN_STOCK);
+
+            // TODO: Tạo phiếu nhập hàng ở kho đích
+
+            return warehouseDestination;
+        } catch (Exception e) {
+            if (e instanceof LogicErrException l) throw l;
+            throw LogicErrException.of("Nhập hàng sang kho " + warehouseDestination.getName() + " thất bại, hãy thử lại.");
         }
     }
 
@@ -586,6 +620,7 @@ public class InventoryItemService {
         InventoryItem inventoryItem = getItemToId(new ObjectId(id));
         inventoryItem.setPoNumber(dto.getPoNumber());
         inventoryItem.setProductCode(dto.getProductCode());
+        inventoryItem.setNotes(dto.getNotes());
         if(InventoryType.VEHICLE.getId().equals(inventoryItem.getInventoryType())){
             if(
                     inventoryItem.getSerialNumber() == null
@@ -742,12 +777,22 @@ public class InventoryItemService {
         return inventoryItemRepository.findAllModelsAndItems(inventoryTypes, ids);
     }
 
-    public List<InventoryProductDetailsDto> getProductsByWarehouseId(String warehouseId, String poNumber, String filter) {
-        return inventoryItemRepository.findProductsByWarehouseId(new ObjectId(warehouseId), poNumber, filter);
+    public List<InventoryProductDetailsDto> getProductsByWarehouseId(String warehouseId, String filter) {
+        return inventoryItemRepository.findProductsByWarehouseId(new ObjectId(warehouseId), filter);
     }
 
-    public List<InventorySparePartDetailsDto> getSparePartByWarehouseId(String warehouseId, String poNumber, String filter) {
-        return inventoryItemRepository.findSparePartByWarehouseId(new ObjectId(warehouseId), poNumber, filter);
+    public List<InventorySparePartDetailsDto> getSparePartByWarehouseId(String warehouseId, String filter) {
+        return inventoryItemRepository.findSparePartByWarehouseId(new ObjectId(warehouseId), filter);
+    }
+
+    public List<InventoryProductDetailsDto> getProductsByWarehouseIdList(List<String> warehouseIds, String filter) {
+        List<ObjectId> warehouseObjectIds = warehouseIds.stream().map(ObjectId::new).toList();
+        return inventoryItemRepository.findProductsByWarehouseIdIn(warehouseObjectIds, filter);
+    }
+
+    public List<InventorySparePartDetailsDto> getSparePartByWarehouseIdList(List<String> warehouseIds, String filter) {
+        List<ObjectId> warehouseObjectIds = warehouseIds.stream().map(ObjectId::new).toList();
+        return inventoryItemRepository.findSparePartByWarehouseIdIn(warehouseObjectIds, filter);
     }
 
     public InventoryItem findByIdOrThrow(String id) {

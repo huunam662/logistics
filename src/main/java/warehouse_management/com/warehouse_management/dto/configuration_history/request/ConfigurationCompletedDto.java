@@ -8,7 +8,5 @@ import java.math.BigDecimal;
 public class ConfigurationCompletedDto {
 
     private String vehicleId;
-    private BigDecimal vehiclePriceR0;
-    private BigDecimal vehiclePriceR1;
 
 }

@@ -34,7 +34,11 @@ public interface CustomInventoryItemRepository {
 
     Page<InventoryCentralWarehouseProductDto> findPageInventoryCentralWarehouse(PageOptionsDto optionsReq);
 
+    Page<InventoryCentralWarehouseProductDto> findPageInventoryCentralWarehouseConsignment(PageOptionsDto optionsReq);
+
     Page<InventoryCentralWarehouseSparePartDto> findPageInventoryCentralWarehouseSparePart(PageOptionsDto optionsReq);
+
+    Page<InventoryCentralWarehouseSparePartDto> findPageInventoryCentralWarehouseConsignmentSparePart(PageOptionsDto optionsReq);
 
     List<InventoryPoWarehouseDto> findPoNumbersOfInventoryInStock(String warehouseType, List<String> inventoryTypes, String model, String warehouseId);
 
@@ -70,9 +74,13 @@ public interface CustomInventoryItemRepository {
 
     Page<ReportInventoryDto> findPageReportItemInTransitContainerToDashBoard(ReportParamsDto params);
 
-    List<InventoryProductDetailsDto> findProductsByWarehouseId(ObjectId warehouseId, String poNumber, String filter);
+    List<InventoryProductDetailsDto> findProductsByWarehouseId(ObjectId warehouseId, String filter);
 
-    List<InventorySparePartDetailsDto> findSparePartByWarehouseId(ObjectId warehouseId, String poNumber, String filter);
+    List<InventoryProductDetailsDto> findProductsByWarehouseIdIn(List<ObjectId> warehouseIds, String filter);
+
+    List<InventorySparePartDetailsDto> findSparePartByWarehouseId(ObjectId warehouseId, String filter);
+
+    List<InventorySparePartDetailsDto> findSparePartByWarehouseIdIn(List<ObjectId> warehouseIds, String filter);
 
     List<InventoryProductDetailsDto> findVehicles(PageOptionsDto optionsReq);
 

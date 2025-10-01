@@ -21,6 +21,7 @@ public class InventoryProductionSparePartsDto {
     private Integer quantity;   // Số lượng hàng hóa
     private BigDecimal purchasePrice;       // Giá mua vào
     private BigDecimal actualSalePrice;     // Giá bán thực tế
+    private BigDecimal otherPrice;      // Giá khác
     private String notes;                  // Ghi chú chung – Không bắt buộc
 
 }

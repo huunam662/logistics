@@ -30,5 +30,6 @@ public class InventorySparePartDetailsDto {
         private BigDecimal salePriceR0;         // Giá bán đề xuất R0
         private BigDecimal salePriceR1;         // Giá bán đề xuất R1
         private BigDecimal actualSalePrice;
+        private BigDecimal otherPrice;      // Giá khác
     }
 }
