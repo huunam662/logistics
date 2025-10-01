@@ -65,6 +65,7 @@ public class CreateInventoryProductDto {
         private String chargerSpecification; // Thông số sạc 18
         private String valveCount; // Số van 20
         private String hasSideShift; // Có side shift không 9
+        private String wheelInfo;    // Thông tin bánh xe
         private String otherDetails; // Chi tiết khác 10
     }
 
@@ -79,9 +80,13 @@ public class CreateInventoryProductDto {
         @Min(value = 0, message = "Giá bán R0 phải lớn hơn hoặc bằng 0")
         private BigDecimal salePriceR0; // Giá bán R0 23
 
-        @NotNull(message = "Giá bán R0 là bắt buộc")
+        @NotNull(message = "Giá bán R1 là bắt buộc")
         @Min(value = 0, message = "Giá bán R1 phải lớn hơn hoặc bằng 0")
         private BigDecimal salePriceR1; // Giá bán R1 24
+
+        @NotNull(message = "Giá khác là bắt buộc")
+        @Min(value = 0, message = "Giá khác phải lớn hơn hoặc bằng 0")
+        private BigDecimal otherPrice; // Giá khác
 
         @NotNull(message = "Đại lý là bắt buộc")
         @NotBlank(message = "Đại lý là bắt buộc")

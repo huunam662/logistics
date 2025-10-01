@@ -42,14 +42,11 @@ public class InventoryItemModelDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Pricing {
-        @Field(targetType = FieldType.DECIMAL128)
         private BigDecimal purchasePrice;       // Giá mua vào
-        @Field(targetType = FieldType.DECIMAL128)
         private BigDecimal salePriceR0;         // Giá bán đề xuất R0
-        @Field(targetType = FieldType.DECIMAL128)
         private BigDecimal salePriceR1;         // Giá bán đề xuất R1
-        @Field(targetType = FieldType.DECIMAL128)
         private BigDecimal actualSalePrice;     // Giá bán thực tế
+        private BigDecimal otherPrice;      // Giá khác
         private String agent;                   // Đại lý (nếu có)
     }
 }

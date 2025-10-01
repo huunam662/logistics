@@ -19,6 +19,7 @@ public class ConfigVehicleSpecPageDto {
     private ComponentVehicle fork;
     private ComponentVehicle valve;
     private ComponentVehicle sideShift;
+    private ComponentVehicle wheel;
 
     @Data
     public static class ComponentVehicle{

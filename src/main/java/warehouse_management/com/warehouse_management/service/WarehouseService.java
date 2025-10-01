@@ -159,6 +159,14 @@ public class WarehouseService {
         return inventoryItemRepository.findPageInventoryCentralWarehouse(optionsReq);
     }
 
+    public Page<InventoryCentralWarehouseProductDto> getPageInventoryCentralWarehouseConsignment(PageOptionsDto optionsReq){
+        return inventoryItemRepository.findPageInventoryCentralWarehouseConsignment(optionsReq);
+    }
+
+    public Page<InventoryCentralWarehouseSparePartDto> getPageInventoryCentralWarehouseConsignmentSparePart(PageOptionsDto optionsReq){
+        return inventoryItemRepository.findPageInventoryCentralWarehouseConsignmentSparePart(optionsReq);
+    }
+
     public Page<InventoryCentralWarehouseSparePartDto> getPageInventoryCentralWarehouseSparePart(PageOptionsDto optionsReq){
         return inventoryItemRepository.findPageInventoryCentralWarehouseSparePart(optionsReq);
     }

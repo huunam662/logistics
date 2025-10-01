@@ -24,6 +24,7 @@ public class InventoryCentralWarehouseSparePartDto {
     private BigDecimal salePriceR0;         // Giá bán đề xuất R0
     private BigDecimal salePriceR1;         // Giá bán đề xuất R1
     private BigDecimal actualSalePrice; // Giá bán thực tế
+    private BigDecimal otherPrice;      // Giá khác
     private String agent;                   // Đại lý (nếu có)
     private String warehouseName;           // Tên kho
     private String warehouseCode;           // Mã kho

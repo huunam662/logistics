@@ -76,6 +76,9 @@ public class ConfigurationHistoryService {
 
             swapVehicleComponent(leftVeh, rightVeh, componentType);
 
+            setSerialComponent(leftVeh, rightVehComponent, componentType);
+            setSerialComponent(rightVeh, leftVehComponent, componentType);
+
             vehicleToUpdateSpecAndPricingList.add(rightVeh);
         }
 
@@ -298,6 +301,8 @@ public class ConfigurationHistoryService {
         vehicle.getPricing().setSalePriceR0(dropPartRequest.getVehiclePriceR0());
         vehicle.getPricing().setSalePriceR1(dropPartRequest.getVehiclePriceR1());
 
+        setSerialComponent(vehicle, null, componentType);
+
         inventoryItemRepository.save(vehicle);
 
         CustomUserDetail customUserDetail = customAuthentication.getUserOrThrow();
@@ -307,6 +312,29 @@ public class ConfigurationHistoryService {
         return true;
     }
 
+    private void setSerialComponent(InventoryItem vehicle, InventoryItem component, ComponentType componentType){
+
+        if(vehicle.getSpecificationsSerial() == null){
+            vehicle.setSpecificationsSerial(new InventoryItem.SpecificationsSerial());
+        }
+
+        String componentSerial;
+
+        if(component == null) componentSerial = null;
+        else componentSerial = InventoryType.SPARE_PART.getId().equals(component.getInventoryType())
+                ? component.getCommodityCode() : component.getSerialNumber();
+
+        switch (componentType){
+            case ENGINE -> vehicle.getSpecificationsSerial().setEngineSerial(componentSerial);
+            case FORK -> vehicle.getSpecificationsSerial().setForkSerial(componentSerial);
+            case SIDE_SHIFT -> vehicle.getSpecificationsSerial().setSideShiftSerial(componentSerial);
+            case VALVE -> vehicle.getSpecificationsSerial().setValveSerial(componentSerial);
+            case BATTERY -> vehicle.getSpecificationsSerial().setBatterySerial(componentSerial);
+            case CHARGER -> vehicle.getSpecificationsSerial().setChargerSerial(componentSerial);
+            case LIFTING_FRAME -> vehicle.getSpecificationsSerial().setLiftingFrameSerial(componentSerial);
+            case WHEEL -> vehicle.getSpecificationsSerial().setWheelSerial(componentSerial);
+        }
+    }
 
     private void disassembleSpecifications(InventoryItem veh, ComponentType componentType) {
         switch (componentType) {
@@ -393,6 +421,8 @@ public class ConfigurationHistoryService {
         if(vehicle.getPricing() == null) vehicle.setPricing(new InventoryItem.Pricing());
         vehicle.getPricing().setSalePriceR0(assemblePart.getVehiclePriceR0());
         vehicle.getPricing().setSalePriceR1(assemblePart.getVehiclePriceR1());
+
+        setSerialComponent(vehicle, component, componentType);
 
         inventoryItemRepository.save(vehicle);
 
@@ -582,9 +612,11 @@ public class ConfigurationHistoryService {
 
             Decimal128 priceR0 = (Decimal128) result.get("salePriceR0");
             Decimal128 priceR1 = (Decimal128) result.get("salePriceR1");
+            Decimal128 otherPrice = (Decimal128) result.get("otherPrice");
 
             res.setSalePriceR0(priceR0 == null ? null : priceR0.bigDecimalValue());
             res.setSalePriceR1(priceR1 == null ? null : priceR1.bigDecimalValue());
+            res.setOtherPrice(otherPrice == null ? null : otherPrice.bigDecimalValue());
 
             return res;
         }
@@ -601,6 +633,7 @@ public class ConfigurationHistoryService {
         if(vehicle.getPricing() != null){
             res.setVehiclePriceR0(vehicle.getPricing().getSalePriceR0());
             res.setVehiclePriceR1(vehicle.getPricing().getSalePriceR1());
+            res.setOtherPrice(vehicle.getPricing().getOtherPrice());
         }
 
         res.setVehicleId(vehicle.getId());
@@ -704,10 +737,12 @@ public class ConfigurationHistoryService {
         res.setVehicleLeftPricing(new ItemCodePriceDto());
         res.getVehicleLeftPricing().setSalePriceR0(vehicleLeft.getPricing() == null ? null : vehicleLeft.getPricing().getSalePriceR0());
         res.getVehicleLeftPricing().setSalePriceR1(vehicleLeft.getPricing() == null ? null : vehicleLeft.getPricing().getSalePriceR1());
+        res.getVehicleLeftPricing().setOtherPrice(vehicleLeft.getPricing() == null ? null : vehicleLeft.getPricing().getOtherPrice());
 
         res.setVehicleRightPricing(new ItemCodePriceDto());
         res.getVehicleRightPricing().setSalePriceR0(vehicleRight.getPricing() == null ? null : vehicleRight.getPricing().getSalePriceR0());
         res.getVehicleRightPricing().setSalePriceR1(vehicleRight.getPricing() == null ? null : vehicleRight.getPricing().getSalePriceR1());
+        res.getVehicleRightPricing().setOtherPrice(vehicleRight.getPricing() == null ? null : vehicleRight.getPricing().getOtherPrice());
 
         return res;
     }

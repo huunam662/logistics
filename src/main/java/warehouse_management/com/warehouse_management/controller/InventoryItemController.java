@@ -169,6 +169,18 @@ public class InventoryItemController {
         return apiResponse;
     }
 
+    @PostMapping("/transfer/consignment-to-destination")
+    @Operation(
+            summary = "POST chuyển hàng hóa từ kho kí gửi sang kho đến.",
+            description = "POST chuyển hàng hóa từ kho kí gửi sang kho đến."
+    )
+    public ApiResponse<?> transferItemsConsignmentToDestination(@RequestBody InventoryTransferConsignmentDestinationDto dto){
+        Warehouse warehouse = inventoryItemService.transferItemsConsignmentToDestination(dto);
+        ApiResponse<?> apiResponse = ApiResponse.success();
+        apiResponse.setMessage("Nhập hàng sang kho " + warehouse.getName() + " thành công.");
+        return apiResponse;
+    }
+
     @GetMapping("/warehouse/{warehouseId}")
     public ResponseEntity<PageInfoDto<InventoryItemProductionVehicleTypeDto>> searchItemsInWarehouse(
             @PathVariable("warehouseId") String warehouseId,

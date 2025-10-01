@@ -63,5 +63,9 @@ public class CreateInventorySparePartDto {
         @NotNull(message = "Giá bán R0 là bắt buộc")
         @Min(value = 0, message = "Giá bán R1 phải lớn hơn hoặc bằng 0")
         private BigDecimal salePriceR1;         // Giá bán đề xuất R1
+
+        @NotNull(message = "Giá khác là bắt buộc")
+        @Min(value = 0, message = "Giá khác phải lớn hơn hoặc bằng 0")
+        private BigDecimal otherPrice; // Giá khác
     }
 }
