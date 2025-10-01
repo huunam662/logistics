@@ -37,6 +37,9 @@ public class WarehouseTransaction implements Persistable<ObjectId> {
     private ObjectId originWarehouseId;     // Kho nguồn
     private ObjectId destinationWarehouseId; // Kho đích
 
+    private ObjectId orderId; // Cho loại phiếu duyệt giao hàng
+    private List<ObjectId> orderItemIds;
+
     private ObjectId requesterId;               // Người tạo yêu cầu
     private ObjectId approverId;                // Người duyệt hoặc từ chối
 
@@ -64,10 +67,6 @@ public class WarehouseTransaction implements Persistable<ObjectId> {
     @Override
     public boolean isNew() {
         return createdAt == null;
-    }
-
-    public WarehouseTransactionStatus getStatusEnum() {
-        return status == null ? null : WarehouseTransactionStatus.fromId(status);
     }
 
     public void setStatusEnum(WarehouseTransactionStatus status) {
