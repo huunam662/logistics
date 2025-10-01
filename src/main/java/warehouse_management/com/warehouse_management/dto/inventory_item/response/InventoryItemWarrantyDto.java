@@ -14,6 +14,5 @@ public class InventoryItemWarrantyDto {
     private String serialNumber;
     private String productCode;
 
-    
     private LocalDateTime arrivalDate;
 }

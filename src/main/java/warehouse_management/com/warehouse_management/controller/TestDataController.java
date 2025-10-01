@@ -239,14 +239,14 @@ public class TestDataController {
 //                item.setSpecifications(specs);
 
 // Pricing
-                InventoryItem.Pricing pricing = new InventoryItem.Pricing(
-                        BigDecimal.valueOf(faker.number().randomDouble(2, 100, 500)),  // purchasePrice
-                        BigDecimal.valueOf(faker.number().randomDouble(2, 550, 650)),  // salePriceR0
-                        BigDecimal.valueOf(faker.number().randomDouble(2, 700, 800)),  // salePriceR1
-                        BigDecimal.valueOf(faker.number().randomDouble(2, 600, 900)),  // actualSalePrice
-                        "Đại lý " + faker.company().name()                             // agent
-                );
-                item.setPricing(pricing);
+//                InventoryItem.Pricing pricing = new InventoryItem.Pricing(
+//                        BigDecimal.valueOf(faker.number().randomDouble(2, 100, 500)),  // purchasePrice
+//                        BigDecimal.valueOf(faker.number().randomDouble(2, 550, 650)),  // salePriceR0
+//                        BigDecimal.valueOf(faker.number().randomDouble(2, 700, 800)),  // salePriceR1
+//                        BigDecimal.valueOf(faker.number().randomDouble(2, 600, 900)),  // actualSalePrice
+//                        "Đại lý " + faker.company().name()                             // agent
+//                );
+//                item.setPricing(pricing);
 
 // Logistics
                 InventoryItem.Logistics logistics = new InventoryItem.Logistics(

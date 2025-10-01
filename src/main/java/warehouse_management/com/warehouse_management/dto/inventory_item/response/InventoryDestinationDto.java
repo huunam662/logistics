@@ -26,6 +26,7 @@ public class InventoryDestinationDto {
     private String batterySpecification;    // Thông số bình điện
     private String chargerSpecification;    // Thông số bộ sạc
     private String forkDimensions;          // Thông số càng
+    private String wheelInfo;       // Thông tin bánh xe
     private String warehouseType;           // Loại kho
     private String valveCount;             // Số lượng van
     private String otherDetails;            // Chi tiết khác
@@ -34,6 +35,7 @@ public class InventoryDestinationDto {
     private BigDecimal purchasePrice;       // Giá mua
     private BigDecimal salePriceR0;         // Giá R0
     private BigDecimal salePriceR1;         // Giá R1
+    private BigDecimal otherPrice;      // Giá khác
     private String agent;       // Đại lý
     
     private LocalDateTime arrivalDate;    // Ngày giao hàng

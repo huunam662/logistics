@@ -20,5 +20,6 @@ public class VehiclePartSwapDto {
     public static class VehiclePrice {
         private BigDecimal salePriceR0;
         private BigDecimal salePriceR1;
+        private BigDecimal otherPrice;
     }
 }

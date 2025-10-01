@@ -104,10 +104,12 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .and("specifications.forkDimensions").as("forkDimensions")  //
                         .and("specifications.valveCount").as("valveCount")  //
                         .and("specifications.otherDetails").as("otherDetails")  //
+                        .and("specifications.wheelInfo").as("wheelInfo")
                         .and("pricing.purchasePrice").as("purchasePrice")   //
                         .and("pricing.salePriceR0").as("salePriceR0")   //
                         .and("pricing.salePriceR1").as("salePriceR1")   //
                         .and("pricing.actualSalePrice").as("actualSalePrice")   //
+                        .and("pricing.otherPrice").as("otherPrice")
                         .and("pricing.agent").as("agent")   //
                         .and("logistics.arrivalDate").as("arrivalDate") //
         );
@@ -140,12 +142,14 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .and("specifications.batterySpecification").as("batterySpecification")
                         .and("specifications.chargerSpecification").as("chargerSpecification")
                         .and("specifications.forkDimensions").as("forkDimensions")
+                        .and("specifications.wheelInfo").as("wheelInfo")
                         .and("specifications.valveCount").as("valveCount")
                         .and("specifications.otherDetails").as("otherDetails")
                         .and("pricing.purchasePrice").as("purchasePrice")
                         .and("pricing.salePriceR0").as("salePriceR0")
                         .and("pricing.salePriceR1").as("salePriceR1")
                         .and("pricing.actualSalePrice").as("actualSalePrice")
+                        .and("pricing.otherPrice").as("otherPrice")
                         .and("pricing.agent").as("agent")
         );
         Aggregation aggregation = Aggregation.newAggregation(pipelines);
@@ -182,12 +186,14 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .and("specifications.batterySpecification").as("batterySpecification")  //
                         .and("specifications.chargerSpecification").as("chargerSpecification")  //
                         .and("specifications.forkDimensions").as("forkDimensions")  //
+                        .and("specifications.wheelInfo").as("wheelInfo")
                         .and("specifications.valveCount").as("valveCount")  //
                         .and("specifications.otherDetails").as("otherDetails")  //
                         .and("pricing.purchasePrice").as("purchasePrice")   //
                         .and("pricing.salePriceR0").as("salePriceR0")   //
                         .and("pricing.salePriceR1").as("salePriceR1")   //
                         .and("pricing.actualSalePrice").as("actualSalePrice")   //
+                        .and("pricing.otherPrice").as("otherPrice")
                         .and("container.containerStatus").as("containerStatus")  //
                         .and("container.containerCode").as("containerCode")  //
                         .and("container.departureDate").as("containerDepartureDate") //
@@ -223,12 +229,14 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .and("specifications.batterySpecification").as("batterySpecification")  //
                         .and("specifications.chargerSpecification").as("chargerSpecification")  //
                         .and("specifications.forkDimensions").as("forkDimensions")  //
+                        .and("specifications.wheelInfo").as("wheelInfo")
                         .and("specifications.valveCount").as("valveCount")  //
                         .and("specifications.otherDetails").as("otherDetails")  //
                         .and("pricing.purchasePrice").as("purchasePrice")   //
                         .and("pricing.salePriceR0").as("salePriceR0")   //
                         .and("pricing.salePriceR1").as("salePriceR1")   //
                         .and("pricing.actualSalePrice").as("actualSalePrice")   //
+                        .and("pricing.otherPrice").as("otherPrice")
                         .and("pricing.agent").as("agent")   //
                         .and("logistics.arrivalDate").as("arrivalDate") //
                         .and("logistics.consignmentDate").as("consignmentDate") //
@@ -256,6 +264,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .and("logistics.orderDate").as("orderDate") //
                         .and("pricing.purchasePrice").as("purchasePrice")   //
                         .and("pricing.actualSalePrice").as("actualSalePrice")   //
+                        .and("pricing.otherPrice").as("otherPrice")
         );
         Aggregation aggregation = Aggregation.newAggregation(pipelines);
         return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryProductionSparePartsDto.class, aggregation, optionsReq);
@@ -280,6 +289,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .and("pricing.purchasePrice").as("purchasePrice")   //
                         .and("pricing.salePriceR0").as("salePriceR0")   //
                         .and("pricing.salePriceR1").as("salePriceR1")   //
+                        .and("pricing.otherPrice").as("otherPrice")
         );
         Aggregation aggregation = Aggregation.newAggregation(pipelines);
         return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryDepartureSparePartsDto.class, aggregation, optionsReq);
@@ -304,6 +314,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .and("pricing.purchasePrice").as("purchasePrice")   //
                         .and("pricing.salePriceR0").as("salePriceR0")   //
                         .and("pricing.salePriceR1").as("salePriceR1")   //
+                        .and("pricing.otherPrice").as("otherPrice")
         );
         Aggregation aggregation = Aggregation.newAggregation(pipelines);
         return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryDestinationSparePartsDto.class, aggregation, optionsReq);
@@ -331,6 +342,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .and("pricing.purchasePrice").as("purchasePrice")   //
                         .and("pricing.salePriceR0").as("salePriceR0")   //
                         .and("pricing.salePriceR1").as("salePriceR1")   //
+                        .and("pricing.otherPrice").as("otherPrice")
         );
         Aggregation aggregation = Aggregation.newAggregation(pipelines);
         return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryConsignmentSparePartsDto.class, aggregation, optionsReq);
@@ -360,6 +372,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .and("specifications.batterySpecification").as("batterySpecification")  //
                         .and("specifications.chargerSpecification").as("chargerSpecification")  //
                         .and("specifications.forkDimensions").as("forkDimensions")  //
+                        .and("specifications.wheelInfo").as("wheelInfo")
                         .and("specifications.valveCount").as("valveCount")  //
                         .and("specifications.hasSideShift").as("hasSideShift")  //
                         .and("specifications.otherDetails").as("otherDetails")  //
@@ -367,6 +380,48 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .and("pricing.salePriceR0").as("salePriceR0")   //
                         .and("pricing.salePriceR1").as("salePriceR1")   //
                         .and("pricing.actualSalePrice").as("actualSalePrice")   //
+                        .and("pricing.otherPrice").as("otherPrice")
+                        .and("pricing.agent").as("agent")   //
+                        .and("warehouse.name").as("warehouseName")
+                        .and("warehouse.code").as("warehouseCode")
+        );
+        Aggregation aggregation = Aggregation.newAggregation(pipelines);
+        return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryCentralWarehouseProductDto.class, aggregation, optionsReq);
+    }
+
+    @Override
+    public Page<InventoryCentralWarehouseProductDto> findPageInventoryCentralWarehouseConsignment(PageOptionsDto optionsReq) {
+        List<AggregationOperation> pipelines = List.of(
+                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
+                Aggregation.unwind("warehouse"),
+                Aggregation.match(new Criteria().andOperator(
+                        Criteria.where("warehouse.status").is(WarehouseStatus.ACTIVE),
+                        Criteria.where("deletedAt").isNull(),
+                        Criteria.where("warehouse.deletedAt").isNull(),
+                        Criteria.where("warehouse.type").is(WarehouseType.CONSIGNMENT.getId()),
+                        Criteria.where("inventoryType").in(InventoryType.VEHICLE.getId(), InventoryType.ACCESSORY.getId()),
+                        Criteria.where("vehicleId").isNull(),
+                        Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId())
+                )),
+                Aggregation.project("poNumber", "productCode", "status", "model", "category", "inventoryType", "serialNumber", "manufacturingYear", "initialCondition", "notes", "warehouseType")
+                        .and("_id").as("id")
+                        .and("specifications.liftingCapacityKg").as("liftingCapacityKg")    //
+                        .and("specifications.chassisType").as("chassisType")    //
+                        .and("specifications.liftingHeightMm").as("liftingHeightMm")    //
+                        .and("specifications.engineType").as("engineType")  //
+                        .and("specifications.batteryInfo").as("batteryInfo")    //
+                        .and("specifications.batterySpecification").as("batterySpecification")  //
+                        .and("specifications.chargerSpecification").as("chargerSpecification")  //
+                        .and("specifications.forkDimensions").as("forkDimensions")  //
+                        .and("specifications.wheelInfo").as("wheelInfo")
+                        .and("specifications.valveCount").as("valveCount")  //
+                        .and("specifications.hasSideShift").as("hasSideShift")  //
+                        .and("specifications.otherDetails").as("otherDetails")  //
+                        .and("pricing.purchasePrice").as("purchasePrice")   //
+                        .and("pricing.salePriceR0").as("salePriceR0")   //
+                        .and("pricing.salePriceR1").as("salePriceR1")   //
+                        .and("pricing.actualSalePrice").as("actualSalePrice")   //
+                        .and("pricing.otherPrice").as("otherPrice")
                         .and("pricing.agent").as("agent")   //
                         .and("warehouse.name").as("warehouseName")
                         .and("warehouse.code").as("warehouseCode")
@@ -394,6 +449,35 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .and("pricing.salePriceR0").as("salePriceR0")   //
                         .and("pricing.salePriceR1").as("salePriceR1")   //
                         .and("pricing.actualSalePrice").as("actualSalePrice")   //
+                        .and("pricing.otherPrice").as("otherPrice")
+                        .and("pricing.agent").as("agent")   //
+                        .and("warehouse.name").as("warehouseName")
+                        .and("warehouse.code").as("warehouseCode")
+        );
+        Aggregation aggregation = Aggregation.newAggregation(pipelines);
+        return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryCentralWarehouseSparePartDto.class, aggregation, optionsReq);
+    }
+
+    @Override
+    public Page<InventoryCentralWarehouseSparePartDto> findPageInventoryCentralWarehouseConsignmentSparePart(PageOptionsDto optionsReq) {
+        List<AggregationOperation> pipelines = List.of(
+                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
+                Aggregation.unwind("warehouse"),
+                Aggregation.match(new Criteria().andOperator(
+                        Criteria.where("warehouse.status").is(WarehouseStatus.ACTIVE),
+                        Criteria.where("deletedAt").isNull(),
+                        Criteria.where("warehouse.deletedAt").isNull(),
+                        Criteria.where("vehicleId").isNull(),
+                        Criteria.where("warehouse.type").is(WarehouseType.CONSIGNMENT.getId()),
+                        Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId())
+                )),
+                Aggregation.project("poNumber", "commodityCode", "status", "model", "quantity", "description", "notes", "contractNumber", "warehouseType")
+                        .and("_id").as("id")
+                        .and("pricing.purchasePrice").as("purchasePrice")   //
+                        .and("pricing.salePriceR0").as("salePriceR0")   //
+                        .and("pricing.salePriceR1").as("salePriceR1")   //
+                        .and("pricing.actualSalePrice").as("actualSalePrice")   //
+                        .and("pricing.otherPrice").as("otherPrice")
                         .and("pricing.agent").as("agent")   //
                         .and("warehouse.name").as("warehouseName")
                         .and("warehouse.code").as("warehouseCode")
@@ -450,7 +534,6 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         }
         AggregationResults<InventoryItemPoNumberDto> aggResults = mongoTemplate.aggregate(Aggregation.newAggregation(aggOps), InventoryItem.class, InventoryItemPoNumberDto.class);
         return aggResults.getMappedResults();
-
     }
 
     @Transactional
@@ -799,7 +882,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, ReportInventoryDto.class, aggregation, params);
     }
 
-    public List<InventoryProductDetailsDto> findProductsByWarehouseId(ObjectId warehouseId, String poNumber, String filter) {
+    public List<InventoryProductDetailsDto> findProductsByWarehouseId(ObjectId warehouseId, String filter) {
 
         List<String> statusIn = new ArrayList<>();
         statusIn.add(InventoryItemStatus.IN_STOCK.getId());
@@ -818,7 +901,6 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("inventoryType").in(InventoryType.VEHICLE.getId(), InventoryType.ACCESSORY.getId()),
                         Criteria.where("vehicleId").isNull(),
                         Criteria.where("deletedAt").isNull(),
-                        Criteria.where("poNumber").regex(poNumber, "i"),
                         Criteria.where("containerId").isNull()
                 )),
                 Aggregation.project("model", "category", "serialNumber", "productCode", "poNumber", "inventoryType", "initialCondition", "warehouseId", "notes", "specifications", "pricing", "logistics")
@@ -834,7 +916,33 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         return mongoTemplate.aggregate(agg, InventoryItem.class, InventoryProductDetailsDto.class).getMappedResults();
     }
 
-    public List<InventorySparePartDetailsDto> findSparePartByWarehouseId(ObjectId warehouseId, String poNumber, String filter) {
+    public List<InventoryProductDetailsDto> findProductsByWarehouseIdIn(List<ObjectId> warehouseIds, String filter) {
+
+        List<AggregationOperation> pipelines = new ArrayList<>(List.of(
+                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
+                Aggregation.unwind("warehouse"),
+                Aggregation.match(new Criteria().andOperator(
+                        Criteria.where("warehouseId").in(warehouseIds),
+                        Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
+                        Criteria.where("inventoryType").in(InventoryType.VEHICLE.getId(), InventoryType.ACCESSORY.getId()),
+                        Criteria.where("vehicleId").isNull(),
+                        Criteria.where("deletedAt").isNull(),
+                        Criteria.where("containerId").isNull()
+                )),
+                Aggregation.project("model", "category", "serialNumber", "productCode", "poNumber", "inventoryType", "initialCondition", "warehouseId", "notes", "specifications", "pricing", "logistics")
+                        .and("_id").as("id")
+        ));
+
+        if(filter != null && !filter.isBlank()) {
+            Criteria filterCriteria = MongoRsqlUtils.RsqlParser.parse(filter, Map.of());
+            pipelines.add(Aggregation.match(filterCriteria));
+        }
+
+        Aggregation agg = Aggregation.newAggregation(pipelines);
+        return mongoTemplate.aggregate(agg, InventoryItem.class, InventoryProductDetailsDto.class).getMappedResults();
+    }
+
+    public List<InventorySparePartDetailsDto> findSparePartByWarehouseId(ObjectId warehouseId, String filter) {
         List<AggregationOperation> pipelines = new ArrayList<>(List.of(
                 Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
                 Aggregation.unwind("warehouse"),
@@ -843,7 +951,32 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("status").in(InventoryItemStatus.IN_STOCK.getId()),
                         Criteria.where("inventoryType").in(InventoryType.SPARE_PART.getId()),
                         Criteria.where("deletedAt").isNull(),
-                        Criteria.where("poNumber").regex(poNumber, "i"),
+                        Criteria.where("vehicleId").isNull(),
+                        Criteria.where("containerId").isNull()
+                )),
+                Aggregation.project("commodityCode", "poNumber", "quantity", "description", "inventoryType", "contractNumber", "pricing", "warehouseId", "model", "notes")
+                        .and("_id").as("id")
+                        .and("logistics.orderDate").as("orderDate")
+        ));
+
+        if(filter != null && !filter.isBlank()) {
+            Criteria filterCriteria = MongoRsqlUtils.RsqlParser.parse(filter, Map.of());
+            pipelines.add(Aggregation.match(filterCriteria));
+        }
+
+        Aggregation agg = Aggregation.newAggregation(pipelines);
+        return mongoTemplate.aggregate(agg, InventoryItem.class, InventorySparePartDetailsDto.class).getMappedResults();
+    }
+
+    public List<InventorySparePartDetailsDto> findSparePartByWarehouseIdIn(List<ObjectId> warehouseIds, String filter) {
+        List<AggregationOperation> pipelines = new ArrayList<>(List.of(
+                Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
+                Aggregation.unwind("warehouse"),
+                Aggregation.match(new Criteria().andOperator(
+                        Criteria.where("warehouseId").in(warehouseIds),
+                        Criteria.where("status").in(InventoryItemStatus.IN_STOCK.getId()),
+                        Criteria.where("inventoryType").in(InventoryType.SPARE_PART.getId()),
+                        Criteria.where("deletedAt").isNull(),
                         Criteria.where("vehicleId").isNull(),
                         Criteria.where("containerId").isNull()
                 )),
@@ -1072,12 +1205,18 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .addField("sideShift.configStatus").withValue("$configurationsObj.SIDE_SHIFT.status")
                         .addField("sideShift.configType").withValue("$configurationsObj.SIDE_SHIFT.configType")
                         .addField("sideShift.configComponentType").withValue("$configurationsObj.SIDE_SHIFT.componentType")
+                        // BÁNH XE
+                        .addField("wheel.value").withValue("$specifications.wheelInfo")
+                        .addField("wheel.serialNumber").withValue("$componentsObj.WHEEL.commodityCode")
+                        .addField("wheel.configStatus").withValue("$configurationsObj.WHEEL.status")
+                        .addField("wheel.configType").withValue("$configurationsObj.WHEEL.configType")
+                        .addField("wheel.configComponentType").withValue("$configurationsObj.WHEEL.componentType")
 
                         .build(),
 
                 Aggregation.project()
                         .and("_id").as("vehicleId")
-                        .andInclude("productCode", "model", "serialNumber", "isFullyComponent", "initialCondition", "liftingFrame", "battery", "charger", "engine", "fork", "valve", "sideShift")
+                        .andInclude("productCode", "model", "serialNumber", "isFullyComponent", "initialCondition", "liftingFrame", "battery", "charger", "engine", "fork", "valve", "sideShift", "wheel")
                         .andExclude("_id")
         );
         return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, ConfigVehicleSpecPageDto.class, aggregation, optionsDto);

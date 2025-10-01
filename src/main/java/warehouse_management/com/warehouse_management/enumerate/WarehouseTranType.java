@@ -36,6 +36,11 @@ public enum WarehouseTranType {
     PRODUCTION_TO_DEPARTURE(
             "PRODUCTION_TO_DEPARTURE",
             "Kho chờ vào kho đi"
+    ),
+
+    DELETE_ORDER_ITEM(
+            "DELETE_ORDER_ITEM",
+            "Xóa sản phẩm trong đơn hàng"
     );
 
     private final String id;

@@ -28,6 +28,7 @@ public class InventoryConsignmentDto {
     private String batterySpecification;    // Thông số bình điện
     private String chargerSpecification;    // Thông số bộ sạc
     private String forkDimensions;          // Thông số càng
+    private String wheelInfo;   // Thông tin bánh xe
     private String warehouseName;           // Tên kho
     private String warehouseType;           // Loại kho
     private String valveCount;             // Số lượng van
@@ -37,6 +38,7 @@ public class InventoryConsignmentDto {
     private BigDecimal salePriceR0;         // Giá R0
     private BigDecimal salePriceR1;         // Giá R1
     private BigDecimal actualSalePrice;     // Giá bán thực tế
+    private BigDecimal otherPrice;      // Giá khác
     private String agent;       // Đại lý
     
     private LocalDateTime arrivalDate;    // Ngày giao hàng
