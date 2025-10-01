@@ -6,8 +6,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import warehouse_management.com.warehouse_management.app.CustomAuthentication;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.warehouse_transaction.request.ApprovalTicketDto;
+import warehouse_management.com.warehouse_management.dto.warehouse_transaction.request.CreateDeliveryTicketDTO;
 import warehouse_management.com.warehouse_management.dto.warehouse_transaction.request.CreateWarehouseTransactionDto;
 import warehouse_management.com.warehouse_management.dto.warehouse_transaction.response.WarehouseTransactionPageDto;
 import warehouse_management.com.warehouse_management.enumerate.InventoryItemStatus;
@@ -16,13 +18,16 @@ import warehouse_management.com.warehouse_management.enumerate.WarehouseTranType
 import warehouse_management.com.warehouse_management.enumerate.WarehouseTransactionStatus;
 import warehouse_management.com.warehouse_management.exceptions.LogicErrException;
 import warehouse_management.com.warehouse_management.mapper.WarehouseTransactionMapper;
+import warehouse_management.com.warehouse_management.model.DeliveryOrder;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.model.WarehouseTransaction;
+import warehouse_management.com.warehouse_management.repository.delivery_order.DeliveryOrderRepository;
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
 import warehouse_management.com.warehouse_management.repository.warehouse_transaction.WarehouseTransactionRepository;
 import warehouse_management.com.warehouse_management.utils.TranUtils;
 
+import javax.swing.text.html.Option;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -33,9 +38,11 @@ public class WarehouseTransactionService {
 
     private final WarehouseService warehouseService;
     private final WarehouseTransactionRepository warehouseTransferTicketRepository;
+    private final DeliveryOrderRepository deliveryOrderRepository;
     private final WarehouseTransactionMapper warehouseTransferTicketMapper;
     private final InventoryItemRepository inventoryItemRepository;
     private final TranUtils tranUtils;
+    private final CustomAuthentication customAuthentication;
 
     @Transactional
     public WarehouseTransaction createWarehouseTransaction(CreateWarehouseTransactionDto dto){
@@ -49,13 +56,58 @@ public class WarehouseTransactionService {
         ticket.setDestinationWarehouseId(destinationWarehouse.getId());
         ticket.setTitle(tranUtils.generateTranTitle(tranType, null, originWarehouse, destinationWarehouse));
         ticket.setReason("Điều chuyển kho");
-        ticket.setRequesterId(null);
+        ticket.setCreatedBy(customAuthentication.getUser().getId());
         ticket.setApproverId(null);
         ticket.setStatus(WarehouseTransactionStatus.PENDING.getId());
 
         // TODO: Send message approval to admin
 
         return warehouseTransferTicketRepository.save(ticket);
+    }
+
+    @Transactional
+    public WarehouseTransaction createDeliveryTicket(CreateDeliveryTicketDTO dto){
+        WarehouseTransaction deliveryTicket = new WarehouseTransaction();
+        // 1. Mark item order as pending
+        Optional<DeliveryOrder> deliveryOrder = deliveryOrderRepository.findById(new ObjectId(dto.getOrderId()));
+        List<ObjectId> orderItemObjectIds = dto.getInventoryItemIds().stream()
+                .map(ObjectId::new).toList();
+
+        if (!deliveryOrder.isPresent()) {
+            throw LogicErrException.of("Đơn hàng không tồn tại");
+        }
+
+        for (DeliveryOrder.InventoryItemDelivery item : deliveryOrder.get().getInventoryItems()) {
+            if (orderItemObjectIds.contains(item.getId())) {
+                if (item.getItemDeliveryStatus() != null && item.getItemDeliveryStatus().equals("PENDING")) {
+                    throw LogicErrException.of("Sản phẩm đang chờ duyệt");
+                }
+                item.setItemDeliveryStatus("PENDING");
+            }
+        }
+
+        // 2. Create warehouse_transaction
+        deliveryTicket.setOrderId(new ObjectId(dto.getOrderId()));
+        deliveryTicket.setTitle("Xóa sản phẩm đơn hàng");
+        deliveryTicket.setTicketCode(new ObjectId().toString());
+        deliveryTicket.setReason("Xóa sản phẩm đơn hàng");
+        deliveryTicket.setTranType(WarehouseTranType.DELETE_ORDER_ITEM);
+        deliveryTicket.setCreatedAt(LocalDateTime.now());
+        if (customAuthentication.getUser() != null) {
+            deliveryTicket.setCreatedBy(customAuthentication.getUser().getId());
+        }
+        deliveryTicket.setStatus(WarehouseTransactionStatus.PENDING.getId());
+
+        orderItemObjectIds.forEach(id -> {
+            if (deliveryTicket.getOrderItemIds() == null) {
+                deliveryTicket.setOrderItemIds(new ArrayList<>());
+            }
+            deliveryTicket.getOrderItemIds().add(id);
+        });
+
+        // TODO: Send message approval to admin
+        deliveryOrderRepository.save(deliveryOrder.get());
+        return warehouseTransferTicketRepository.save(deliveryTicket);
     }
 
     public WarehouseTransaction getWarehouseTransactionToId(ObjectId ticketId) {
@@ -77,10 +129,15 @@ public class WarehouseTransactionService {
                 throw LogicErrException.of("Trạng thái duyệt không hợp lệ");
 
             if(dto.getStatus().equals(WarehouseTransactionStatus.APPROVED.getId())){
-                transactionApprovedAndRejectedLogic(ticket, ticket.getDestinationWarehouseId());
-                List<ObjectId> itemIds = ticket.getInventoryItems().stream().map(WarehouseTransaction.InventoryItemTicket::getId).toList();
-                inventoryItemRepository.updateStatusByIdIn(itemIds, InventoryItemStatus.IN_STOCK.getId());
-                ticket.setApprovedAt(LocalDateTime.now());
+                if (ticket.getTranType().equals(WarehouseTranType.DELETE_ORDER_ITEM)) {
+                    handleDeleteOrderApprove(ticket);
+                } else {
+                    transactionApprovedAndRejectedLogic(ticket, ticket.getDestinationWarehouseId());
+                    List<ObjectId> itemIds = ticket.getInventoryItems().stream().map(WarehouseTransaction.InventoryItemTicket::getId).toList();
+                    inventoryItemRepository.updateStatusByIdIn(itemIds, InventoryItemStatus.IN_STOCK.getId());
+                    ticket.setApprovedAt(LocalDateTime.now());
+                }
+
                 // TODO: Ghi log lý do duyệt phiếu
             }
             else if(dto.getStatus().equals(WarehouseTransactionStatus.REJECTED.getId())){
@@ -139,4 +196,64 @@ public class WarehouseTransactionService {
         return warehouseTransferTicketRepository.findPageWarehouseTransferTicket(optionsDto, tranType);
     }
 
+    private void handleDeleteOrderApprove(WarehouseTransaction ticket) {
+        ticket.setApprovedAt(LocalDateTime.now());
+        ticket.setStatus(WarehouseTransactionStatus.APPROVED.getId());
+        if (customAuthentication.getUser() != null) {
+            ticket.setUpdatedBy(customAuthentication.getUser().getEmail());
+        }
+        ticket.setUpdatedAt(LocalDateTime.now());
+
+        Optional<DeliveryOrder> deliveryOrder = deliveryOrderRepository.findById(ticket.getOrderId());
+        if (deliveryOrder.isEmpty()) {
+            throw LogicErrException.of("Không tìm thấy đơn hàng để xóa");
+        }
+
+        List<DeliveryOrder.InventoryItemDelivery> newItemsAfterDelete = new ArrayList<>();
+
+        for (DeliveryOrder.InventoryItemDelivery item : deliveryOrder.get().getInventoryItems()) {
+            if (!ticket.getOrderItemIds().contains(item.getId())) {
+                newItemsAfterDelete.add(item);
+                continue;
+            }
+            addDeliveryHistory(
+                    deliveryOrder.get(),
+                    "REMOVE_ITEM",
+                    item.getProductCode(),
+                    item.getCommodityCode(),
+                    item.getModel(),
+                    item.getQuantity(),
+                    0,
+                    "Chưa có lý do xóa hàng",
+                    item.getInventoryType().equals(InventoryType.SPARE_PART.getId())
+            );
+        }
+        deliveryOrder.get().setInventoryItems(newItemsAfterDelete);
+        deliveryOrderRepository.save(deliveryOrder.get());
+    }
+
+    private void addDeliveryHistory(DeliveryOrder deliveryOrder, String action, String productCode,
+                                    String commodityCode, String model, Integer originalQuantity,
+                                    Integer newQuantity, String reason, Boolean isSparePart) {
+        if (deliveryOrder.getDeliveryHistories() == null) {
+            deliveryOrder.setDeliveryHistories(new ArrayList<>());
+        }
+
+        DeliveryOrder.DeliveryHistory history = new DeliveryOrder.DeliveryHistory();
+        history.setId(new ObjectId());
+        history.setAction(action);
+        history.setProductCode(productCode);
+        history.setCommodityCode(commodityCode);
+        history.setModel(model);
+        history.setOriginalQuantity(originalQuantity);
+        history.setNewQuantity(newQuantity);
+        history.setReason(reason);
+        if (customAuthentication.getUser() != null) {
+            history.setPerformedBy(customAuthentication.getUser().getFullName());
+        }
+        history.setPerformedAt(LocalDateTime.now());
+        history.setIsSparePart(isSparePart);
+
+        deliveryOrder.getDeliveryHistories().add(history);
+    }
 }
