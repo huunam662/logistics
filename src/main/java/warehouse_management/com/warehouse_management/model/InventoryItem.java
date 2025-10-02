@@ -23,6 +23,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Document(collection = "inventory_item")
 public class InventoryItem implements Persistable<ObjectId> {
+
     @Id
     private ObjectId id; // _id – Khóa chính tự động tạo bởi MongoDB
     private String inventoryType;   //InventoryType
@@ -56,6 +57,8 @@ public class InventoryItem implements Persistable<ObjectId> {
 
     private Specifications specifications;
 
+    private SpecificationsSerial specificationsSerial;
+
     private Specifications specificationsBase;
 
 
@@ -80,7 +83,25 @@ public class InventoryItem implements Persistable<ObjectId> {
         private String forkDimensions;          // Thông số càng
         private String valveCount;             // Số lượng van
         private String hasSideShift;           // Có side shift không
+        private String wheelInfo;              // Thông tin bánh xe
         private String otherDetails;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class SpecificationsSerial {
+        // PK-KN
+        private String liftingFrameSerial;
+        // PK-BINHDIEN
+        private String batterySerial;             // Thông tin bình điện
+        // PK-SAC
+        private String chargerSerial;
+        private String engineSerial;
+        private String forkSerial;
+        private String valveSerial;
+        private String sideShiftSerial;
+        private String wheelSerial;
     }
 
     //===PK PT===
@@ -98,6 +119,8 @@ public class InventoryItem implements Persistable<ObjectId> {
         private BigDecimal salePriceR1;         // Giá bán đề xuất R1
         @Field(targetType = FieldType.DECIMAL128)
         private BigDecimal actualSalePrice;     // Giá bán thực tế
+        @Field(targetType = FieldType.DECIMAL128)
+        private BigDecimal otherPrice;      // Giá khác
         private String agent;                   // Đại lý (nếu có)
     }
 

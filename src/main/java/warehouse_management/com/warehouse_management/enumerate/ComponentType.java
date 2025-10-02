@@ -15,6 +15,7 @@ public enum ComponentType {
     ENGINE("ENGINE", "ĐỘNG CƠ"),       // Động cơ
     FORK("FORK", "CÀNG NÂNG"),         // Càng nâng
     VALVE("VALVE", "VALVE"),        // Van
+    WHEEL("WHEEL", "BÁNH XE"),      // Bánh xe
     SIDE_SHIFT("SIDE_SHIFT", "SIDE SHIFT");// Side shift
 
     private final String id;
