@@ -149,6 +149,11 @@ public class ConfigurationHistoryService {
                 leftVeh.getSpecifications().setValveCount(rightVeh.getSpecifications().getValveCount());
                 rightVeh.getSpecifications().setValveCount(tmpValve);
             }
+            case WHEEL -> {
+                String tmpValve = leftVeh.getSpecifications().getWheelInfo();
+                leftVeh.getSpecifications().setWheelInfo(rightVeh.getSpecifications().getWheelInfo());
+                rightVeh.getSpecifications().setWheelInfo(tmpValve);
+            }
         }
     }
 
@@ -356,6 +361,8 @@ public class ConfigurationHistoryService {
             case SIDE_SHIFT -> veh.getSpecifications().setHasSideShift(null);
 
             case VALVE -> veh.getSpecifications().setValveCount(null);
+
+            case WHEEL -> veh.getSpecifications().setWheelInfo(null);
         }
     }
 
@@ -377,6 +384,8 @@ public class ConfigurationHistoryService {
             case FORK -> veh.getSpecifications().setForkDimensions(component.getSpecifications().getForkDimensions());
 
             case SIDE_SHIFT -> veh.getSpecifications().setHasSideShift("true");
+
+            case WHEEL -> veh.getSpecifications().setWheelInfo(component.getSpecifications().getWheelInfo());
 
             case VALVE -> veh.getSpecifications().setValveCount(component.getSpecifications().getValveCount());
         }
