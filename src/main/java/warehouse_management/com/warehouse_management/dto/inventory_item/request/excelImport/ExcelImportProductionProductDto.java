@@ -61,6 +61,7 @@ public class ExcelImportProductionProductDto {
         private String batterySpecification; // Thông số bình điện 17
         private String chargerSpecification; // Thông số sạc 18
         private String valveCount; // Số van 20
+        private String wheelInfo; // Bánh xe
 
     }
 
@@ -75,7 +76,7 @@ public class ExcelImportProductionProductDto {
         private BigDecimal salePriceR0; // Giá bán R0 23
         private BigDecimal salePriceR1; // Giá bán R1 24
         private BigDecimal actualSalePrice; // Giá bán thực tế 25
-
+        private BigDecimal otherPrice;
         @Validation(label = "Đại lý", required = true)
         private String agent; // Tên đại lý hoặc khách hàng đặt hàng 3
 
