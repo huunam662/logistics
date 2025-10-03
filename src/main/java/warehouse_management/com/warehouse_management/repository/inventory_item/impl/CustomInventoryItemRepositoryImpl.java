@@ -347,6 +347,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .and("pricing.salePriceR0").as("salePriceR0")   //
                         .and("pricing.salePriceR1").as("salePriceR1")   //
                         .and("pricing.otherPrice").as("otherPrice")
+
         );
         Aggregation aggregation = Aggregation.newAggregation(pipelines);
         return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryConsignmentSparePartsDto.class, aggregation, optionsReq);
@@ -514,7 +515,6 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         );
         AggregationResults<InventoryPoWarehouseDto> aggResults = mongoTemplate.aggregate(Aggregation.newAggregation(aggOps), InventoryItem.class, InventoryPoWarehouseDto.class);
         return aggResults.getMappedResults();
-
     }
 
     @Override
@@ -911,6 +911,8 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 )),
                 Aggregation.project("model", "category", "serialNumber", "productCode", "poNumber", "inventoryType", "initialCondition", "warehouseId", "notes", "specifications", "pricing", "logistics")
                         .and("_id").as("id")
+                        .and("warehouse.name").as("warehouseName")
+                        .and("warehouse.code").as("warehouseCode")
         ));
 
         if(filter != null && !filter.isBlank()) {
@@ -937,6 +939,8 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 )),
                 Aggregation.project("model", "category", "serialNumber", "productCode", "poNumber", "inventoryType", "initialCondition", "warehouseId", "notes", "specifications", "pricing", "logistics")
                         .and("_id").as("id")
+                        .and("warehouse.name").as("warehouseName")
+                        .and("warehouse.code").as("warehouseCode")
         ));
 
         if(filter != null && !filter.isBlank()) {
@@ -963,6 +967,8 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 Aggregation.project("commodityCode", "poNumber", "quantity", "description", "inventoryType", "contractNumber", "pricing", "warehouseId", "model", "notes")
                         .and("_id").as("id")
                         .and("logistics.orderDate").as("orderDate")
+                        .and("warehouse.name").as("warehouseName")
+                        .and("warehouse.code").as("warehouseCode")
         ));
 
         if(filter != null && !filter.isBlank()) {
@@ -989,6 +995,8 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 Aggregation.project("commodityCode", "poNumber", "quantity", "description", "inventoryType", "contractNumber", "pricing", "warehouseId", "model", "notes")
                         .and("_id").as("id")
                         .and("logistics.orderDate").as("orderDate")
+                        .and("warehouse.name").as("warehouseName")
+                        .and("warehouse.code").as("warehouseCode")
         ));
 
         if(filter != null && !filter.isBlank()) {
