@@ -63,7 +63,7 @@ public class RepairService {
         if(componentType == null) throw LogicErrException.of("Loại bộ phận không hợp lệ.");
 
         Repair repair = new Repair();
-        repair.setDescription(repairTypeEnum.getValue() + " " + componentType.getValue() + " cho " + vehicle.getProductCode());
+        repair.setDescription(repairTypeEnum.getValue() + " " + componentType.getValue() + " cho Xe" + vehicle.getProductCode());
         repair.setRepairType(repairType);
         repair.setVehicleId(vehicle.getId());
         repair.setComponentId(component.getId());
