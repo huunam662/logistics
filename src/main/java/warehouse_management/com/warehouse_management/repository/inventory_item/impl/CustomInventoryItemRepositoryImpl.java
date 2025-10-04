@@ -693,11 +693,20 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         return result.getModifiedCount();
     }
 
+    @Transactional
     @Override
     public long bulkHardDelete(Collection<ObjectId> ids) {
         Query query = new Query(Criteria.where("_id").in(ids));
         DeleteResult delete = mongoTemplate.remove(query, InventoryItem.class);
         return delete.getDeletedCount();
+    }
+
+    @Transactional
+    @Override
+    public void updateIsFullyComponent(ObjectId vehicleId, Boolean isFullyComponent) {
+        Query query = new Query(Criteria.where("_id").is(vehicleId));
+        Update update = new Update().set("isFullyComponent", isFullyComponent);
+        mongoTemplate.updateFirst(query, update, InventoryItem.class);
     }
 
     @Override
