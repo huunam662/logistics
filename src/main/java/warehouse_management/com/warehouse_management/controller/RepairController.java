@@ -156,8 +156,8 @@ public class RepairController {
 
     @PostMapping("/transactions")
     @Operation(
-            summary = "Tạo phiếu sửa chữa",
-            description = "Tạo phiếu sửa chữa"
+            summary = "Tạo lý do sửa chữa",
+            description = "Tạo lý do sửa chữa"
     )
     public ApiResponse<?> saveRepairTransaction(@Valid @RequestBody CreateRepairTransactionDto dto) {
         Repair repair = repairService.pushReasonForRepair(dto);
@@ -239,12 +239,12 @@ public class RepairController {
         return ApiResponse.success();
     }
 
-//    @Operation(
-//            summary = "GET Lịch sử sửa chữa của một xe nâng.",
-//            description = "GET Lịch sử sửa chữa của một xe nâng."
-//    )
-//    @GetMapping("/vehicle-history")
-//    public ApiResponse<?> getConfigurationHistoryToVehicleId(@RequestParam("vehicleId") String vehicleId){
-//        return ApiResponse.success(repairService.getConfigurationHistoryToVehicleId(new ObjectId(vehicleId)));
-//    }
+    @Operation(
+            summary = "GET Lịch sử sửa chữa của một xe nâng.",
+            description = "GET Lịch sử sửa chữa của một xe nâng."
+    )
+    @GetMapping("/vehicle-history")
+    public ApiResponse<?> getRepairHistoryToVehicleId(@RequestParam("vehicleId") String vehicleId){
+        return ApiResponse.success(repairService.getRepairHistoryToVehicleId(new ObjectId(vehicleId)));
+    }
 }

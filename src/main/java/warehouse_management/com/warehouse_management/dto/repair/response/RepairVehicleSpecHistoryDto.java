@@ -18,6 +18,6 @@ public class RepairVehicleSpecHistoryDto {
     private String model;          // Model sản phẩm – Bắt buộc
     private String status;         // Trạng thái hiện tại (IN_STOCK, IN_TRANSIT...) – Bắt buộc
 
-    private List<ConfigurationHistoryDto> configHistories;
+    private List<RepairHistoryDto> repairHistories;
 
 }
