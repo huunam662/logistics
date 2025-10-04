@@ -360,11 +360,21 @@ public class RepairService {
     @Transactional
     public boolean repairDisassembleComponent(RepairDisassembleComponentDto dropPartRequest) {
 
-        InventoryItem vehicle = inventoryItemService.getItemToId(new ObjectId(dropPartRequest.getVehicleId()));
+        Repair repair = getToRepairCode(dropPartRequest.getRepairCode());
 
-        ComponentType componentType = ComponentType.fromId(dropPartRequest.getComponentType());
-
+        ComponentType componentType = ComponentType.fromId(repair.getComponentType());
         if(componentType == null) throw LogicErrException.of("Loại bộ phận cần tháo rời không hợp lệ.");
+
+        RepairStatus status = RepairStatus.fromId(repair.getStatus());
+        if(status == null) throw LogicErrException.of("Trạng thái đơn sửa chữa không hợp lệ.");
+
+        RepairType repairTypeEnum = RepairType.fromString(repair.getRepairType());
+        if(repairTypeEnum == null) throw LogicErrException.of("Loại sửa chữa không hợp lệ.");
+
+        if(!RepairStatus.COMPLETED.getId().equals(repair.getStatus()))
+            throw LogicErrException.of("Bộ phận " + componentType.getValue() + " hiện " +status.getValue() + " để " + repairTypeEnum.getValue() );
+
+        InventoryItem vehicle = inventoryItemService.getItemToId(new ObjectId(dropPartRequest.getVehicleId()));
 
         InventoryItem component = inventoryItemService.getComponentItemToVehicleIdAndType(vehicle.getId(), componentType, vehicle.getProductCode());
 
@@ -374,11 +384,11 @@ public class RepairService {
 
         inventoryItemRepository.save(component);
 
+        inventoryItemRepository.updateIsFullyComponent(vehicle.getId(), false);
+
         CustomUserDetail customUserDetail = customAuthentication.getUserOrThrow();
 
         repairRepository.updatePerformed(dropPartRequest.getRepairCode(), customUserDetail.getFullName());
-
-        vehicle.setIsFullyComponent(false);
 
         return true;
     }
@@ -386,12 +396,23 @@ public class RepairService {
     @Transactional
     public boolean repairAssembleComponent(RepairAssembleComponentDto assemblePart){
 
+        Repair repair = getToRepairCode(assemblePart.getRepairCode());
+
+        ComponentType componentType = ComponentType.fromId(repair.getComponentType());
+        if(componentType == null) throw LogicErrException.of("Loại bộ phận cần lắp ráp không hợp lệ.");
+
+        RepairStatus status = RepairStatus.fromId(repair.getStatus());
+        if(status == null) throw LogicErrException.of("Trạng thái đơn sửa chữa không hợp lệ.");
+
+        RepairType repairTypeEnum = RepairType.fromString(repair.getRepairType());
+        if(repairTypeEnum == null) throw LogicErrException.of("Loại sửa chữa không hợp lệ.");
+
+        if(!RepairStatus.COMPLETED.getId().equals(repair.getStatus()))
+            throw LogicErrException.of("Bộ phận " + componentType.getValue() + " hiện " +status.getValue() + " để " + repairTypeEnum.getValue() );
+
         InventoryItem vehicle = inventoryItemService.getItemToId(new ObjectId(assemblePart.getVehicleId()));
 
         InventoryItem component = inventoryItemService.getItemToId(new ObjectId(assemblePart.getComponentId()));
-        ComponentType componentType = ComponentType.fromId(component.getComponentType());
-
-        if(componentType == null) throw LogicErrException.of("Loại bộ phận không hợp lệ");
 
         if(vehicle.getId().equals(component.getVehicleId())){
             throw LogicErrException.of("Bộ phận " + componentType.getValue() + " đã có sẵn trong xe " + vehicle.getProductCode());
@@ -477,14 +498,16 @@ public class RepairService {
                 .toList();
 
         return componentTypesMissing.stream()
-                .filter(e -> (vehicle.getSpecifications().getChassisType() != null && componentTypesMissing.contains(ComponentType.LIFTING_FRAME))
-                        || (vehicle.getSpecifications().getBatteryInfo() != null && componentTypesMissing.contains(ComponentType.BATTERY))
-                        || (vehicle.getSpecifications().getValveCount() != null && componentTypesMissing.contains(ComponentType.VALVE))
-                        || (vehicle.getSpecifications().getEngineType() != null && componentTypesMissing.contains(ComponentType.ENGINE))
-                        || (vehicle.getSpecifications().getChargerSpecification() != null && componentTypesMissing.contains(ComponentType.CHARGER))
-                        || (vehicle.getSpecifications().getHasSideShift() != null && componentTypesMissing.contains(ComponentType.SIDE_SHIFT))
-                        || (vehicle.getSpecifications().getWheelInfo() != null && componentTypesMissing.contains(ComponentType.WHEEL))
-                        || (vehicle.getSpecifications().getForkDimensions() != null && componentTypesMissing.contains(ComponentType.FORK)))
+                .filter(o -> switch (o){
+                    case LIFTING_FRAME -> vehicle.getSpecifications().getChassisType() != null;
+                    case FORK -> vehicle.getSpecifications().getForkDimensions() != null;
+                    case WHEEL -> vehicle.getSpecifications().getWheelInfo() != null;
+                    case VALVE -> vehicle.getSpecifications().getValveCount() != null;
+                    case ENGINE -> vehicle.getSpecifications().getEngineType() != null;
+                    case SIDE_SHIFT -> vehicle.getSpecifications().getHasSideShift() != null;
+                    case BATTERY -> vehicle.getSpecifications().getBatteryInfo() != null;
+                    case CHARGER -> vehicle.getSpecifications().getChargerSpecification() != null;
+                })
                 .map(o -> {
                     VehicleComponentTypeDto res = new VehicleComponentTypeDto();
                     res.setComponentType(o.getId());
@@ -544,11 +567,21 @@ public class RepairService {
     @Transactional
     public boolean repairComponentVehicle(RepairComponentDto dto) {
 
+        Repair repair = getToRepairCode(dto.getRepairCode());
+
+        ComponentType componentType = ComponentType.fromId(repair.getComponentType());
+        if(componentType == null) throw LogicErrException.of("Loại bộ phận cần sửa chữa không hợp lệ.");
+
+        RepairStatus status = RepairStatus.fromId(repair.getStatus());
+        if(status == null) throw LogicErrException.of("Trạng thái đơn sửa chữa không hợp lệ.");
+
+        RepairType repairTypeEnum = RepairType.fromString(repair.getRepairType());
+        if(repairTypeEnum == null) throw LogicErrException.of("Loại sửa chữa không hợp lệ.");
+
+        if(!RepairStatus.COMPLETED.getId().equals(repair.getStatus()))
+            throw LogicErrException.of("Bộ phận " + componentType.getValue() + " hiện " +status.getValue() + " để " + repairTypeEnum.getValue() );
+
         InventoryItem vehicle = inventoryItemService.getItemToId(new ObjectId(dto.getVehicleId()));
-
-        ComponentType componentType = ComponentType.fromId(dto.getComponentType());
-
-        if(componentType == null) throw LogicErrException.of("Loại bộ phận cần tháo rời không hợp lệ.");
 
         InventoryItem component = inventoryItemService.getComponentItemToVehicleIdAndType(vehicle.getId(), componentType, vehicle.getProductCode());
 

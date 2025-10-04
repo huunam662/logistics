@@ -69,6 +69,8 @@ public interface CustomInventoryItemRepository {
 
     long bulkHardDelete(Collection<ObjectId> ids);
 
+    void updateIsFullyComponent(ObjectId vehicleId, Boolean isFullyComponent);
+
     List<InventoryItemModelDto> findAllModelsAndItems(List<String> inventoryTypes, List<ObjectId> warehouseIds);
 
     Page<ReportInventoryDto> findPageReportItemProductionConsignmentToDashBoard(ReportParamsDto params);
