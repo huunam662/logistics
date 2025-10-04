@@ -95,6 +95,9 @@ public interface InventoryItemRepository extends MongoRepository<InventoryItem, 
     })
     List<String> findComponentTypeByVehicleId(ObjectId vehicleId);
 
+    @Query("{vehicleId: ?0, deletedAt: null}")
+    List<InventoryItem> findComponentByVehicleId(ObjectId vehicleId);
+
     @Aggregation(pipeline = {
             "{$match: {componentType: ?0, status: 'IN_STOCK', vehicleId: null, deletedAt: null}}",
             "{$lookup: {from: 'warehouse', localField: 'warehouseId', foreignField: '_id', as: 'warehouse'}}",
@@ -108,10 +111,10 @@ public interface InventoryItemRepository extends MongoRepository<InventoryItem, 
             "{$match: {componentType: ?0, vehicleId: {'$ne': null}, deletedAt: null}}",
             "{$lookup: {from: 'inventory_item', localField: 'vehicleId', foreignField: '_id', as: 'vehicle'}}",
             "{$unwind: '$vehicle'}",
-            "{$match: {'vehicle.status': 'IN_REPAIR', 'vehicle.deletedAt': null}}",
+            "{$match: {'vehicle.status': ?1, 'vehicle.deletedAt': null}}",
             "{$project: {vehicleId: '$vehicle._id', productCode: '$vehicle.productCode', serialNumber: '$vehicle.serialNumber', model: '$vehicle.model'}}"
     })
-    List<ItemCodeModelSerialDto> findVehicleByComponentTypeAndInRepair(String componentType);
+    List<ItemCodeModelSerialDto> findVehicleByComponentTypeAndStatus(String componentType, String status);
 
     @Aggregation(pipeline = {
             "{$match: {vehicleId: ?0, componentType: ?1, deletedAt: null}}",

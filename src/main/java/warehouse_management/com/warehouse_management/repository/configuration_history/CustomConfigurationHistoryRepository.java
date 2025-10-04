@@ -24,4 +24,6 @@ public interface CustomConfigurationHistoryRepository {
     void updatePerformed(ObjectId id, String performedBy);
 
     void bulkUpdatePerformed(Collection<ObjectId> ids, String performedBy);
+
+    void updateStatus(ConfigurationHistory configurationHistory);
 }

@@ -3,10 +3,11 @@ package warehouse_management.com.warehouse_management.dto.configuration_history.
 import lombok.Data;
 
 @Data
-public class SendDisassembleComponentDto {
+public class SendConfigSwapDto {
 
-    private String vehicleId;
-
+    private String leftVehicleId;
+    private String rightVehicleId;
     private String componentType;
+
 
 }
