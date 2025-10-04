@@ -58,17 +58,28 @@ public class RepairController {
         return ApiResponse.success(new PageInfoDto<>(repairService.getPageVehicleInStock(optionsDto)));
     }
 
+    @Operation(
+            summary = "GET Danh sách lý do sửa chữa bộ phận.",
+            description = "GET Danh sách lý do sửa chữa bộ phận."
+    )
+    @GetMapping("/repair-transactions")
+    public ApiResponse<?> getPageVehicleConfigurationPage(
+            @RequestParam("repairCode") String repairCode
+    ){
+        return ApiResponse.success(repairTransactionService.getRepairTransactionListToRepairCode(repairCode));
+    }
+
     @GetMapping("/code-status/repair-or-disassemble")
     @Operation(
             summary = "GET Mã sửa chữa và trạng thái sửa chữa (Tháo rời).",
             description = "GET Mã sửa chữa và trạng thái sửa chữa (Tháo rời)."
     )
     public ApiResponse<?> checkRepairDisassemble(
-            @RequestParam("vehicleId") ObjectId vehicleId,
+            @RequestParam("vehicleId") String vehicleId,
             @RequestParam("componentType") String componentType,
             @RequestParam("isRepair") Boolean isRepair
     ) {
-        return ApiResponse.success(repairService.checkRepairDisassembleOrRepair(vehicleId, componentType, isRepair));
+        return ApiResponse.success(repairService.checkRepairDisassembleOrRepair(new ObjectId(vehicleId), componentType, isRepair));
     }
 
     @GetMapping("/code-status/assemble")
@@ -77,10 +88,10 @@ public class RepairController {
             description = "GET Mã sửa chữa và trạng thái sửa chữa (Lắp ráp)."
     )
     public ApiResponse<?> checkRepairAssemble(
-            @RequestParam("vehicleId") ObjectId vehicleId,
+            @RequestParam("vehicleId") String vehicleId,
             @RequestParam("componentType") String componentType
     ) {
-        return ApiResponse.success(repairService.checkRepairAssemble(vehicleId, componentType));
+        return ApiResponse.success(repairService.checkRepairAssemble(new ObjectId(vehicleId), componentType));
     }
 
     @PostMapping("/send-repair/disassemble")
@@ -145,8 +156,8 @@ public class RepairController {
 
     @PostMapping("/transactions")
     @Operation(
-            summary = "Tạo phiếu sửa chữa",
-            description = "Tạo phiếu sửa chữa"
+            summary = "Tạo lý do sửa chữa",
+            description = "Tạo lý do sửa chữa"
     )
     public ApiResponse<?> saveRepairTransaction(@Valid @RequestBody CreateRepairTransactionDto dto) {
         Repair repair = repairService.pushReasonForRepair(dto);
@@ -216,4 +227,24 @@ public class RepairController {
         return ApiResponse.success(repairService.getComponentTypeToVehicleId(new ObjectId(vehicleId), isRepair));
     }
 
+    @Operation(
+            summary = "DELETE Lý do sưa chữa.",
+            description = "DELETE Lý do sưa chữa."
+    )
+    @DeleteMapping("/transactions")
+    public ApiResponse<?> deleteRepairTransaction(
+            @Valid @RequestBody RepairTransactionIdListDto dto
+    ){
+        repairTransactionService.softDeleteRepairTransaction(dto);
+        return ApiResponse.success();
+    }
+
+    @Operation(
+            summary = "GET Lịch sử sửa chữa của một xe nâng.",
+            description = "GET Lịch sử sửa chữa của một xe nâng."
+    )
+    @GetMapping("/vehicle-history")
+    public ApiResponse<?> getRepairHistoryToVehicleId(@RequestParam("vehicleId") String vehicleId){
+        return ApiResponse.success(repairService.getRepairHistoryToVehicleId(new ObjectId(vehicleId)));
+    }
 }

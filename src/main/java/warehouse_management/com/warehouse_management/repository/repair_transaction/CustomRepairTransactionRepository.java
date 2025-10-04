@@ -14,4 +14,6 @@ public interface CustomRepairTransactionRepository {
     void updateIsRepaired(ObjectId repairTransactionId, boolean isRepaired, String repairedBy);
 
     void bulkUpdateIsRepaired(List<ObjectId> repairTransactionIds, boolean isRepaired);
+
+    void bulkDelete(List<ObjectId> repairTransactionIds);
 }

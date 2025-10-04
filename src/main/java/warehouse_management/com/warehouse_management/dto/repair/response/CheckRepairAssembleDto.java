@@ -6,6 +6,7 @@ import org.bson.types.ObjectId;
 @Data
 public class CheckRepairAssembleDto {
 
+    private ObjectId repairId;
     private String repairCode;
     private String status;
     private ObjectId componentId;

@@ -22,7 +22,6 @@ import java.util.concurrent.ThreadLocalRandom;
 
 @Data
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "repair")
 public class Repair implements Persistable<ObjectId> {
@@ -32,7 +31,7 @@ public class Repair implements Persistable<ObjectId> {
     private String repairCode;
     private ObjectId vehicleId;                 // Sản phẩm được bảo hành
     private ObjectId componentId;
-    private String componentSerialNumber;
+    private String componentSerial;
     private String componentType;
     private String description;                                        // Ghi chú cho đơn bảo hành
     private String status;
@@ -69,7 +68,7 @@ public class Repair implements Persistable<ObjectId> {
         return createdAt == null;
     }
 
-    public Repair(String repairCode) {
+    public Repair() {
         this.repairCode = "RPV-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")) + "-" + ThreadLocalRandom.current().nextInt(10000, 100000);
     }
 }
