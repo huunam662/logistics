@@ -23,7 +23,10 @@ public interface RepairRepository extends MongoRepository<Repair, ObjectId>, Cus
     @Query(value = "{vehicleId: ?0, componentType: ?1, repairType: ?2, performedBy: null, deletedAt: null}", exists = true)
     Boolean existsByVehicleIdAndComponentTypeAndRepairType(ObjectId vehicleId, String componentType, String repairType);
 
-    @Query("{repairCode: ?0}")
+    @Query("{repairCode: ?0, deletedAt: null}")
+    Optional<Repair> findById(String repairCode);
+
+    @Query("{repairCode: ?0, deletedAt: null}")
     Optional<Repair> findByRepairCode(String repairCode);
 
     @Query(value = "{vehicleId: ?0, status: {$ne: 'COMPLETED'}, deletedAt: null}", sort = "{createdAt: -1}")
@@ -43,4 +46,7 @@ public interface RepairRepository extends MongoRepository<Repair, ObjectId>, Cus
             "{$project: {_id: 0, componentType: 1}}"
     })
     List<String> findAllComponentRepairAndUnCompletedByVehicleId(ObjectId vehicleId);
+
+    @Query(value = "{performedBy: {$ne: null}, vehicleId: ?0, deletedAt: null}", sort = "{createdAt: -1}")
+    List<Repair> findByVehicleIdOrderByCreatedAtDesc(ObjectId vehicleId);
 }

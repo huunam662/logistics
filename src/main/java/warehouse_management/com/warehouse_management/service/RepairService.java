@@ -12,13 +12,11 @@ import warehouse_management.com.warehouse_management.dto.configuration_history.r
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.ItemCodeModelSerialDto;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.repair.request.*;
-import warehouse_management.com.warehouse_management.dto.repair.response.CheckRepairAssembleDto;
-import warehouse_management.com.warehouse_management.dto.repair.response.CheckRepairDisassembleDto;
-import warehouse_management.com.warehouse_management.dto.repair.response.RepairVehicleSpecPageDto;
-import warehouse_management.com.warehouse_management.dto.repair.response.VehicleRepairPageDto;
+import warehouse_management.com.warehouse_management.dto.repair.response.*;
 import warehouse_management.com.warehouse_management.enumerate.*;
 import warehouse_management.com.warehouse_management.exceptions.LogicErrException;
 import warehouse_management.com.warehouse_management.mapper.InventoryItemMapper;
+import warehouse_management.com.warehouse_management.mapper.RepairMapper;
 import warehouse_management.com.warehouse_management.model.*;
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
 import warehouse_management.com.warehouse_management.repository.repair.RepairRepository;
@@ -41,23 +39,18 @@ public class RepairService {
     private final InventoryItemRepository inventoryItemRepository;
     private final InventoryItemMapper inventoryItemMapper;
     private final WarehouseService warehouseService;
+    private final RepairMapper repairMapper;
 
     public Repair getToId(ObjectId id){
 
-        Repair repair = repairRepository.findById(id).orElse(null);
-        if(repair == null || repair.getDeletedAt() == null)
-            throw LogicErrException.of("Phiếu sửa chữa hiện không tồn tại");
-
-        return repair;
+        return repairRepository.findById(id)
+                .orElseThrow(() -> LogicErrException.of("Phiếu sửa chữa hiện không tồn tại"));
     }
 
     public Repair getToRepairCode(String repairCode){
 
-        Repair repair = repairRepository.findByRepairCode(repairCode).orElse(null);
-        if(repair == null || repair.getDeletedAt() == null)
-            throw LogicErrException.of("Phiếu sửa chữa hiện không tồn tại");
-
-        return repair;
+        return repairRepository.findByRepairCode(repairCode)
+                .orElseThrow(() -> LogicErrException.of("Phiếu sửa chữa hiện không tồn tại"));
     }
 
     @Transactional
@@ -74,9 +67,12 @@ public class RepairService {
         repair.setRepairType(repairType);
         repair.setVehicleId(vehicle.getId());
         repair.setComponentId(component.getId());
-        repair.setComponentSerialNumber(component.getSerialNumber());
         repair.setComponentType(componentType.getId());
         repair.setExpectedCompletionDate(expectedCompletionDate);
+
+        if(InventoryType.SPARE_PART.getId().equals(component.getInventoryType()))
+            repair.setComponentSerial(component.getCommodityCode());
+        else repair.setComponentSerial(component.getSerialNumber());
 
         return repairRepository.save(repair);
     }
@@ -263,6 +259,7 @@ public class RepairService {
         if(repair == null) return null;
 
         CheckRepairDisassembleDto res = new CheckRepairDisassembleDto();
+        res.setRepairId(repair.getId());
         res.setRepairCode(repair.getRepairCode());
         res.setStatus(repair.getStatus());
 
@@ -281,10 +278,11 @@ public class RepairService {
         Warehouse warehouseComponent = warehouseService.getWarehouseToId(componentReplace.getWarehouseId());
 
         CheckRepairAssembleDto res = new CheckRepairAssembleDto();
+        res.setRepairId(repair.getId());
         res.setRepairCode(repair.getRepairCode());
         res.setStatus(repair.getStatus());
         res.setComponentId(repair.getComponentId());
-        res.setSerialNumber(repair.getComponentSerialNumber());
+        res.setSerialNumber(repair.getComponentSerial());
         res.setWarehouseCode(warehouseComponent.getCode());
         res.setWarehouseName(warehouseComponent.getName());
 
@@ -575,28 +573,26 @@ public class RepairService {
         return inventoryItemRepository.findPageRepairVehicleSpec(optionsDto);
     }
 
-//    public ConfigVehicleSpecHistoryDto getConfigurationHistoryToVehicleId(ObjectId vehicleId){
-//        InventoryItem vehicle = inventoryItemService.getItemToId(new ObjectId(vehicleId.toString()));
-//        if(!InventoryType.VEHICLE.getId().equals(vehicle.getInventoryType()))
-//            throw LogicErrException.of("Sản phẩm cần xem lịch sử cấu hình không phải là xe.");
-//
-//        List<ConfigurationHistory> configHistories = configurationHistoryRepository.findByVehicleIdOrderByCreatedAtDesc(vehicle.getId());
-//
-//        ConfigVehicleSpecHistoryDto configVehicleSpecHistory = configurationHistoryMapper.toConfigVehicleSpecHistoryResponse(vehicle);
-//
-//        configVehicleSpecHistory.setSpecificationsBase(buildSpecificationsBaseResponse(vehicle));
-//
-//        configVehicleSpecHistory.setConfigHistories(
-//                configHistories.stream()
-//                        .map(o -> {
-//                            ConfigurationHistoryDto res = configurationHistoryMapper.toConfigurationHistoryResponse(o);
-//                            ComponentType componentType = ComponentType.fromId(o.getComponentType());
-//                            res.setComponentName(componentType == null ? null : componentType.getValue());
-//                            return res;
-//                        })
-//                        .toList()
-//        );
-//
-//        return configVehicleSpecHistory;
-//    }
+    public RepairVehicleSpecHistoryDto getRepairHistoryToVehicleId(ObjectId vehicleId){
+        InventoryItem vehicle = inventoryItemService.getItemToId(new ObjectId(vehicleId.toString()));
+        if(!InventoryType.VEHICLE.getId().equals(vehicle.getInventoryType()))
+            throw LogicErrException.of("Sản phẩm cần xem lịch sử sửa chữa không phải là xe.");
+
+        List<Repair> repairHistories = repairRepository.findByVehicleIdOrderByCreatedAtDesc(vehicle.getId());
+
+        RepairVehicleSpecHistoryDto repairVehicleSpecHistory = repairMapper.toRepairVehicleSpecHistoryDto(vehicle);
+
+        repairVehicleSpecHistory.setRepairHistories(
+                repairHistories.stream()
+                        .map(o -> {
+                            RepairHistoryDto res = repairMapper.toRepairHistoryDto(o);
+                            ComponentType componentType = ComponentType.fromId(o.getComponentType());
+                            res.setComponentName(componentType == null ? null : componentType.getValue());
+                            return res;
+                        })
+                        .toList()
+        );
+
+        return repairVehicleSpecHistory;
+    }
 }
