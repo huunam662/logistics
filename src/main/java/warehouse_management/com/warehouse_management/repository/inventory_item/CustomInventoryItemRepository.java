@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import warehouse_management.com.warehouse_management.dto.configuration_history.response.ConfigVehicleSpecPageDto;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
+import warehouse_management.com.warehouse_management.dto.repair.response.RepairVehicleSpecPageDto;
 import warehouse_management.com.warehouse_management.dto.report_inventory.request.ReportParamsDto;
 import warehouse_management.com.warehouse_management.dto.report_inventory.response.ReportInventoryDto;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
@@ -89,6 +90,8 @@ public interface CustomInventoryItemRepository {
     Page<InventoryItemRepairDto> findItemForRepair(PageOptionsDto optionsDto);
 
     Page<ConfigVehicleSpecPageDto> findPageConfigVehicleSpec(PageOptionsDto optionsDto);
+
+    Page<RepairVehicleSpecPageDto> findPageRepairVehicleSpec(PageOptionsDto optionsDto);
 
     Page<ItemCodeModelSerialDto> findPageVehicleInStock(PageOptionsDto optionsDto);
 }
