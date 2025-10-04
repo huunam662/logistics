@@ -222,7 +222,7 @@ public class ConfigurationHistoryService {
         configHistory.setComponentType(componentType.getId());
         configHistory.setConfigType(ConfigurationType.SWAP.getId());
 
-        configHistory.setDescription("Hoán đối " + componentType.getValue() + " với xe " + vehicleRight.getProductCode());
+        configHistory.setDescription("Hoán đối " + componentType.getValue() + " với Xe " + vehicleRight.getProductCode());
 
         return configHistory;
     }
@@ -246,7 +246,7 @@ public class ConfigurationHistoryService {
         configHistory.setComponentType(componentType.getId());
         configHistory.setConfigType(ConfigurationType.DISASSEMBLE.getId());
 
-        configHistory.setDescription("Tháo rời " + componentType.getValue() + " ra khỏi xe " + vehicle.getProductCode());
+        configHistory.setDescription("Tháo rời " + componentType.getValue() + " ra khỏi Xe " + vehicle.getProductCode());
 
         return configHistory;
     }
@@ -270,7 +270,7 @@ public class ConfigurationHistoryService {
         configHistory.setComponentType(componentType.getId());
         configHistory.setConfigType(ConfigurationType.ASSEMBLE.getId());
 
-        configHistory.setDescription("Lắp ráp " + componentType.getValue() + " vào xe " + vehicle.getProductCode());
+        configHistory.setDescription("Lắp ráp " + componentType.getValue() + " vào Xe " + vehicle.getProductCode());
 
         return configHistory;
     }
@@ -440,7 +440,7 @@ public class ConfigurationHistoryService {
         if(componentType == null) throw LogicErrException.of("Loại bộ phận không hợp lệ");
 
         if(vehicle.getId().equals(component.getVehicleId())){
-            throw LogicErrException.of("Bộ phận " + componentType.getValue() + " đã có sẵn trong xe " + vehicle.getProductCode());
+            throw LogicErrException.of("Bộ phận " + componentType.getValue() + " đã có sẵn trong Xe " + vehicle.getProductCode());
         }
 
         component.setVehicleId(vehicle.getId());
@@ -470,7 +470,7 @@ public class ConfigurationHistoryService {
     public ConfigVehicleSpecHistoryDto getConfigurationHistoryToVehicleId(ObjectId vehicleId){
         InventoryItem vehicle = inventoryItemService.getItemToId(new ObjectId(vehicleId.toString()));
         if(!InventoryType.VEHICLE.getId().equals(vehicle.getInventoryType()))
-            throw LogicErrException.of("Sản phẩm cần xem lịch sử cấu hình không phải là xe.");
+            throw LogicErrException.of("Sản phẩm cần Xem lịch sử cấu hình không phải là Xe.");
 
         List<ConfigurationHistory> configHistories = configurationHistoryRepository.findByVehicleIdOrderByCreatedAtDesc(vehicle.getId());
 
@@ -797,7 +797,7 @@ public class ConfigurationHistoryService {
         if(isExistsAssembleComponent) throw LogicErrException.of("Xe " + vehicle.getProductCode() + " hiện đang lắp ráp " + componentType.getValue());
 
         if(vehicle.getId().equals(component.getVehicleId())){
-            throw LogicErrException.of("Bộ phận " + componentType.getValue() + " đã có sẵn trong xe " + vehicle.getProductCode());
+            throw LogicErrException.of("Bộ phận " + componentType.getValue() + " đã có sẵn trong Xe " + vehicle.getProductCode());
         }
 
         if(ComponentType.itemType(componentType).equals(InventoryType.SPARE_PART)){
