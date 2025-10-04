@@ -2,14 +2,13 @@ package warehouse_management.com.warehouse_management.service;
 
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import warehouse_management.com.warehouse_management.app.CustomAuthentication;
 import warehouse_management.com.warehouse_management.dto.configuration_history.request.*;
-import warehouse_management.com.warehouse_management.dto.configuration_history.response.ConfigVehicleSpecPageDto;
-import warehouse_management.com.warehouse_management.dto.configuration_history.response.VehicleComponentTypeDto;
-import warehouse_management.com.warehouse_management.dto.configuration_history.response.VehicleConfigurationPageDto;
+import warehouse_management.com.warehouse_management.dto.configuration_history.response.*;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.ItemCodeModelSerialDto;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.repair.request.*;
@@ -32,7 +31,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
+@RequiredArgsConstructor(onConstructor_ = {@Lazy})
 public class RepairService {
 
     private final RepairRepository repairRepository;
@@ -46,6 +45,15 @@ public class RepairService {
     public Repair getToId(ObjectId id){
 
         Repair repair = repairRepository.findById(id).orElse(null);
+        if(repair == null || repair.getDeletedAt() == null)
+            throw LogicErrException.of("Phiếu sửa chữa hiện không tồn tại");
+
+        return repair;
+    }
+
+    public Repair getToRepairCode(String repairCode){
+
+        Repair repair = repairRepository.findByRepairCode(repairCode).orElse(null);
         if(repair == null || repair.getDeletedAt() == null)
             throw LogicErrException.of("Phiếu sửa chữa hiện không tồn tại");
 
@@ -88,6 +96,10 @@ public class RepairService {
 
         List<RepairTransaction> repairTransactionsList = repairTransactionRepository.findAllByRepairIdAndIdIn(repair.getId(), changeTransactionIds);
 
+        Map<ObjectId, RepairTransaction> repairTransactionsMap = repairTransactionsList
+                .stream()
+                .collect(Collectors.toMap(RepairTransaction::getId, e -> e));
+
         List<RepairTransaction> repairTransactionsForUpdate = new ArrayList<>();
         List<RepairTransaction> repairTransactionsForCreate = new ArrayList<>();
 
@@ -95,27 +107,19 @@ public class RepairService {
             if(repairTrans.getRepairTransactionId() == null){
 
                 RepairTransaction repairTransaction = new RepairTransaction();
-                repairTransaction.setIsRepaired(repairTrans.getIsRepaired());
+                repairTransaction.setIsRepaired(false);
                 repairTransaction.setReason(repairTrans.getReason());
                 repairTransaction.setRepairId(repair.getId());
 
                 repairTransactionsForCreate.add(repairTransaction);
             }
             else{
-                RepairTransaction transExists = repairTransactionsList
-                        .stream()
-                        .filter(e -> e.getId().equals(new ObjectId(repairTrans.getRepairTransactionId())))
-                        .findFirst().orElse(null);
+                RepairTransaction transExists = repairTransactionsMap.getOrDefault(new ObjectId(repairTrans.getRepairTransactionId()), null);
 
-                boolean isChangeTransaction = transExists != null
-                        && (
-                        !transExists.getReason().equals(repairTrans.getReason()) ||
-                                !transExists.getIsRepaired().equals(repairTrans.getIsRepaired())
-                );
+                boolean isChangeTransaction = transExists != null && !transExists.getReason().equals(repairTrans.getReason());
 
                 if(isChangeTransaction) {
 
-                    transExists.setIsRepaired(repairTrans.getIsRepaired());
                     transExists.setReason(repairTrans.getReason());
 
                     repairTransactionsForUpdate.add(transExists);
@@ -570,4 +574,29 @@ public class RepairService {
     public Page<RepairVehicleSpecPageDto> getPageRepairVehicleSpec(PageOptionsDto optionsDto){
         return inventoryItemRepository.findPageRepairVehicleSpec(optionsDto);
     }
+
+//    public ConfigVehicleSpecHistoryDto getConfigurationHistoryToVehicleId(ObjectId vehicleId){
+//        InventoryItem vehicle = inventoryItemService.getItemToId(new ObjectId(vehicleId.toString()));
+//        if(!InventoryType.VEHICLE.getId().equals(vehicle.getInventoryType()))
+//            throw LogicErrException.of("Sản phẩm cần xem lịch sử cấu hình không phải là xe.");
+//
+//        List<ConfigurationHistory> configHistories = configurationHistoryRepository.findByVehicleIdOrderByCreatedAtDesc(vehicle.getId());
+//
+//        ConfigVehicleSpecHistoryDto configVehicleSpecHistory = configurationHistoryMapper.toConfigVehicleSpecHistoryResponse(vehicle);
+//
+//        configVehicleSpecHistory.setSpecificationsBase(buildSpecificationsBaseResponse(vehicle));
+//
+//        configVehicleSpecHistory.setConfigHistories(
+//                configHistories.stream()
+//                        .map(o -> {
+//                            ConfigurationHistoryDto res = configurationHistoryMapper.toConfigurationHistoryResponse(o);
+//                            ComponentType componentType = ComponentType.fromId(o.getComponentType());
+//                            res.setComponentName(componentType == null ? null : componentType.getValue());
+//                            return res;
+//                        })
+//                        .toList()
+//        );
+//
+//        return configVehicleSpecHistory;
+//    }
 }

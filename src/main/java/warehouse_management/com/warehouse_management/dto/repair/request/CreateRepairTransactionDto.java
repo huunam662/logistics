@@ -13,7 +13,6 @@ public class CreateRepairTransactionDto {
     @Data
     public static class RepairTransaction {
         private String repairTransactionId;
-        private Boolean isRepaired;
         private String reason;
     }
 }
