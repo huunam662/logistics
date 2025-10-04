@@ -2,6 +2,7 @@ package warehouse_management.com.warehouse_management.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
@@ -28,7 +29,7 @@ public class ConfigurationHistoryController {
             description = "POST Hoán đổi cấu hình xe nâng."
     )
     @PostMapping("/vehicle-part-swap")
-    public ApiResponse<?> swapItems(@RequestBody VehiclePartSwapDto vehiclePartSwapRequest) {
+    public ApiResponse<?> swapItems(@Valid @RequestBody VehiclePartSwapDto vehiclePartSwapRequest) {
         return ApiResponse.success(configurationHistoryService.swapItems(vehiclePartSwapRequest));
     }
 
@@ -37,7 +38,7 @@ public class ConfigurationHistoryController {
             description = "POST Tháo rời / Rớt bộ phận xe nâng."
     )
     @PostMapping("/drop-part")
-    public ApiResponse<?> dropPart(@RequestBody DropPartDto dropPartRequest) {
+    public ApiResponse<?> dropPart(@Valid @RequestBody DropPartDto dropPartRequest) {
         return ApiResponse.success(configurationHistoryService.dropComponent(dropPartRequest));
     }
 
@@ -46,7 +47,7 @@ public class ConfigurationHistoryController {
             description = "POST Lắp ráp bộ phận xe nâng."
     )
     @PostMapping("/assemble-part")
-    public ApiResponse<?> assemblePart(@RequestBody AssemblePartDto assemblePartRequest) {
+    public ApiResponse<?> assemblePart(@Valid @RequestBody AssemblePartDto assemblePartRequest) {
         return ApiResponse.success(configurationHistoryService.assembleComponent(assemblePartRequest));
     }
 
@@ -118,8 +119,8 @@ public class ConfigurationHistoryController {
             description = "GET Các xe nâng đang sửa chữa sở hữu bộ phận."
     )
     @GetMapping("/component-vehicles")
-    public ApiResponse<?> getVehicleByComponentTypeAndInRepair(@RequestParam("componentType") String componentType){
-        return ApiResponse.success(configurationHistoryService.getVehicleByComponentTypeAndInRepair(componentType));
+    public ApiResponse<?> getVehicleByComponentTypeAndInConfig(@RequestParam("componentType") String componentType){
+        return ApiResponse.success(configurationHistoryService.getVehicleByComponentTypeAndInConfig(componentType));
     }
 
     @Operation(
@@ -127,7 +128,7 @@ public class ConfigurationHistoryController {
             description = "POST Thêm xe nâng vào cấu hình."
     )
     @PostMapping("/add-vehicles-configuration")
-    public ApiResponse<?> addVehicleToConfiguration(@RequestBody AddVehicleToConfigurationDto request){
+    public ApiResponse<?> addVehicleToConfiguration(@Valid @RequestBody AddVehicleToConfigurationDto request){
         configurationHistoryService.addVehicleToConfiguration(request);
         return ApiResponse.success();
     }
@@ -170,7 +171,7 @@ public class ConfigurationHistoryController {
             description = "POST Hoán đổi cấu hình cho nhiều xe nâng."
     )
     @PostMapping("/vehicle-part-swap/multiple")
-    public ApiResponse<?> swapMultipleVehicle(@RequestBody List<VehiclePartSwapDto> request){
+    public ApiResponse<?> swapMultipleVehicle(@Valid @RequestBody List<VehiclePartSwapDto> request){
         return ApiResponse.success(configurationHistoryService.swapMultipleVehicle(request));
     }
 
@@ -203,7 +204,7 @@ public class ConfigurationHistoryController {
             description = "POST Gửi yêu cầu lắp ráp bộ phận vào xe."
     )
     @PostMapping("/send-repair/assemble")
-    public ApiResponse<?> sendAssembleVehicle(@RequestBody SendAssembleComponentDto dto){
+    public ApiResponse<?> sendAssembleVehicle(@Valid @RequestBody SendConfigAssembleDto dto){
         configurationHistoryService.sendAssembleVehicle(dto);
         return ApiResponse.success();
     }
@@ -213,7 +214,7 @@ public class ConfigurationHistoryController {
             description = "POST Gửi yêu cầu tháo rời bộ phận ra khỏi xe."
     )
     @PostMapping("/send-repair/disassemble")
-    public ApiResponse<?> sendDisassembleVehicle(@RequestBody SendDisassembleComponentDto dto){
+    public ApiResponse<?> sendDisassembleVehicle(@Valid @RequestBody SendConfigDisassembleDto dto){
         configurationHistoryService.sendDisassembleVehicle(dto);
         return ApiResponse.success();
     }
@@ -223,14 +224,14 @@ public class ConfigurationHistoryController {
             description = "POST Gửi yêu cầu thay đổi bộ phận của xe."
     )
     @PostMapping("/send-repair/swap")
-    public ApiResponse<?> sendDisassembleVehicle(@RequestBody SendSwapComponentDto dto){
+    public ApiResponse<?> sendDisassembleVehicle(@Valid @RequestBody SendConfigSwapDto dto){
         configurationHistoryService.sendSwapVehicle(dto);
         return ApiResponse.success();
     }
 
     @Operation(
-            summary = "GET Danh sách xe nâng đang sữa chữa cấu hình (Phân trang).",
-            description = "GET Danh sách xe nâng đang sữa chữa cấu hình (Phân trang)."
+            summary = "GET Danh sách xe nâng đang cấu hình (Phân trang).",
+            description = "GET Danh sách xe nâng đang cấu hình (Phân trang)."
     )
     @GetMapping("/page/repair-department")
     public ApiResponse<?> getPageVehicleConfigurationPage(@ModelAttribute PageOptionsDto optionsReq){

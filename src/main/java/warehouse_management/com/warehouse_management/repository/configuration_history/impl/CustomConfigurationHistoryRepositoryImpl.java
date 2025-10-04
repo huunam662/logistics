@@ -72,6 +72,7 @@ public class CustomConfigurationHistoryRepositoryImpl implements CustomConfigura
         return MongoRsqlUtils.queryPage(ConfigurationHistory.class, ConfigurationHistory.class, optionsReq);
     }
 
+    @Override
     public Page<VehicleConfigurationPageDto> findPageVehicleConfigurationPage(PageOptionsDto optionsReq) {
 
         ConditionalOperators.Switch componentNameCase = ConditionalOperators.switchCases(
@@ -152,5 +153,24 @@ public class CustomConfigurationHistoryRepositoryImpl implements CustomConfigura
                 .set("performedBy", performedBy)
                 .set("performedAt", LocalDateTime.now());
         mongoTemplate.updateMulti(query, update, ConfigurationHistory.class);
+    }
+
+    @Transactional
+    @Override
+    public void updateStatus(ConfigurationHistory configurationHistory) {
+
+        Query query = new Query(Criteria.where("_id").is(configurationHistory.getId()));
+        Update update = new Update()
+                .set("status", configurationHistory.getStatus())
+
+                .set("completedBy", configurationHistory.getCompletedBy())
+                .set("confirmedBy", configurationHistory.getConfirmedBy())
+                .set("performedBy", configurationHistory.getPerformedBy())
+
+                .set("completedAt", configurationHistory.getCompletedAt())
+                .set("confirmedAt", configurationHistory.getConfirmedAt())
+                .set("performedAt", configurationHistory.getPerformedAt());
+
+        mongoTemplate.updateFirst(query, update, ConfigurationHistory.class);
     }
 }

@@ -6,6 +6,7 @@ public enum InventoryItemStatus {
     IN_REPAIR("IN_REPAIR"), // Đang sửa  chữa
     IN_CONFIG("IN_CONFIG"), // Đang cấu hình
     IN_VEHICLE("IN_VEHICLE"),   // Đang trong Xe
+    DESTROY("DESTROY"),
     HOLD("HOLD"),   // Giữ hàng
     SOLD("SOLD"),   // Đã bán
     OTHER("OTHER"); // Khác

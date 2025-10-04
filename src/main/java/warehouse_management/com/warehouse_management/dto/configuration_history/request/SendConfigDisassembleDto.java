@@ -2,12 +2,12 @@ package warehouse_management.com.warehouse_management.dto.configuration_history.
 
 import lombok.Data;
 
+import java.time.LocalDate;
+
 @Data
-public class SendSwapComponentDto {
+public class SendConfigDisassembleDto {
 
-    private String leftVehicleId;
-    private String rightVehicleId;
+    private String vehicleId;                 // Sản phẩm được bảo hành
     private String componentType;
-
 
 }

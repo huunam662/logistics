@@ -6,7 +6,7 @@ import lombok.Getter;
 public enum ConfigurationStatus {
 
     PENDING("PENDING", "Chờ xác nhận"),
-    REPAIRING("REPAIRING", "Đang sửa chữa"),
+    CONFIGURING("CONFIGURING", "Đang cấu hình"),
     COMPLETED("COMPLETED", "Hoàn tất");
 
     private final String id;

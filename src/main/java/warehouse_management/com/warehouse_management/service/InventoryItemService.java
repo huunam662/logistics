@@ -288,6 +288,9 @@ public class InventoryItemService {
         parentItem.setStatus(InventoryItemStatus.IN_STOCK);
         itemsToInsert.add(parentItem);
 
+        if(parentItem.getSpecificationsSerial() == null)
+            parentItem.setSpecificationsSerial(new InventoryItem.SpecificationsSerial());
+
         // === Sinh các item con theo loại PK ===
         if (
                 parentItem.getSpecifications().getLiftingHeightMm() != null
@@ -308,6 +311,7 @@ public class InventoryItemService {
             liftingFrame.getSpecifications().setLiftingHeightMm(parentItem.getSpecifications().getLiftingHeightMm());
             liftingFrame.getSpecifications().setLiftingCapacityKg(parentItem.getSpecifications().getLiftingCapacityKg());
 
+            parentItem.getSpecificationsSerial().setLiftingFrameSerial(parentItem.getSerialNumber());
             itemsToInsert.add(liftingFrame);
         }
 
@@ -328,6 +332,7 @@ public class InventoryItemService {
             battery.getSpecifications().setBatteryInfo(parentItem.getSpecifications().getBatteryInfo());
             battery.getSpecifications().setBatterySpecification(parentItem.getSpecifications().getBatterySpecification());
 
+            parentItem.getSpecificationsSerial().setBatterySerial(parentItem.getSerialNumber());
             itemsToInsert.add(battery);
         }
 
@@ -344,6 +349,7 @@ public class InventoryItemService {
             charger.setSpecifications(new InventoryItem.Specifications());
             charger.getSpecifications().setChargerSpecification(parentItem.getSpecifications().getChargerSpecification());
 
+            parentItem.getSpecificationsSerial().setChargerSerial(parentItem.getSerialNumber());
             itemsToInsert.add(charger);
         }
 
@@ -359,6 +365,7 @@ public class InventoryItemService {
             engine.setSpecifications(new InventoryItem.Specifications());
             engine.getSpecifications().setEngineType(parentItem.getSpecifications().getEngineType());
 
+            parentItem.getSpecificationsSerial().setEngineSerial(parentItem.getSerialNumber());
             itemsToInsert.add(engine);
         }
 
@@ -374,6 +381,7 @@ public class InventoryItemService {
             fork.setSpecifications(new InventoryItem.Specifications());
             fork.getSpecifications().setForkDimensions(parentItem.getSpecifications().getForkDimensions());
 
+            parentItem.getSpecificationsSerial().setForkSerial(parentItem.getSerialNumber());
             itemsToInsert.add(fork);
         }
 
@@ -389,6 +397,7 @@ public class InventoryItemService {
             valve.setSpecifications(new InventoryItem.Specifications());
             valve.getSpecifications().setValveCount(parentItem.getSpecifications().getValveCount());
 
+            parentItem.getSpecificationsSerial().setValveSerial(parentItem.getSerialNumber());
             itemsToInsert.add(valve);
         }
 
@@ -405,6 +414,7 @@ public class InventoryItemService {
             sideShift.setStatus(InventoryItemStatus.IN_VEHICLE);
             sideShift.setDescription(ComponentType.SIDE_SHIFT.getValue());
 
+            parentItem.getSpecificationsSerial().setSideShiftSerial(parentItem.getSerialNumber());
             itemsToInsert.add(sideShift);
         }
 
@@ -418,6 +428,7 @@ public class InventoryItemService {
             wheel.setStatus(InventoryItemStatus.IN_VEHICLE);
             wheel.setDescription(ComponentType.WHEEL.getValue());
 
+            parentItem.getSpecificationsSerial().setWheelSerial(parentItem.getSerialNumber());
             itemsToInsert.add(wheel);
         }
     }
