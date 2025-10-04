@@ -30,4 +30,5 @@ public interface RepairTransactionRepository extends MongoRepository<RepairTrans
 
     @Query("{repairId: ?0}")
     List<RepairTransaction> findAllByRepairId(ObjectId repairId);
+
 }

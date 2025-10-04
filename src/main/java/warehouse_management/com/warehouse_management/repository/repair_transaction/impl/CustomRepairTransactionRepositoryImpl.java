@@ -34,7 +34,8 @@ public class CustomRepairTransactionRepositoryImpl implements CustomRepairTransa
     @Transactional
     @Override
     public void bulkUpdateReasonAndIsRepaired(List<RepairTransaction> repairTransactions) {
-        if (repairTransactions.isEmpty()) return;
+        if (repairTransactions == null || repairTransactions.isEmpty())
+            return;
 
         BulkOperations ops = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, RepairTransaction.class);
 
@@ -52,6 +53,7 @@ public class CustomRepairTransactionRepositoryImpl implements CustomRepairTransa
         ops.execute();
     }
 
+    @Transactional
     @Override
     public void updateIsRepaired(ObjectId repairTransactionId, boolean isRepaired, String repairedBy) {
 
@@ -64,14 +66,27 @@ public class CustomRepairTransactionRepositoryImpl implements CustomRepairTransa
         mongoTemplate.updateFirst(query, update, RepairTransaction.class);
     }
 
+    @Transactional
     @Override
     public void bulkUpdateIsRepaired(List<ObjectId> repairTransactionIds, boolean isRepaired) {
-        if (repairTransactionIds.isEmpty()) return;
+        if (repairTransactionIds == null || repairTransactionIds.isEmpty())
+            return;
 
         Query query = new Query(Criteria.where("_id").in(repairTransactionIds));
 
         Update update = new Update().set("isRepaired", isRepaired);
 
         mongoTemplate.updateMulti(query, update, RepairTransaction.class);
+    }
+
+    @Transactional
+    @Override
+    public void bulkDelete(List<ObjectId> repairTransactionIds) {
+        if (repairTransactionIds == null || repairTransactionIds.isEmpty())
+            return;
+
+        Query query = new Query(Criteria.where("_id").in(repairTransactionIds));
+
+        mongoTemplate.remove(query, RepairTransaction.class);
     }
 }
