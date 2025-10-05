@@ -1323,6 +1323,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .addField("liftingFrame.repairStatus").withValue("$repairsObj.LIFTING_FRAME.status")
                         .addField("liftingFrame.repairType").withValue("$repairsObj.LIFTING_FRAME.repairType")
                         .addField("liftingFrame.repairComponentType").withValue("$repairsObj.LIFTING_FRAME.componentType")
+                        .addField("liftingFrame.repairExpectedCompletionDate").withValue("$repairsObj.LIFTING_FRAME.expectedCompletionDate")
                         // Bình điện
                         .addField("battery.value")
                         .withValue(
@@ -1335,6 +1336,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .addField("battery.repairStatus").withValue("$repairsObj.BATTERY.status")
                         .addField("battery.repairType").withValue("$repairsObj.BATTERY.repairType")
                         .addField("battery.repairComponentType").withValue("$repairsObj.BATTERY.componentType")
+                        .addField("battery.repairExpectedCompletionDate").withValue("$repairsObj.BATTERY.expectedCompletionDate")
                         // Sạc
                         .addField("charger.value").withValue("$specifications.chargerSpecification")
                         .addField("charger.componentId").withValue("$componentsObj.CHARGER._id")
@@ -1342,6 +1344,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .addField("charger.repairStatus").withValue("$repairsObj.CHARGER.status")
                         .addField("charger.repairType").withValue("$repairsObj.CHARGER.repairType")
                         .addField("charger.repairComponentType").withValue("$repairsObj.CHARGER.componentType")
+                        .addField("charger.repairExpectedCompletionDate").withValue("$repairsObj.CHARGER.expectedCompletionDate")
                         // Động cơ
                         .addField("engine.value").withValue("$specifications.engineType")
                         .addField("engine.componentId").withValue("$componentsObj.ENGINE._id")
@@ -1349,6 +1352,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .addField("engine.repairStatus").withValue("$repairsObj.ENGINE.status")
                         .addField("engine.repairType").withValue("$repairsObj.ENGINE.repairType")
                         .addField("engine.repairComponentType").withValue("$repairsObj.ENGINE.componentType")
+                        .addField("engine.repairExpectedCompletionDate").withValue("$repairsObj.ENGINE.expectedCompletionDate")
                         // Càng nâng
                         .addField("fork.value").withValue("$specifications.forkDimensions")
                         .addField("fork.componentId").withValue("$componentsObj.FORK._id")
@@ -1356,6 +1360,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .addField("fork.repairStatus").withValue("$repairsObj.FORK.status")
                         .addField("fork.repairType").withValue("$repairsObj.FORK.repairType")
                         .addField("fork.repairComponentType").withValue("$repairsObj.FORK.componentType")
+                        .addField("fork.repairExpectedCompletionDate").withValue("$repairsObj.FORK.expectedCompletionDate")
                         // Van
                         .addField("valve.value").withValue("$specifications.valveCount")
                         .addField("valve.componentId").withValue("$componentsObj.VALVE._id")
@@ -1363,6 +1368,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .addField("valve.repairStatus").withValue("$repairsObj.VALVE.status")
                         .addField("valve.repairType").withValue("$repairsObj.VALVE.repairType")
                         .addField("valve.repairComponentType").withValue("$repairsObj.VALVE.componentType")
+                        .addField("valve.repairExpectedCompletionDate").withValue("$repairsObj.VALVE.expectedCompletionDate")
                         // Side shift
                         .addField("sideShift.value").withValue("$specifications.hasSideShift")
                         .addField("sideShift.componentId").withValue("$componentsObj.SIDE_SHIFT._id")
@@ -1370,6 +1376,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .addField("sideShift.repairStatus").withValue("$repairsObj.SIDE_SHIFT.status")
                         .addField("sideShift.repairType").withValue("$repairsObj.SIDE_SHIFT.repairType")
                         .addField("sideShift.repairComponentType").withValue("$repairsObj.SIDE_SHIFT.componentType")
+                        .addField("sideShift.repairExpectedCompletionDate").withValue("$repairsObj.SIDE_SHIFT.expectedCompletionDate")
                         // BÁNH XE
                         .addField("wheel.value").withValue("$specifications.wheelInfo")
                         .addField("wheel.componentId").withValue("$componentsObj.WHEEL._id")
@@ -1377,6 +1384,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .addField("wheel.repairStatus").withValue("$repairsObj.WHEEL.status")
                         .addField("wheel.repairType").withValue("$repairsObj.WHEEL.repairType")
                         .addField("wheel.repairComponentType").withValue("$repairsObj.WHEEL.componentType")
+                        .addField("wheel.repairExpectedCompletionDate").withValue("$repairsObj.WHEEL.expectedCompletionDate")
 
                         .build(),
 
