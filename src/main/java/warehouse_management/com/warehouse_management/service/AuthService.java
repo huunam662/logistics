@@ -55,41 +55,51 @@ public class AuthService {
         return authLoginRequest;
     }
 
-    private LoginResponseDto buildLoginResponse(AuthLoginResponse authLoginResponse, AuthGetInfoResponse authGetInfoResponse, AuthGetPermissionResponse authGetPermissionResponse) {
-        String decodePayload = jwtUtils.decodePayload(authLoginResponse.getToken());
-        AnaworkTokenDto anaworkToken = JsonUtils.parseJsonToDto(decodePayload, AnaworkTokenDto.class);
-//        long expirationEpochSeconds = anaworkToken.getExpiration();
-//        Date expirationDate = new Date(expirationEpochSeconds * 1000);
-        AuthGetInfoResponse.UserDTO user = authGetInfoResponse.getUser();
-        List<String> permissions = authGetPermissionResponse.getData();
-        byte[] keyBytes;
-        try {
-            keyBytes = Base64.getDecoder().decode(GeneralUtil.secretKey);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Khóa bí mật không phải là chuỗi Base64 hợp lệ: " + e.getMessage());
-        }
-        Key signingKey = Keys.hmacShaKeyFor(keyBytes);
+//    private LoginResponseDto buildLoginResponse(AuthLoginResponse authLoginResponse, AuthGetInfoResponse authGetInfoResponse, AuthGetPermissionResponse authGetPermissionResponse) {
+//        String decodePayload = jwtUtils.decodePayload(authLoginResponse.getToken());
+//        AnaworkTokenDto anaworkToken = JsonUtils.parseJsonToDto(decodePayload, AnaworkTokenDto.class);
 
-        String tk = Jwts.builder()
-                .setSubject(authGetInfoResponse.getUser().getEmail())
-                .claim("id", authGetInfoResponse.getUser().getId())
-                .claim("permissions", permissions) // nhúng permission vào JWT
-                .claim("fullName", user.getFirstName() + " " + user.getLastName())
-                .setIssuedAt(new Date())
-                .setExpiration(generateExpiration())
-                .signWith(signingKey, io.jsonwebtoken.SignatureAlgorithm.HS256)
-                .compact();
+    /// /        long expirationEpochSeconds = anaworkToken.getExpiration();
+    /// /        Date expirationDate = new Date(expirationEpochSeconds * 1000);
+//        AuthGetInfoResponse.UserDTO user = authGetInfoResponse.getUser();
+//        List<String> permissions = authGetPermissionResponse.getData();
+//        byte[] keyBytes;
+//        try {
+//            keyBytes = Base64.getDecoder().decode(GeneralUtil.secretKey);
+//        } catch (IllegalArgumentException e) {
+//            throw new IllegalArgumentException("Khóa bí mật không phải là chuỗi Base64 hợp lệ: " + e.getMessage());
+//        }
+//        Key signingKey = Keys.hmacShaKeyFor(keyBytes);
+//
+//        String tk = Jwts.builder()
+//                .setSubject(authGetInfoResponse.getUser().getEmail())
+//                .claim("id", authGetInfoResponse.getUser().getId())
+//                .claim("permissions", permissions) // nhúng permission vào JWT
+//                .claim("fullName", user.getFirstName() + " " + user.getLastName())
+//                .setIssuedAt(new Date())
+//                .setExpiration(generateExpiration())
+//                .signWith(signingKey, io.jsonwebtoken.SignatureAlgorithm.HS256)
+//                .compact();
+//        LoginResponseDto loginResponse = new LoginResponseDto();
+//        loginResponse.setToken(tk);
+//        loginResponse.setFullName(user.getFirstName() + " " + user.getLastName());
+//        loginResponse.setEmail(user.getEmail());
+//        loginResponse.setPhone(user.getCellPhone());
+//        loginResponse.setDepartment(user.getDepartment());
+//        loginResponse.setPosition(user.getPosition());
+//        loginResponse.setAvatar(user.getAvatar());
+//
+//        return loginResponse;
+//    }
+    private LoginResponseDto buildLoginResponse(AuthLoginResponse authLoginResponse, AuthGetInfoResponse authGetInfoResponse, AuthGetPermissionResponse authGetPermissionResponse) {
         LoginResponseDto loginResponse = new LoginResponseDto();
-        loginResponse.setToken(tk);
-        loginResponse.setFullName(user.getFirstName() + " " + user.getLastName());
-        loginResponse.setEmail(user.getEmail());
-        loginResponse.setPhone(user.getCellPhone());
-        loginResponse.setDepartment(user.getDepartment());
-        loginResponse.setPosition(user.getPosition());
-        loginResponse.setAvatar(user.getAvatar());
+        loginResponse.setToken(authLoginResponse.getToken());
+        loginResponse.setPermissions(authGetPermissionResponse.getData());
+
 
         return loginResponse;
     }
+
 
     private Date generateExpiration() {
         long nowMillis = System.currentTimeMillis();
