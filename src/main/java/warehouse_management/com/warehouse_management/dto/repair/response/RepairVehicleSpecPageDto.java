@@ -4,6 +4,8 @@ import lombok.Data;
 import org.bson.types.ObjectId;
 import warehouse_management.com.warehouse_management.dto.configuration_history.response.ConfigVehicleSpecPageDto;
 
+import java.time.LocalDate;
+
 @Data
 public class RepairVehicleSpecPageDto {
 
@@ -29,6 +31,7 @@ public class RepairVehicleSpecPageDto {
         private ObjectId componentId;
         private String repairStatus;
         private String repairType;
+        private LocalDate repairExpectedCompletionDate;                   // Ngày dự kiến hoàn thành
         private String repairComponentType;
     }
 }
