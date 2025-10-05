@@ -3,6 +3,8 @@ package warehouse_management.com.warehouse_management.integration;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -15,13 +17,14 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import warehouse_management.com.warehouse_management.model.ConnectionInterface;
 import warehouse_management.com.warehouse_management.repository.ConnectionInterfaceRepository;
+import warehouse_management.com.warehouse_management.utils.JwtUtils;
 
 import java.util.Map;
 import java.util.Objects; // Thêm import này cho Objects.requireNonNull
 
 @Component
 public class IntegrationUtils {
-
+    private static final Logger logger = LoggerFactory.getLogger(IntegrationUtils.class);
     private final ObjectMapper objectMapper;
     private final RestTemplate restTemplate;
     private final ConnectionInterfaceRepository connectionInterfaceRepository;
@@ -31,7 +34,9 @@ public class IntegrationUtils {
         if (Objects.isNull(connectionInterface)) {
             throw IntegrationException.of("Không tìm thấy ConnInterface với interfaceCode = {" + interfaceCode + "}");
         }
-        return connectionInterface.getInterfaceURL();
+        String url = connectionInterface.getInterfaceURL();
+        url = url.replace("https://gateway.dev.meu-solutions.com/permission-erp", "http://localhost:8089");
+        return url;
     }
 
     public IntegrationUtils(ObjectMapper objectMapper, RestTemplate restTemplate, ConnectionInterfaceRepository connectionInterfaceRepository) {
@@ -58,6 +63,7 @@ public class IntegrationUtils {
     }
 
     public <T> T performPost(String url, Object body, HttpHeaders headers, Class<T> responseType) {
+        logger.info("=====OUTBOUND REQUEST=====[POST]"+url);
         HttpEntity<?> requestEntity = new HttpEntity<>(body, headers);
         try {
             ResponseEntity<T> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, responseType);
@@ -78,6 +84,7 @@ public class IntegrationUtils {
 
     //    post mà k có body
     public <T> T performPost(String url, HttpHeaders headers, Class<T> responseType) {
+        logger.info("=====OUTBOUND REQUEST=====[POST]"+url);
         HttpEntity<?> requestEntity = new HttpEntity<>(headers);
         try {
             ResponseEntity<T> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, responseType);
@@ -104,6 +111,7 @@ public class IntegrationUtils {
 
 
     public <T> T performGet(String url, HttpHeaders headers, Class<T> responseType) {
+        logger.info("=====OUTBOUND REQUEST=====[GET]"+url);
         HttpEntity<?> requestEntity = new HttpEntity<>(headers);
         try {
             ResponseEntity<T> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, responseType);
@@ -140,10 +148,12 @@ public class IntegrationUtils {
 
 
     public <T> T performPost(String url, String token, Class<T> responseType) {
+        logger.info("=====OUTBOUND REQUEST=====[POST]"+url);
         return performPost(url, buildHeaderWithToken(token), responseType);
     }
 
     public <T> T performGet(String url, String token, Class<T> responseType) {
+        logger.info("=====OUTBOUND REQUEST=====[GET]"+url);
         return performGet(url, buildHeaderWithToken(token), responseType);
     }
 }
