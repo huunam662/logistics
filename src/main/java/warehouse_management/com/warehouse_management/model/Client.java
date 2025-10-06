@@ -32,7 +32,7 @@ public class Client implements Persistable<ObjectId> {
     @CreatedDate
     private LocalDateTime createdAt;
 
-    private int level; // Cấp
+    private String level; // Cấp
     private LocalDateTime deletedAt;
 
     @LastModifiedDate

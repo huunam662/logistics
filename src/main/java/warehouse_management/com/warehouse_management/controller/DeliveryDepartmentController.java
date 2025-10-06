@@ -1,5 +1,6 @@
 package warehouse_management.com.warehouse_management.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/delivery-departments")
+@Tag(name = "Delivery Department")
 public class DeliveryDepartmentController {
 
     @Autowired

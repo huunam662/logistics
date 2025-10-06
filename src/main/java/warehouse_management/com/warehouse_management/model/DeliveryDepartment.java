@@ -1,5 +1,7 @@
 package warehouse_management.com.warehouse_management.model;
 
+import org.bson.types.ObjectId;
+import org.springframework.data.domain.Persistable;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Field;
@@ -9,7 +11,7 @@ import java.time.LocalDateTime;
 
 
 @Document(collection = "delivery_departments")
-public class DeliveryDepartment {
+public class DeliveryDepartment implements Persistable<String> {
 
     @Id
     private String id;
@@ -72,4 +74,9 @@ public class DeliveryDepartment {
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    @Override
+    public boolean isNew() {
+        return createdAt == null;
+    }
 }
