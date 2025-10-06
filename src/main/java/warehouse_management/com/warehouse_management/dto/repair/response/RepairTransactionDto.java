@@ -1,19 +1,20 @@
 package warehouse_management.com.warehouse_management.dto.repair.response;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import org.bson.types.ObjectId;
 
 import java.time.LocalDateTime;
 
 @Data
-public class RepairTransactionResponseDTO {
+public class RepairTransactionDto {
+
     private ObjectId id;
     private ObjectId repairId;          // Đơn sửa chữa cha
-    private String sparePartRepair;     // Bộ phận cần sửa chữa
+    private Boolean isRepaired;
     private String reason;              // Lý do sửa chữa
-    private String createByName;        // Username của người tạo đơn sửa chữa
 
-    
-    private LocalDateTime createdAt;
+    private LocalDateTime repairedAt;
+
+    private String repairedBy; // Người trực tiếp (hoán đổi, tháo rời, lắp ráp)
+
 }

@@ -21,6 +21,8 @@ public class InventoryProductDetailsDto {
     private Boolean initialCondition;       // Mô tả nguyên trạng khi nhập kho – Không bắt buộc
     private String notes;                  // Ghi chú chung – Không bắt buộc
     private ObjectId warehouseId; // Mã kho
+    private String warehouseCode;
+    private String warehouseName;
     private Specifications specifications;
     private Pricing pricing;
     private Logistics logistics;

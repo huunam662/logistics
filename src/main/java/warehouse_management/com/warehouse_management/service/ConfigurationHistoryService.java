@@ -101,6 +101,12 @@ public class ConfigurationHistoryService {
 // --------------------------- Helpers ---------------------------
 
     private void swapVehicleComponent(InventoryItem leftVeh, InventoryItem rightVeh, ComponentType componentType) {
+        if(leftVeh.getSpecificationsSerial() == null)
+            leftVeh.setSpecificationsSerial(new InventoryItem.SpecificationsSerial());
+
+        if(rightVeh.getSpecificationsSerial() == null)
+            rightVeh.setSpecificationsSerial(new InventoryItem.SpecificationsSerial());
+
         switch (componentType) {
             case LIFTING_FRAME -> {
                 String tmpHeight = leftVeh.getSpecifications().getLiftingHeightMm();
@@ -114,6 +120,10 @@ public class ConfigurationHistoryService {
                 String tmpChassis = leftVeh.getSpecifications().getChassisType();
                 leftVeh.getSpecifications().setChassisType(rightVeh.getSpecifications().getChassisType());
                 rightVeh.getSpecifications().setChassisType(tmpChassis);
+
+                String tmpSerial = leftVeh.getSpecificationsSerial().getLiftingFrameSerial();
+                leftVeh.getSpecificationsSerial().setLiftingFrameSerial(rightVeh.getSpecificationsSerial().getLiftingFrameSerial());
+                rightVeh.getSpecificationsSerial().setLiftingFrameSerial(tmpSerial);
             }
             case BATTERY -> {
                 String tmpInfo = leftVeh.getSpecifications().getBatteryInfo();
@@ -123,36 +133,64 @@ public class ConfigurationHistoryService {
                 String tmpSpec = leftVeh.getSpecifications().getBatterySpecification();
                 leftVeh.getSpecifications().setBatterySpecification(rightVeh.getSpecifications().getBatterySpecification());
                 rightVeh.getSpecifications().setBatterySpecification(tmpSpec);
+
+                String tmpSerial = leftVeh.getSpecificationsSerial().getBatterySerial();
+                leftVeh.getSpecificationsSerial().setBatterySerial(rightVeh.getSpecificationsSerial().getBatterySerial());
+                rightVeh.getSpecificationsSerial().setBatterySerial(tmpSerial);
             }
             case CHARGER -> {
                 String tmpSpec = leftVeh.getSpecifications().getChargerSpecification();
                 leftVeh.getSpecifications().setChargerSpecification(rightVeh.getSpecifications().getChargerSpecification());
                 rightVeh.getSpecifications().setChargerSpecification(tmpSpec);
+
+                String tmpSerial = leftVeh.getSpecificationsSerial().getChargerSerial();
+                leftVeh.getSpecificationsSerial().setChargerSerial(rightVeh.getSpecificationsSerial().getChargerSerial());
+                rightVeh.getSpecificationsSerial().setChargerSerial(tmpSerial);
             }
             case ENGINE -> {
                 String tmpEngine = leftVeh.getSpecifications().getEngineType();
                 leftVeh.getSpecifications().setEngineType(rightVeh.getSpecifications().getEngineType());
                 rightVeh.getSpecifications().setEngineType(tmpEngine);
+
+                String tmpSerial = leftVeh.getSpecificationsSerial().getEngineSerial();
+                leftVeh.getSpecificationsSerial().setEngineSerial(rightVeh.getSpecificationsSerial().getEngineSerial());
+                rightVeh.getSpecificationsSerial().setEngineSerial(tmpSerial);
             }
             case FORK -> {
                 String tmpFork = leftVeh.getSpecifications().getForkDimensions();
                 leftVeh.getSpecifications().setForkDimensions(rightVeh.getSpecifications().getForkDimensions());
                 rightVeh.getSpecifications().setForkDimensions(tmpFork);
+
+                String tmpSerial = leftVeh.getSpecificationsSerial().getForkSerial();
+                leftVeh.getSpecificationsSerial().setForkSerial(rightVeh.getSpecificationsSerial().getForkSerial());
+                rightVeh.getSpecificationsSerial().setForkSerial(tmpSerial);
             }
             case SIDE_SHIFT -> {
                 String tmpSideShift = leftVeh.getSpecifications().getHasSideShift();
                 leftVeh.getSpecifications().setHasSideShift(rightVeh.getSpecifications().getHasSideShift());
                 rightVeh.getSpecifications().setHasSideShift(tmpSideShift);
+
+                String tmpSerial = leftVeh.getSpecificationsSerial().getSideShiftSerial();
+                leftVeh.getSpecificationsSerial().setSideShiftSerial(rightVeh.getSpecificationsSerial().getSideShiftSerial());
+                rightVeh.getSpecificationsSerial().setSideShiftSerial(tmpSerial);
             }
             case VALVE -> {
                 String tmpValve = leftVeh.getSpecifications().getValveCount();
                 leftVeh.getSpecifications().setValveCount(rightVeh.getSpecifications().getValveCount());
                 rightVeh.getSpecifications().setValveCount(tmpValve);
+
+                String tmpSerial = leftVeh.getSpecificationsSerial().getValveSerial();
+                leftVeh.getSpecificationsSerial().setValveSerial(rightVeh.getSpecificationsSerial().getValveSerial());
+                rightVeh.getSpecificationsSerial().setValveSerial(tmpSerial);
             }
             case WHEEL -> {
                 String tmpValve = leftVeh.getSpecifications().getWheelInfo();
                 leftVeh.getSpecifications().setWheelInfo(rightVeh.getSpecifications().getWheelInfo());
                 rightVeh.getSpecifications().setWheelInfo(tmpValve);
+
+                String tmpSerial = leftVeh.getSpecificationsSerial().getWheelSerial();
+                leftVeh.getSpecificationsSerial().setWheelSerial(rightVeh.getSpecificationsSerial().getWheelSerial());
+                rightVeh.getSpecificationsSerial().setWheelSerial(tmpSerial);
             }
         }
     }
@@ -184,7 +222,7 @@ public class ConfigurationHistoryService {
         configHistory.setComponentType(componentType.getId());
         configHistory.setConfigType(ConfigurationType.SWAP.getId());
 
-        configHistory.setDescription("Hoán đối " + componentType.getValue() + " với xe " + vehicleRight.getProductCode());
+        configHistory.setDescription("Hoán đối " + componentType.getValue() + " với Xe " + vehicleRight.getProductCode());
 
         return configHistory;
     }
@@ -208,7 +246,7 @@ public class ConfigurationHistoryService {
         configHistory.setComponentType(componentType.getId());
         configHistory.setConfigType(ConfigurationType.DISASSEMBLE.getId());
 
-        configHistory.setDescription("Tháo rời " + componentType.getValue() + " ra khỏi xe " + vehicle.getProductCode());
+        configHistory.setDescription("Tháo rời " + componentType.getValue() + " ra khỏi Xe " + vehicle.getProductCode());
 
         return configHistory;
     }
@@ -232,7 +270,7 @@ public class ConfigurationHistoryService {
         configHistory.setComponentType(componentType.getId());
         configHistory.setConfigType(ConfigurationType.ASSEMBLE.getId());
 
-        configHistory.setDescription("Lắp ráp " + componentType.getValue() + " vào xe " + vehicle.getProductCode());
+        configHistory.setDescription("Lắp ráp " + componentType.getValue() + " vào Xe " + vehicle.getProductCode());
 
         return configHistory;
     }
@@ -402,20 +440,7 @@ public class ConfigurationHistoryService {
         if(componentType == null) throw LogicErrException.of("Loại bộ phận không hợp lệ");
 
         if(vehicle.getId().equals(component.getVehicleId())){
-            throw LogicErrException.of("Bộ phận " + componentType.getValue() + " đã có sẵn trong xe " + vehicle.getProductCode());
-        }
-
-        if(ComponentType.itemType(componentType).equals(InventoryType.SPARE_PART)){
-            if(component.getQuantity() < 1)
-                throw LogicErrException.of("Bộ phận phụ tùng " + componentType.getValue() + " không đủ số lượng yêu cầu lắp vào.");
-            else if(component.getQuantity() > 1){
-
-                component.setQuantity(component.getQuantity() - 1);
-                inventoryItemRepository.bulkUpdateStatusAndQuantity(List.of(component));
-
-                component = inventoryItemMapper.cloneEntity(component);
-                component.setQuantity(1);
-            }
+            throw LogicErrException.of("Bộ phận " + componentType.getValue() + " đã có sẵn trong Xe " + vehicle.getProductCode());
         }
 
         component.setVehicleId(vehicle.getId());
@@ -445,7 +470,7 @@ public class ConfigurationHistoryService {
     public ConfigVehicleSpecHistoryDto getConfigurationHistoryToVehicleId(ObjectId vehicleId){
         InventoryItem vehicle = inventoryItemService.getItemToId(new ObjectId(vehicleId.toString()));
         if(!InventoryType.VEHICLE.getId().equals(vehicle.getInventoryType()))
-            throw LogicErrException.of("Sản phẩm cần xem lịch sử cấu hình không phải là xe.");
+            throw LogicErrException.of("Sản phẩm cần Xem lịch sử cấu hình không phải là Xe.");
 
         List<ConfigurationHistory> configHistories = configurationHistoryRepository.findByVehicleIdOrderByCreatedAtDesc(vehicle.getId());
 
@@ -578,9 +603,9 @@ public class ConfigurationHistoryService {
         }).filter(Objects::nonNull).toList();
     }
 
-    public List<ItemCodeModelSerialDto> getVehicleByComponentTypeAndInRepair(String componentType){
+    public List<ItemCodeModelSerialDto> getVehicleByComponentTypeAndInConfig(String componentType){
 
-        List<ItemCodeModelSerialDto> items = inventoryItemRepository.findVehicleByComponentTypeAndInRepair(componentType);
+        List<ItemCodeModelSerialDto> items = inventoryItemRepository.findVehicleByComponentTypeAndStatus(componentType, InventoryItemStatus.IN_CONFIG.getId());
 
         List<ObjectId> vehicleIdsSwapConfig = configurationHistoryRepository.findAllVehicleIdSwapAndUnCompletedByComponentType(componentType);
 
@@ -593,11 +618,11 @@ public class ConfigurationHistoryService {
     public void addVehicleToConfiguration(AddVehicleToConfigurationDto request){
         List<ObjectId> vehicleIds = request.getVehicleIds().stream().map(ObjectId::new).toList();
         List<InventoryItem> vehicles = inventoryItemRepository.findByIdInAndStatus(vehicleIds, InventoryItemStatus.IN_STOCK.getId());
-        List<ObjectId> vehiclesToRepair = vehicles.stream()
+        List<ObjectId> vehiclesToConfig = vehicles.stream()
                 .filter(o -> InventoryType.VEHICLE.getId().equalsIgnoreCase(o.getInventoryType()))
                 .map(InventoryItem::getId)
                 .toList();
-        inventoryItemRepository.updateStatusByIdIn(vehiclesToRepair, InventoryItemStatus.IN_REPAIR.getId());
+        inventoryItemRepository.updateStatusByIdIn(vehiclesToConfig, InventoryItemStatus.IN_CONFIG.getId());
     }
 
     public Page<ItemCodeModelSerialDto> getPageVehicleInStock(PageOptionsDto optionsDto){
@@ -731,7 +756,7 @@ public class ConfigurationHistoryService {
             ComponentType componentType = ComponentType.fromId(configurationHistory.getComponentType());
             ConfigurationType configurationType = ConfigurationType.fromId(configurationHistory.getConfigType());
 
-            throw LogicErrException.of("Bộ phận " + componentType.getValue() + " hiện đã HOÀN TẤT sữa chữa, hãy THỰC HIỆN " + configurationType.getValue());
+            throw LogicErrException.of("Bộ phận " + componentType.getValue() + " hiện đã HOÀN TẤT cấu hình, hãy THỰC HIỆN " + configurationType.getValue());
         }
 
         inventoryItemRepository.updateStatusByIdIn(List.of(vehicle.getId()), InventoryItemStatus.IN_STOCK.getId());
@@ -757,7 +782,7 @@ public class ConfigurationHistoryService {
     }
 
     @Transactional
-    public ConfigurationHistory sendAssembleVehicle(SendAssembleComponentDto dto){
+    public ConfigurationHistory sendAssembleVehicle(SendConfigAssembleDto dto){
 
         InventoryItem vehicle = inventoryItemService.getItemToId(new ObjectId(dto.getVehicleId()));
 
@@ -772,7 +797,22 @@ public class ConfigurationHistoryService {
         if(isExistsAssembleComponent) throw LogicErrException.of("Xe " + vehicle.getProductCode() + " hiện đang lắp ráp " + componentType.getValue());
 
         if(vehicle.getId().equals(component.getVehicleId())){
-            throw LogicErrException.of("Bộ phận " + componentType.getValue() + " đã có sẵn trong xe " + vehicle.getProductCode());
+            throw LogicErrException.of("Bộ phận " + componentType.getValue() + " đã có sẵn trong Xe " + vehicle.getProductCode());
+        }
+
+        if(ComponentType.itemType(componentType).equals(InventoryType.SPARE_PART)){
+            if(component.getQuantity() < 1)
+                throw LogicErrException.of("Bộ phận phụ tùng " + componentType.getValue() + " không đủ số lượng yêu cầu lắp vào.");
+            else if(component.getQuantity() > 1){
+
+                component.setQuantity(component.getQuantity() - 1);
+                inventoryItemRepository.bulkUpdateStatusAndQuantity(List.of(component));
+
+                component = inventoryItemMapper.cloneEntity(component);
+                component.setQuantity(1);
+
+                component = inventoryItemRepository.save(component);
+            }
         }
 
         inventoryItemRepository.updateStatusByIdIn(List.of(component.getId()), InventoryItemStatus.IN_CONFIG.getId());
@@ -785,7 +825,7 @@ public class ConfigurationHistoryService {
     }
 
     @Transactional
-    public ConfigurationHistory sendDisassembleVehicle(SendDisassembleComponentDto dto){
+    public ConfigurationHistory sendDisassembleVehicle(SendConfigDisassembleDto dto){
 
         InventoryItem vehicle = inventoryItemService.getItemToId(new ObjectId(dto.getVehicleId()));
 
@@ -807,7 +847,7 @@ public class ConfigurationHistoryService {
     }
 
     @Transactional
-    public List<ConfigurationHistory> sendSwapVehicle(SendSwapComponentDto dto){
+    public List<ConfigurationHistory> sendSwapVehicle(SendConfigSwapDto dto){
 
         // 1. Lấy vehicle và accessory tương ứng
         InventoryItem leftVeh = inventoryItemService.findByIdOrThrow(dto.getLeftVehicleId());
@@ -923,7 +963,7 @@ public class ConfigurationHistoryService {
 
         CustomUserDetail customUserDetail = customAuthentication.getUserOrThrow();
 
-        if(ConfigurationStatus.REPAIRING.getId().equals(status.getId())){
+        if(ConfigurationStatus.CONFIGURING.getId().equals(status.getId())){
             configurationHistory.setConfirmedBy(customUserDetail.getFullName());
             configurationHistory.setConfirmedAt(LocalDateTime.now());
         }
@@ -932,6 +972,8 @@ public class ConfigurationHistoryService {
             configurationHistory.setCompletedAt(LocalDateTime.now());
         }
 
-        return configurationHistoryRepository.save(configurationHistory);
+        configurationHistoryRepository.updateStatus(configurationHistory);
+
+        return configurationHistory;
     }
 }

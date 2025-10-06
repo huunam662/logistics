@@ -20,10 +20,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import warehouse_management.com.warehouse_management.app.WritePriceToDb;
 import warehouse_management.com.warehouse_management.security.CustomUserDetail;
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
@@ -72,7 +69,7 @@ public class CoreInstance {
     }
 
     @Bean
-    public Jackson2ObjectMapperBuilderCustomizer jacksonCustomizer() {
+    public Jackson2ObjectMapperBuilderCustomizer jacksonCustomizerLocalDateTimeFormat() {
         return builder -> {
             builder.serializerByType(LocalDateTime.class, new JsonSerializer<LocalDateTime>() {
                 @Override
@@ -86,6 +83,22 @@ public class CoreInstance {
                         LocalDateTime timeToSerialize = hcmZdt.toLocalDateTime();
 
                         gen.writeString(timeToSerialize.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                    } else {
+                        gen.writeNull();
+                    }
+                }
+            });
+        };
+    }
+
+    @Bean
+    public Jackson2ObjectMapperBuilderCustomizer jacksonCustomizerLocalDateFormat() {
+        return builder -> {
+            builder.serializerByType(LocalDate.class, new JsonSerializer<LocalDate>() {
+                @Override
+                public void serialize(LocalDate value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+                    if (value != null) {
+                        gen.writeString(value.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
                     } else {
                         gen.writeNull();
                     }

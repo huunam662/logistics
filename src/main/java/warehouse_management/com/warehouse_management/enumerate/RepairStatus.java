@@ -1,20 +1,21 @@
 package warehouse_management.com.warehouse_management.enumerate;
 
+import lombok.Getter;
 import org.springframework.lang.Nullable;
 
+@Getter
 public enum RepairStatus {
-    IN_REPAIR("IN_REPAIR"),
-    COMPLETE("COMPLETE"),
-    EXPIRED("EXPIRED");
+
+    PENDING("PENDING", "Chờ xác nhận"),
+    REPAIRING("REPAIRING", "Đang sửa chữa"),
+    COMPLETED("COMPLETED", "Hoàn tất");
 
     private final String id;
+    private final String value;
 
-    RepairStatus(String id) {
+    RepairStatus(String id, String value) {
         this.id = id;
-    }
-
-    public String getId() {
-        return id;
+        this.value = value;
     }
 
     @Nullable

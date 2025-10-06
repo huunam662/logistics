@@ -17,6 +17,8 @@ public class InventorySparePartDetailsDto {
     private String model;
     private String description;
     private ObjectId warehouseId; // Mã kho
+    private String warehouseCode;
+    private String warehouseName;
     private String inventoryType;   // Loại hàng tồn (VD: phụ kiện, ...) - Bắt buộc
     private String notes;                  // Ghi chú chung – Không bắt buộc
     private String contractNumber; // Số hợp đồng

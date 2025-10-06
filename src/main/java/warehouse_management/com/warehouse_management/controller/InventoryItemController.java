@@ -15,6 +15,7 @@ import warehouse_management.com.warehouse_management.dto.inventory_item.request.
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportProductionProductDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportProductionSparePartDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
+import warehouse_management.com.warehouse_management.dto.inventory_item.response.BulkImportResultDto;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.pagination.response.PageInfoDto;
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
@@ -195,18 +196,18 @@ public class InventoryItemController {
     @PostMapping("/production/{warehouseId}/products-import")
     public ResponseEntity<ApiResponse<?>> bulkCreateProductionProducts(
             @PathVariable("warehouseId") String warehouseId, @RequestParam("productType") String productType, @RequestBody List<ExcelImportProductionProductDto> dtos) {
-        List<InventoryItem> created = inventoryItemService.bulkCreateProductionProducts(warehouseId, productType, dtos);
+        BulkImportResultDto result = inventoryItemService.bulkImportProductsWithDetails(warehouseId, dtos, productType);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(Map.of("createdCount", created.size())));
+                .body(ApiResponse.success(result));
     }
 
     //     Bulk insert kho production - phụ tùng (import Excel)
     @PostMapping("/production/{warehouseId}/spare-parts-import")
     public ResponseEntity<ApiResponse<?>> bulkCreateProductionSpareParts(
             @PathVariable("warehouseId") String warehouseId, @RequestBody List<ExcelImportProductionSparePartDto> dtos) {
-        List<InventoryItem> created = inventoryItemService.bulkCreateProductionSpareParts(warehouseId, dtos);
+        BulkImportResultDto result = inventoryItemService.bulkImportWithDetails(warehouseId, dtos);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(Map.of("createdCount", created.size())));
+                .body(ApiResponse.success(result));
     }
 
     @PostMapping("/warehouse/stock-transfer")

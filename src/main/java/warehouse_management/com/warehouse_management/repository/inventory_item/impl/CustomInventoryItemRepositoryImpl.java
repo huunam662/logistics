@@ -7,6 +7,7 @@ import com.mongodb.client.model.Updates;
 import com.mongodb.client.model.WriteModel;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
+import cz.jirutka.rsql.parser.RSQLParser;
 import lombok.RequiredArgsConstructor;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -24,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import warehouse_management.com.warehouse_management.dto.configuration_history.response.ConfigVehicleSpecPageDto;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
+import warehouse_management.com.warehouse_management.dto.repair.response.RepairVehicleSpecPageDto;
 import warehouse_management.com.warehouse_management.dto.report_inventory.request.ReportParamsDto;
 import warehouse_management.com.warehouse_management.dto.report_inventory.response.ReportInventoryDto;
 import warehouse_management.com.warehouse_management.enumerate.*;
@@ -257,6 +259,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("warehouseId").is(warehouseId),
                         Criteria.where("deletedAt").isNull(),
                         Criteria.where("vehicleId").isNull(),
+                        Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
                         Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId())
                 )),
                 Aggregation.project("poNumber", "model", "commodityCode", "quantity", "description", "notes", "warehouseType")
@@ -281,6 +284,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("warehouseId").is(warehouseId),
                         Criteria.where("deletedAt").isNull(),
                         Criteria.where("vehicleId").isNull(),
+                        Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
                         Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId())
                 )),
                 Aggregation.project("poNumber", "model", "commodityCode", "notes", "quantity", "description", "warehouseType")
@@ -306,6 +310,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("warehouseId").is(warehouseId),
                         Criteria.where("deletedAt").isNull(),
                         Criteria.where("vehicleId").isNull(),
+                        Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
                         Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId())
                 )),
                 Aggregation.project("poNumber", "model", "commodityCode", "notes", "quantity", "description", "warehouseType")
@@ -331,6 +336,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("warehouseId").is(warehouseId),
                         Criteria.where("deletedAt").isNull(),
                         Criteria.where("vehicleId").isNull(),
+                        Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
                         Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId())
                 )),
                 Aggregation.project("poNumber", "model", "commodityCode", "notes", "quantity", "description", "warehouseType")
@@ -343,6 +349,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .and("pricing.salePriceR0").as("salePriceR0")   //
                         .and("pricing.salePriceR1").as("salePriceR1")   //
                         .and("pricing.otherPrice").as("otherPrice")
+
         );
         Aggregation aggregation = Aggregation.newAggregation(pipelines);
         return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, InventoryConsignmentSparePartsDto.class, aggregation, optionsReq);
@@ -440,6 +447,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("deletedAt").isNull(),
                         Criteria.where("warehouse.deletedAt").isNull(),
                         Criteria.where("vehicleId").isNull(),
+                        Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
                         Criteria.where("warehouse.type").is(WarehouseType.DESTINATION.getId()),
                         Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId())
                 )),
@@ -468,6 +476,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         Criteria.where("deletedAt").isNull(),
                         Criteria.where("warehouse.deletedAt").isNull(),
                         Criteria.where("vehicleId").isNull(),
+                        Criteria.where("status").is(InventoryItemStatus.IN_STOCK.getId()),
                         Criteria.where("warehouse.type").is(WarehouseType.CONSIGNMENT.getId()),
                         Criteria.where("inventoryType").is(InventoryType.SPARE_PART.getId())
                 )),
@@ -508,7 +517,6 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         );
         AggregationResults<InventoryPoWarehouseDto> aggResults = mongoTemplate.aggregate(Aggregation.newAggregation(aggOps), InventoryItem.class, InventoryPoWarehouseDto.class);
         return aggResults.getMappedResults();
-
     }
 
     @Override
@@ -529,7 +537,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 Aggregation.match(new Criteria().andOperator(filters))
         ));
         if (filter != null && !filter.isBlank()) {
-            Criteria filterCriteria = MongoRsqlUtils.RsqlParser.parse(filter, Map.of());
+            Criteria filterCriteria = MongoRsqlUtils.parse(filter);
             aggOps.add(Aggregation.match(filterCriteria));
         }
         AggregationResults<InventoryItemPoNumberDto> aggResults = mongoTemplate.aggregate(Aggregation.newAggregation(aggOps), InventoryItem.class, InventoryItemPoNumberDto.class);
@@ -686,11 +694,20 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         return result.getModifiedCount();
     }
 
+    @Transactional
     @Override
     public long bulkHardDelete(Collection<ObjectId> ids) {
         Query query = new Query(Criteria.where("_id").in(ids));
         DeleteResult delete = mongoTemplate.remove(query, InventoryItem.class);
         return delete.getDeletedCount();
+    }
+
+    @Transactional
+    @Override
+    public void updateIsFullyComponent(ObjectId vehicleId, Boolean isFullyComponent) {
+        Query query = new Query(Criteria.where("_id").is(vehicleId));
+        Update update = new Update().set("isFullyComponent", isFullyComponent);
+        mongoTemplate.updateFirst(query, update, InventoryItem.class);
     }
 
     @Override
@@ -910,10 +927,12 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 )),
                 Aggregation.project("model", "category", "serialNumber", "productCode", "poNumber", "inventoryType", "initialCondition", "warehouseId", "notes", "specifications", "pricing", "logistics")
                         .and("_id").as("id")
+                        .and("warehouse.name").as("warehouseName")
+                        .and("warehouse.code").as("warehouseCode")
         ));
 
         if(filter != null && !filter.isBlank()) {
-            Criteria filterCriteria = MongoRsqlUtils.RsqlParser.parse(filter, Map.of());
+            Criteria filterCriteria = MongoRsqlUtils.parse(filter);
             pipelines.add(Aggregation.match(filterCriteria));
         }
 
@@ -936,10 +955,12 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 )),
                 Aggregation.project("model", "category", "serialNumber", "productCode", "poNumber", "inventoryType", "initialCondition", "warehouseId", "notes", "specifications", "pricing", "logistics")
                         .and("_id").as("id")
+                        .and("warehouse.name").as("warehouseName")
+                        .and("warehouse.code").as("warehouseCode")
         ));
 
         if(filter != null && !filter.isBlank()) {
-            Criteria filterCriteria = MongoRsqlUtils.RsqlParser.parse(filter, Map.of());
+            Criteria filterCriteria = MongoRsqlUtils.parse(filter);
             pipelines.add(Aggregation.match(filterCriteria));
         }
 
@@ -962,10 +983,12 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 Aggregation.project("commodityCode", "poNumber", "quantity", "description", "inventoryType", "contractNumber", "pricing", "warehouseId", "model", "notes")
                         .and("_id").as("id")
                         .and("logistics.orderDate").as("orderDate")
+                        .and("warehouse.name").as("warehouseName")
+                        .and("warehouse.code").as("warehouseCode")
         ));
 
         if(filter != null && !filter.isBlank()) {
-            Criteria filterCriteria = MongoRsqlUtils.RsqlParser.parse(filter, Map.of());
+            Criteria filterCriteria = MongoRsqlUtils.parse(filter);
             pipelines.add(Aggregation.match(filterCriteria));
         }
 
@@ -988,10 +1011,12 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 Aggregation.project("commodityCode", "poNumber", "quantity", "description", "inventoryType", "contractNumber", "pricing", "warehouseId", "model", "notes")
                         .and("_id").as("id")
                         .and("logistics.orderDate").as("orderDate")
+                        .and("warehouse.name").as("warehouseName")
+                        .and("warehouse.code").as("warehouseCode")
         ));
 
         if(filter != null && !filter.isBlank()) {
-            Criteria filterCriteria = MongoRsqlUtils.RsqlParser.parse(filter, Map.of());
+            Criteria filterCriteria = MongoRsqlUtils.parse(filter);
             pipelines.add(Aggregation.match(filterCriteria));
         }
 
@@ -1080,7 +1105,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         pipelines.add(
                 Aggregation.match(new Criteria().orOperator(
                         Criteria.where("repair").size(0),
-                        Criteria.where("repair.status").ne(RepairStatus.IN_REPAIR)
+                        Criteria.where("repair.status").is(RepairStatus.COMPLETED)
                 ))
         );
 
@@ -1099,7 +1124,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         Aggregation aggregation = Aggregation.newAggregation(
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("inventoryType").is(InventoryType.VEHICLE.getId()),
-                        Criteria.where("status").is(InventoryItemStatus.IN_REPAIR.getId()),
+                        Criteria.where("status").is(InventoryItemStatus.IN_CONFIG.getId()),
                         Criteria.where("deletedAt").isNull()
                 )),
 
@@ -1224,7 +1249,158 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                         .andInclude("productCode", "model", "serialNumber", "isFullyComponent", "initialCondition", "liftingFrame", "battery", "charger", "engine", "fork", "valve", "sideShift", "wheel")
                         .andExclude("_id")
         );
+
         return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, ConfigVehicleSpecPageDto.class, aggregation, optionsDto);
+    }
+
+    @Override
+    public Page<RepairVehicleSpecPageDto> findPageRepairVehicleSpec(PageOptionsDto optionsDto) {
+        Aggregation aggregation = Aggregation.newAggregation(
+                Aggregation.match(new Criteria().andOperator(
+                        Criteria.where("inventoryType").is(InventoryType.VEHICLE.getId()),
+                        Criteria.where("status").is(InventoryItemStatus.IN_REPAIR.getId()),
+                        Criteria.where("deletedAt").isNull()
+                )),
+
+                Aggregation.lookup("inventory_item", "_id", "vehicleId", "components"),
+
+                Aggregation.addFields()
+                        .addField("componentsObj")
+                        .withValue(
+                                ArrayOperators.ArrayToObject.arrayToObject(
+                                        VariableOperators.Map.itemsOf("components")
+                                                .as("c")
+                                                .andApply(
+                                                        ArrayOperators.ConcatArrays.arrayOf(
+                                                                List.of(
+                                                                        ConditionalOperators.ifNull("$$c.componentType").then("UNKNOWN"),
+                                                                        "$$c"
+                                                                )
+                                                        )
+                                                )
+                                )
+                        ).build(),
+
+                Aggregation.lookup("repair", "_id", "vehicleId", "repair"),
+
+                Aggregation.addFields()
+                        .addField("repairs")
+                        .withValue(
+                                ArrayOperators.Filter.filter("repair")
+                                        .as("c")
+                                        .by(
+                                                ComparisonOperators.Eq.valueOf(
+                                                        ConditionalOperators.IfNull.ifNull("$$c.performedBy").then("NULL")
+                                                ).equalToValue("NULL")
+                                        )
+                        )
+                        .build(),
+
+                Aggregation.addFields()
+                        .addField("repairsObj")
+                        .withValue(
+                                ArrayOperators.ArrayToObject.arrayToObject(
+                                        VariableOperators.Map.itemsOf("repairs")
+                                                .as("c")
+                                                .andApply(
+                                                        ArrayOperators.ConcatArrays.arrayOf(
+                                                                List.of(
+                                                                        ConditionalOperators.ifNull("$$c.componentType").then("UNKNOWN"),
+                                                                        "$$c"
+                                                                )
+                                                        )
+                                                )
+                                )
+                        ).build(),
+
+                Aggregation.addFields()
+                        // Khung nâng
+                        .addField("liftingFrame.value")
+                        .withValue(
+                                StringOperators.Concat.valueOf(ConditionalOperators.IfNull.ifNull(ConvertOperators.ToString.toString("$specifications.chassisType")).then(""))
+                                        .concat(" - ")
+                                        .concatValueOf(ConditionalOperators.IfNull.ifNull(ConvertOperators.ToString.toString("$specifications.liftingCapacityKg")).then("0"))
+                                        .concat(" Kg - ")
+                                        .concatValueOf(ConditionalOperators.IfNull.ifNull(ConvertOperators.ToString.toString("$specifications.liftingHeightMm")).then("0"))
+                                        .concat(" mm")
+                        )
+                        .addField("liftingFrame.serialNumber").withValue("$specificationsSerial.liftingFrameSerial")
+                        .addField("liftingFrame.componentId").withValue("$componentsObj.LIFTING_FRAME._id")
+                        .addField("liftingFrame.repairStatus").withValue("$repairsObj.LIFTING_FRAME.status")
+                        .addField("liftingFrame.repairType").withValue("$repairsObj.LIFTING_FRAME.repairType")
+                        .addField("liftingFrame.repairComponentType").withValue("$repairsObj.LIFTING_FRAME.componentType")
+                        .addField("liftingFrame.repairExpectedCompletionDate").withValue("$repairsObj.LIFTING_FRAME.expectedCompletionDate")
+                        // Bình điện
+                        .addField("battery.value")
+                        .withValue(
+                                StringOperators.Concat.valueOf(ConditionalOperators.IfNull.ifNull(ConvertOperators.ToString.toString("$specifications.batteryInfo")).then(""))
+                                        .concat(" - ")
+                                        .concatValueOf(ConditionalOperators.IfNull.ifNull(ConvertOperators.ToString.toString("$specifications.batterySpecification")).then(""))
+                        )
+                        .addField("battery.serialNumber").withValue("$specificationsSerial.batterySerial")
+                        .addField("battery.componentId").withValue("$componentsObj.BATTERY._id")
+                        .addField("battery.repairStatus").withValue("$repairsObj.BATTERY.status")
+                        .addField("battery.repairType").withValue("$repairsObj.BATTERY.repairType")
+                        .addField("battery.repairComponentType").withValue("$repairsObj.BATTERY.componentType")
+                        .addField("battery.repairExpectedCompletionDate").withValue("$repairsObj.BATTERY.expectedCompletionDate")
+                        // Sạc
+                        .addField("charger.value").withValue("$specifications.chargerSpecification")
+                        .addField("charger.componentId").withValue("$componentsObj.CHARGER._id")
+                        .addField("charger.serialNumber").withValue("$specificationsSerial.chargerSerial")
+                        .addField("charger.repairStatus").withValue("$repairsObj.CHARGER.status")
+                        .addField("charger.repairType").withValue("$repairsObj.CHARGER.repairType")
+                        .addField("charger.repairComponentType").withValue("$repairsObj.CHARGER.componentType")
+                        .addField("charger.repairExpectedCompletionDate").withValue("$repairsObj.CHARGER.expectedCompletionDate")
+                        // Động cơ
+                        .addField("engine.value").withValue("$specifications.engineType")
+                        .addField("engine.componentId").withValue("$componentsObj.ENGINE._id")
+                        .addField("engine.serialNumber").withValue("$specificationsSerial.engineSerial")
+                        .addField("engine.repairStatus").withValue("$repairsObj.ENGINE.status")
+                        .addField("engine.repairType").withValue("$repairsObj.ENGINE.repairType")
+                        .addField("engine.repairComponentType").withValue("$repairsObj.ENGINE.componentType")
+                        .addField("engine.repairExpectedCompletionDate").withValue("$repairsObj.ENGINE.expectedCompletionDate")
+                        // Càng nâng
+                        .addField("fork.value").withValue("$specifications.forkDimensions")
+                        .addField("fork.componentId").withValue("$componentsObj.FORK._id")
+                        .addField("fork.serialNumber").withValue("$specificationsSerial.forkSerial")
+                        .addField("fork.repairStatus").withValue("$repairsObj.FORK.status")
+                        .addField("fork.repairType").withValue("$repairsObj.FORK.repairType")
+                        .addField("fork.repairComponentType").withValue("$repairsObj.FORK.componentType")
+                        .addField("fork.repairExpectedCompletionDate").withValue("$repairsObj.FORK.expectedCompletionDate")
+                        // Van
+                        .addField("valve.value").withValue("$specifications.valveCount")
+                        .addField("valve.componentId").withValue("$componentsObj.VALVE._id")
+                        .addField("valve.serialNumber").withValue("$specificationsSerial.valveSerial")
+                        .addField("valve.repairStatus").withValue("$repairsObj.VALVE.status")
+                        .addField("valve.repairType").withValue("$repairsObj.VALVE.repairType")
+                        .addField("valve.repairComponentType").withValue("$repairsObj.VALVE.componentType")
+                        .addField("valve.repairExpectedCompletionDate").withValue("$repairsObj.VALVE.expectedCompletionDate")
+                        // Side shift
+                        .addField("sideShift.value").withValue("$specifications.hasSideShift")
+                        .addField("sideShift.componentId").withValue("$componentsObj.SIDE_SHIFT._id")
+                        .addField("sideShift.serialNumber").withValue("$specificationsSerial.sideShiftSerial")
+                        .addField("sideShift.repairStatus").withValue("$repairsObj.SIDE_SHIFT.status")
+                        .addField("sideShift.repairType").withValue("$repairsObj.SIDE_SHIFT.repairType")
+                        .addField("sideShift.repairComponentType").withValue("$repairsObj.SIDE_SHIFT.componentType")
+                        .addField("sideShift.repairExpectedCompletionDate").withValue("$repairsObj.SIDE_SHIFT.expectedCompletionDate")
+                        // BÁNH XE
+                        .addField("wheel.value").withValue("$specifications.wheelInfo")
+                        .addField("wheel.componentId").withValue("$componentsObj.WHEEL._id")
+                        .addField("wheel.serialNumber").withValue("$specificationsSerial.wheelSerial")
+                        .addField("wheel.repairStatus").withValue("$repairsObj.WHEEL.status")
+                        .addField("wheel.repairType").withValue("$repairsObj.WHEEL.repairType")
+                        .addField("wheel.repairComponentType").withValue("$repairsObj.WHEEL.componentType")
+                        .addField("wheel.repairExpectedCompletionDate").withValue("$repairsObj.WHEEL.expectedCompletionDate")
+
+                        .build(),
+
+                Aggregation.project()
+                        .and("_id").as("vehicleId")
+                        .andInclude("productCode", "model", "serialNumber", "isFullyComponent", "initialCondition", "liftingFrame", "battery", "charger", "engine", "fork", "valve", "sideShift", "wheel")
+                        .andExclude("_id")
+        );
+
+        return MongoRsqlUtils.queryAggregatePage(InventoryItem.class, RepairVehicleSpecPageDto.class, aggregation, optionsDto);
     }
 
     public Page<ItemCodeModelSerialDto> findPageVehicleInStock(PageOptionsDto optionsDto){
