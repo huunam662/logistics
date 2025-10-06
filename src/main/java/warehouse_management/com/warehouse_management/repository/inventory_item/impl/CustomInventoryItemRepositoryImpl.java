@@ -694,21 +694,21 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
     }
 
     @Override
-    public List<InventoryItemModelDto> findAllModelsAndItems(List<String> inventoryTypes, List<ObjectId> warehouseIds) {
+    public List<InventoryItemModelDto> findAllModelsAndItems(List<String> inventoryTypes, List<ObjectId> warehouseIds, String filter) {
         List<String> statusIns = new ArrayList<>(List.of(InventoryItemStatus.IN_STOCK.getId()));
         List<AggregationOperation> pipelines = new ArrayList<>(List.of(
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("inventoryType").in(inventoryTypes),
                         Criteria.where("status").in(statusIns),
                         Criteria.where("warehouseId").in(warehouseIds),
-                        Criteria.where("vehicleId").isNull(),
+//                        Criteria.where("vehicleId").isNull(),
                         Criteria.where("deletedAt").isNull()
                 )),
                 Aggregation.lookup("warehouse", "warehouseId", "_id", "warehouse"),
                 Aggregation.unwind("warehouse", true)
         ));
         if (inventoryTypes.contains(InventoryType.SPARE_PART.getId())) {
-            pipelines.add(Aggregation.match(Criteria.where("warehouse.type").ne(WarehouseType.DEPARTURE.getId())));
+//            pipelines.add(Aggregation.match(Criteria.where("warehouse.type").ne(WarehouseType.DEPARTURE.getId())));
         }
         else{
             statusIns.add(InventoryItemStatus.IN_TRANSIT.getId());
@@ -717,6 +717,11 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 .and("_id").as("inventoryItemId")
                 .and("warehouse.type").as("warehouseType");
         pipelines.add(projection);
+
+        if(filter != null && !filter.isBlank()) {
+            Criteria filterCriteria = MongoRsqlUtils.RsqlParser.parse(filter, Map.of());
+            pipelines.add(Aggregation.match(filterCriteria));
+        }
         Aggregation aggregation = Aggregation.newAggregation(pipelines);
         AggregationResults<InventoryItemModelDto> aggResults = mongoTemplate.aggregate(aggregation, InventoryItem.class, InventoryItemModelDto.class);
         return aggResults.getMappedResults();
