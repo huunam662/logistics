@@ -35,7 +35,7 @@ public class MongoRsqlUtils {
         MongoTemplate mongoTemplate = SpringContext.getBean(MongoTemplate.class);
         String filter = optionsReq.getFilter();
         if (filter != null && !filter.isBlank()) {
-            Criteria filterCriteria = RsqlParser.parse(filter, rsqlPropertyMapper);
+            Criteria filterCriteria = new RSQLParser().parse(filter).accept(new MongoRsqlVisitor(rsqlPropertyMapper));
             query.addCriteria(filterCriteria);
         }
         long totalT = mongoTemplate.count(query, inputType);
@@ -82,7 +82,7 @@ public class MongoRsqlUtils {
         String filter = optionsReq.getFilter();
         List<AggregationOperation> aggOp = new ArrayList<>(agg.getPipeline().getOperations());
         if (filter != null && !filter.isBlank()) {
-            Criteria filterCriteria = RsqlParser.parse(filter, rsqlPropertyMapper);
+            Criteria filterCriteria = new RSQLParser().parse(filter).accept(new MongoRsqlVisitor(rsqlPropertyMapper));
             aggOp.add(Aggregation.match(filterCriteria));
         }
         CountOperation countOp = Aggregation.count().as("count");
@@ -139,22 +139,6 @@ public class MongoRsqlUtils {
 
     }
 
-    public static class RsqlParser {
-        private static Set<ComparisonOperator> customOperators() {
-            Set<ComparisonOperator> operators = new HashSet<>(RSQLOperators.defaultOperators());
-            operators.add(new ComparisonOperator("=isnull=", false));
-            operators.add(new ComparisonOperator("=notnull=", false));
-            return operators;
-        }
-
-        public static Criteria parse(
-                @NonNull String filter,
-                @NonNull Map<String, String> rsqlPropertyMapper
-        ) {
-            return new RSQLParser(customOperators()).parse(filter).accept(new MongoRsqlVisitor(rsqlPropertyMapper));
-        }
-    }
-
     public static class MongoRsqlVisitor implements RSQLVisitor<Criteria, Void> {
 
         private final Map<String, String> rsqlPropertyMapper;
@@ -189,22 +173,29 @@ public class MongoRsqlUtils {
             if (rsqlPropertyMapper.containsKey(field))
                 field = rsqlPropertyMapper.get(field);
             return switch (op) {
-                case "=isnull=" -> Criteria.where(field).isNull();
-                case "=notnull=" -> Criteria.where(field).ne(null);
                 case "==", "!=" -> {
                     String val = args.getFirst();
                     Criteria result = Criteria.where(field);
-                    if (op.equals("!=")) result.not();
 
-                    if (val.startsWith("*") && val.endsWith("*"))
-                        yield result.regex(val.substring(0, val.length() - 1).substring(1), "i");
-                    else if (val.startsWith("*"))
-                        yield result.regex(val.replaceFirst("\\*", "") + "$", "i");
-                    else if (val.endsWith("*"))
-                        yield result.regex("^" + val.substring(0, val.length() - 1), "i");
+                    if (val.startsWith("*") || val.endsWith("*")){
+
+                        if (op.equals("!=")) result.not();
+
+                        if (val.startsWith("*") && val.endsWith("*"))
+                            yield result.regex(val.substring(0, val.length() - 1).substring(1), "i");
+                        else if (val.startsWith("*"))
+                            yield result.regex(val.replaceFirst("\\*", "") + "$", "i");
+                        else yield result.regex("^" + val.substring(0, val.length() - 1), "i");
+                    }
                     else {
-                        if (op.equals("==")) yield result.is(parseTypeValue(val));
-                        else yield Criteria.where(field).ne(parseTypeValue(val));
+                        if (op.equals("==")) {
+                            if(val.equalsIgnoreCase("is_null"))
+                                yield result.is(null);
+                            else if (val.equalsIgnoreCase("not_null"))
+                                yield result.ne(null);
+                            else yield result.is(parseTypeValue(val));
+                        }
+                        else yield result.ne(parseTypeValue(val));
                     }
                 }
                 case "=gt=", ">" -> Criteria.where(field).gt(parseTypeValue(args.getFirst()));
@@ -261,7 +252,7 @@ public class MongoRsqlUtils {
         // Apply filter từ frontend (nếu có)
         String filter = optionsReq.getFilter();
         if (filter != null && !filter.isBlank()) {
-            Criteria filterCriteria = RsqlParser.parse(filter, rsqlPropertyMapper);
+            Criteria filterCriteria = new RSQLParser().parse(filter).accept(new MongoRsqlVisitor(rsqlPropertyMapper));
             aggOp.add(Aggregation.match(filterCriteria));
         }
 
@@ -278,6 +269,10 @@ public class MongoRsqlUtils {
         Aggregation listAgg = Aggregation.newAggregation(aggOp);
 
         return mongoTemplate.aggregate(listAgg, inputType, outputType).getMappedResults();
+    }
+
+    public static Criteria parse(String filter){
+        return new RSQLParser().parse(filter).accept(new MongoRsqlVisitor(Map.of()));
     }
 
 }

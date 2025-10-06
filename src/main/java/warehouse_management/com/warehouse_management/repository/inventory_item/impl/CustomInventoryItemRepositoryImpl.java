@@ -7,6 +7,7 @@ import com.mongodb.client.model.Updates;
 import com.mongodb.client.model.WriteModel;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
+import cz.jirutka.rsql.parser.RSQLParser;
 import lombok.RequiredArgsConstructor;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -536,7 +537,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
                 Aggregation.match(new Criteria().andOperator(filters))
         ));
         if (filter != null && !filter.isBlank()) {
-            Criteria filterCriteria = MongoRsqlUtils.RsqlParser.parse(filter, Map.of());
+            Criteria filterCriteria = MongoRsqlUtils.parse(filter);
             aggOps.add(Aggregation.match(filterCriteria));
         }
         AggregationResults<InventoryItemPoNumberDto> aggResults = mongoTemplate.aggregate(Aggregation.newAggregation(aggOps), InventoryItem.class, InventoryItemPoNumberDto.class);
@@ -926,7 +927,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         ));
 
         if(filter != null && !filter.isBlank()) {
-            Criteria filterCriteria = MongoRsqlUtils.RsqlParser.parse(filter, Map.of());
+            Criteria filterCriteria = MongoRsqlUtils.parse(filter);
             pipelines.add(Aggregation.match(filterCriteria));
         }
 
@@ -954,7 +955,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         ));
 
         if(filter != null && !filter.isBlank()) {
-            Criteria filterCriteria = MongoRsqlUtils.RsqlParser.parse(filter, Map.of());
+            Criteria filterCriteria = MongoRsqlUtils.parse(filter);
             pipelines.add(Aggregation.match(filterCriteria));
         }
 
@@ -982,7 +983,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         ));
 
         if(filter != null && !filter.isBlank()) {
-            Criteria filterCriteria = MongoRsqlUtils.RsqlParser.parse(filter, Map.of());
+            Criteria filterCriteria = MongoRsqlUtils.parse(filter);
             pipelines.add(Aggregation.match(filterCriteria));
         }
 
@@ -1010,7 +1011,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         ));
 
         if(filter != null && !filter.isBlank()) {
-            Criteria filterCriteria = MongoRsqlUtils.RsqlParser.parse(filter, Map.of());
+            Criteria filterCriteria = MongoRsqlUtils.parse(filter);
             pipelines.add(Aggregation.match(filterCriteria));
         }
 
