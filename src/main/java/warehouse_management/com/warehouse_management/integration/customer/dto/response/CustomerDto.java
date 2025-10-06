@@ -22,7 +22,7 @@ public class CustomerDto {
     private Boolean isCustomer;
     
     @JsonProperty("cell_phone")
-    private String cell_phone;
+    private String cellPhone;
     
     @JsonProperty("customer_level")
     private String customerLevel;
