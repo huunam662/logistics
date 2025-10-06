@@ -736,7 +736,7 @@ public class CustomInventoryItemRepositoryImpl implements CustomInventoryItemRep
         pipelines.add(projection);
 
         if(filter != null && !filter.isBlank()) {
-            Criteria filterCriteria = MongoRsqlUtils.RsqlParser.parse(filter, Map.of());
+            Criteria filterCriteria = MongoRsqlUtils.parse(filter);
             pipelines.add(Aggregation.match(filterCriteria));
         }
         Aggregation aggregation = Aggregation.newAggregation(pipelines);
