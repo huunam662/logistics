@@ -244,7 +244,7 @@ public class QuotationFormService {
 
         QuotationForm quotationForm = getToId(quotationFormId);
 
-        if(quotationForm == null) return new ArrayList<>();
+        if(quotationForm.getQuotationInventoryItems() == null) return new ArrayList<>();
 
         return quotationForm.getQuotationInventoryItems()
                 .stream()
@@ -257,7 +257,7 @@ public class QuotationFormService {
 
         QuotationForm quotationForm = getToId(quotationFormId);
 
-        if(quotationForm == null) return new ArrayList<>();
+        if(quotationForm.getQuotationInventoryItems() == null) return new ArrayList<>();
 
         return quotationForm.getQuotationInventoryItems()
                 .stream()

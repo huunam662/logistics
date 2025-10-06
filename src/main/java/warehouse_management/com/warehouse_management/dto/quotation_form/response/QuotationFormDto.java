@@ -10,7 +10,7 @@ public class QuotationFormDto {
 
     private ObjectId id;
     private String quotationCode;
-    private ObjectId customerId;
+    private String customerId;
     private String customerName;
     private String customerPhone;
     private String customerAddress;
