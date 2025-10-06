@@ -5,6 +5,8 @@ import org.springframework.data.domain.Page;
 import warehouse_management.com.warehouse_management.dto.configuration_history.response.ConfigVehicleSpecPageDto;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
+import warehouse_management.com.warehouse_management.dto.quotation_form.response.QuotationProductWarehouseDto;
+import warehouse_management.com.warehouse_management.dto.quotation_form.response.QuotationSparePartWarehouseDto;
 import warehouse_management.com.warehouse_management.dto.repair.response.RepairVehicleSpecPageDto;
 import warehouse_management.com.warehouse_management.dto.report_inventory.request.ReportParamsDto;
 import warehouse_management.com.warehouse_management.dto.report_inventory.response.ReportInventoryDto;
@@ -71,7 +73,7 @@ public interface CustomInventoryItemRepository {
 
     void updateIsFullyComponent(ObjectId vehicleId, Boolean isFullyComponent);
 
-    List<InventoryItemModelDto> findAllModelsAndItems(List<String> inventoryTypes, List<ObjectId> warehouseIds);
+    List<InventoryItemModelDto> findAllModelsAndItems(List<String> inventoryTypes, List<ObjectId> warehouseIds, String filter);
 
     Page<ReportInventoryDto> findPageReportItemProductionConsignmentToDashBoard(ReportParamsDto params);
 
@@ -96,4 +98,9 @@ public interface CustomInventoryItemRepository {
     Page<RepairVehicleSpecPageDto> findPageRepairVehicleSpec(PageOptionsDto optionsDto);
 
     Page<ItemCodeModelSerialDto> findPageVehicleInStock(PageOptionsDto optionsDto);
+
+    Page<QuotationProductWarehouseDto> findPageQuotationProductWarehouse(PageOptionsDto optionsDto);
+
+    Page<QuotationSparePartWarehouseDto> findPageQuotationSparePartWarehouse(PageOptionsDto optionsDto);
+
 }

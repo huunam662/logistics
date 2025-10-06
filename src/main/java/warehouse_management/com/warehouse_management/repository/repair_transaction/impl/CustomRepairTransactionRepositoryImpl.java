@@ -81,12 +81,16 @@ public class CustomRepairTransactionRepositoryImpl implements CustomRepairTransa
 
     @Transactional
     @Override
-    public void bulkDelete(List<ObjectId> repairTransactionIds) {
+    public void bulkDelete(List<ObjectId> repairTransactionIds, String fullName) {
         if (repairTransactionIds == null || repairTransactionIds.isEmpty())
             return;
 
         Query query = new Query(Criteria.where("_id").in(repairTransactionIds));
 
-        mongoTemplate.remove(query, RepairTransaction.class);
+        Update update = new Update()
+                .set("deletedAt", LocalDateTime.now())
+                .set("deletedBy", fullName);
+
+        mongoTemplate.updateMulti(query, update, RepairTransaction.class);
     }
 }

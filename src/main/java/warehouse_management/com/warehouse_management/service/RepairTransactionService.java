@@ -61,6 +61,13 @@ public class RepairTransactionService {
     @Transactional
     public void softDeleteRepairTransaction(RepairTransactionIdListDto dto) {
 
-        repairTransactionRepository.bulkDelete(dto.getRepairTransactionIds());
+        List<ObjectId> repairIds = dto.getRepairTransactionIds()
+                                .stream()
+                                .map(ObjectId::new)
+                                .toList();
+
+        CustomUserDetail customUserDetail = customAuthentication.getUserOrThrow();
+
+        repairTransactionRepository.bulkDelete(repairIds, customUserDetail.getFullName());
     }
 }

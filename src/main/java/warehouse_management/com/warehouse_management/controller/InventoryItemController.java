@@ -261,9 +261,10 @@ public class InventoryItemController {
     public ResponseEntity<?> getModels(
             @RequestParam("warehouseIds") List<String> warehouseIds,
             @Parameter(description = "[VEHICLE, ACCESSORY, SPARE_PART]")
-            @RequestParam("inventoryTypes") List<String> inventoryTypes
+            @RequestParam("inventoryTypes") List<String> inventoryTypes,
+            @RequestParam(value = "filter", required = false) String filter
     ){
-        List<InventoryItemModelDto> models = inventoryItemService.getAllModels(inventoryTypes, warehouseIds);
+        List<InventoryItemModelDto> models = inventoryItemService.getAllModels(inventoryTypes, warehouseIds, filter);
         return ResponseEntity.ok().body(ApiResponse.success(models));
     }
 

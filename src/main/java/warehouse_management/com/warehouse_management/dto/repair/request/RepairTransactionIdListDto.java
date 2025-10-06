@@ -8,6 +8,6 @@ import java.util.List;
 @Data
 public class RepairTransactionIdListDto {
 
-    private List<ObjectId> repairTransactionIds;
+    private List<String> repairTransactionIds;
 
 }
