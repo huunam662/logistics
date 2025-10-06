@@ -13,6 +13,7 @@ import warehouse_management.com.warehouse_management.dto.inventory_item.request.
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportProductionProductDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportProductionSparePartDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
+import warehouse_management.com.warehouse_management.dto.inventory_item.response.BulkImportResultDto;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.pagination.response.PageInfoDto;
 import warehouse_management.com.warehouse_management.enumerate.*;
@@ -51,12 +52,28 @@ public class InventoryItemService {
         LocalDate orderDate = parseOrderDate(req.getOrderDate());
         // 1. Chuyển đổi DTO sang InventoryItem
         InventoryItem newItem = buildSparePartItem(req, inStockWh, orderDate);
-        if (newItem.getCommodityCode() != null) {
-            Optional<InventoryItem> existing = inventoryItemRepository.findByCommodityCodeAndWarehouseId(newItem.getCommodityCode(), newItem.getWarehouseId(), InventoryItemStatus.IN_STOCK.getId());
-            if (existing.isPresent()) {
-                throw LogicErrException.of("Mã hàng hóa đã tồn tại: " + newItem.getCommodityCode());
-            }
+        
+        // 2. Check nếu là spare part và có trùng lặp thì cộng quantity
+        Optional<InventoryItem> existingSparePart = inventoryItemRepository.findDuplicateSparePart(
+            newItem.getPoNumber(),
+            newItem.getModel(), 
+            newItem.getCommodityCode(),
+            newItem.getDescription(),
+            newItem.getWarehouseId(),
+            InventoryItemStatus.IN_STOCK.getId()
+        );
+        
+        if (existingSparePart.isPresent()) {
+            // Cộng quantity vào item đã tồn tại
+            InventoryItem existingItem = existingSparePart.get();
+            existingItem.setQuantity(existingItem.getQuantity() + newItem.getQuantity());
+            InventoryItem saved = inventoryItemRepository.save(existingItem);
+            
+            // Ghi phiếu nhập kho (WarehouseTransaction) với item đã cập nhật
+            warehouseTransferTicketRepository.save(buildAWarehouseTransaction(inStockWh, saved));
+            return saved;
         }
+        
         InventoryItem saved = inventoryItemRepository.save(newItem);
         // 2. insert vào các kho destination khác
         //        CHỈ CÓ PHỤ TÙNG MỚI INSERT VÀO CÁC KHO KHÁC
@@ -71,12 +88,21 @@ public class InventoryItemService {
     @Transactional
     public InventoryItem createInventoryProduct(CreateInventoryProductDto req) {
 
-        if (inventoryItemRepository.existsByProductCode(req.getProductCode())) {
-            throw LogicErrException.of("Mã sản phẩm đã tồn tại: " + req.getProductCode());
-        }
-
         Warehouse inStockWh = warehouseService.getWarehouseToId(new ObjectId(req.getWarehouseId()));
         InventoryItem newItem = buildProductItem(req, inStockWh);
+
+        // Logic mới: Check trùng lặp cho xe & phụ kiện theo poNumber, productCode, model, warehouseId, category
+        Optional<InventoryItem> existingVehicleOrAccessory = inventoryItemRepository.findDuplicateVehicleOrAccessory(
+            newItem.getPoNumber(),
+            newItem.getProductCode(),
+            newItem.getModel(),
+            newItem.getWarehouseId(),
+            newItem.getCategory()
+        );
+        
+        if (existingVehicleOrAccessory.isPresent()) {
+            throw LogicErrException.of("Xe/Phụ kiện đã tồn tại với cùng poNumber, productCode, model, warehouseId, category");
+        }
 
         try {
             List<InventoryItem> itemsToInsert = new ArrayList<>();
@@ -230,26 +256,10 @@ public class InventoryItemService {
         List<WarehouseTransaction.InventoryItemTicket> itemTicketToLog = new ArrayList<>();
 
         if (productType.equals(WarehouseSubTranType.EXCEL_TO_PRODUCTION_PRODUCT.getId())) {
-            List<InventoryItem> itemToLog = new ArrayList<>();
-            for (ExcelImportProductionProductDto dto : dtos) {
-                InventoryItem item = mapper.toInventoryItem(dto);
-                item.setIsFullyComponent();
-                item.setSpecificationsBase(item.getSpecifications());
-                itemToLog.add(item);
-                buildComponentItems(item, itemsToInsert);
-            }
-            itemTicketToLog = itemToLog.stream().map(mapper::toInventoryItemTicket).collect(Collectors.toList());
+            itemTicketToLog = processVehicleImport(dtos, itemsToInsert);
         } else {
             ComponentType componentType = mapToComponentType(productType);
-            for (ExcelImportProductionProductDto dto : dtos) {
-                InventoryItem item = mapper.toInventoryItem(dto);
-                item.setInventoryType(InventoryType.ACCESSORY.getId());
-                item.setStatus(InventoryItemStatus.IN_STOCK);
-                item.setComponentType(componentType == null ? null : componentType.getId());
-                item.setCategory(componentType == null ? null : componentType.getValue());
-                itemsToInsert.add(item);
-            }
-            itemTicketToLog = itemsToInsert.stream().map(mapper::toInventoryItemTicket).collect(Collectors.toList());
+            itemTicketToLog = processAccessoryImport(dtos, itemsToInsert, componentType);
         }
         List<InventoryItem> saved = inventoryItemRepository.bulkInsert(itemsToInsert);
         createImportTransaction(warehouseId, itemTicketToLog, WarehouseSubTranType.EXCEL_TO_PRODUCTION_PRODUCT);
@@ -264,16 +274,289 @@ public class InventoryItemService {
             return new ArrayList<>();
         }
         List<InventoryItem> itemsToInsert = new ArrayList<>();
+        List<InventoryItem> itemsToUpdate = new ArrayList<>();
+        
         for (ExcelImportProductionSparePartDto dto : dtos) {
             InventoryItem item = mapper.toInventoryItem(dto);
             item.setInventoryType(InventoryType.SPARE_PART.getId());
             item.setStatus(InventoryItemStatus.IN_STOCK);
-            itemsToInsert.add(item);
+            
+            processSparePartItem(item, itemsToInsert, itemsToUpdate);
         }
-        List<InventoryItem> saved = inventoryItemRepository.bulkInsert(itemsToInsert);
-        List<WarehouseTransaction.InventoryItemTicket> itemTicketToLog = itemsToInsert.stream().map(mapper::toInventoryItemTicket).collect(Collectors.toList());
+        
+        // Insert items mới và update items trùng lặp
+        List<InventoryItem> saved = new ArrayList<>();
+        if (!itemsToInsert.isEmpty()) {
+            saved.addAll(inventoryItemRepository.bulkInsert(itemsToInsert));
+        }
+        if (!itemsToUpdate.isEmpty()) {
+            saved.addAll(inventoryItemRepository.saveAll(itemsToUpdate));
+        }
+        
+        // Tạo transaction log cho tất cả items
+        List<InventoryItem> allItems = new ArrayList<>();
+        allItems.addAll(itemsToInsert);
+        allItems.addAll(itemsToUpdate);
+        List<WarehouseTransaction.InventoryItemTicket> itemTicketToLog = allItems.stream().map(mapper::toInventoryItemTicket).collect(Collectors.toList());
         createImportTransaction(warehouseId, itemTicketToLog, WarehouseSubTranType.EXCEL_TO_PRODUCTION_SPARE_PART);
         return saved;
+    }
+    
+    /**
+     * Bulk import spare parts với thông tin chi tiết về kết quả
+     */
+    public BulkImportResultDto bulkImportWithDetails(
+            String warehouseId,
+            List<ExcelImportProductionSparePartDto> dtos
+    ) {
+        if (dtos == null || dtos.isEmpty()) {
+            return new BulkImportResultDto(0, 0, 0, 0);
+        }
+        
+        List<InventoryItem> itemsToInsert = new ArrayList<>();
+        List<InventoryItem> itemsToUpdate = new ArrayList<>();
+        List<String> skippedItems = new ArrayList<>();
+        List<String> updatedItems = new ArrayList<>();
+        
+        for (ExcelImportProductionSparePartDto dto : dtos) {
+            InventoryItem item = mapper.toInventoryItem(dto);
+            item.setInventoryType(InventoryType.SPARE_PART.getId());
+            item.setStatus(InventoryItemStatus.IN_STOCK);
+            
+            Optional<InventoryItem> existingSparePart = inventoryItemRepository.findDuplicateSparePart(
+                item.getPoNumber(),
+                item.getModel(), 
+                item.getCommodityCode(),
+                item.getDescription(),
+                item.getWarehouseId(),
+                InventoryItemStatus.IN_STOCK.getId()
+            );
+            
+            if (existingSparePart.isPresent()) {
+                // Cộng quantity vào item đã tồn tại
+                InventoryItem existingItem = existingSparePart.get();
+                existingItem.setQuantity(existingItem.getQuantity() + item.getQuantity());
+                itemsToUpdate.add(existingItem);
+                updatedItems.add("Spare part: " + item.getCommodityCode() + " - Quantity added: " + item.getQuantity());
+            } else {
+                // Tạo mới nếu không trùng lặp
+                itemsToInsert.add(item);
+            }
+        }
+        
+        // Insert items mới và update items trùng lặp
+        List<InventoryItem> saved = new ArrayList<>();
+        if (!itemsToInsert.isEmpty()) {
+            saved.addAll(inventoryItemRepository.bulkInsert(itemsToInsert));
+        }
+        if (!itemsToUpdate.isEmpty()) {
+            saved.addAll(inventoryItemRepository.saveAll(itemsToUpdate));
+        }
+        
+        // Tạo transaction log cho tất cả items
+        List<InventoryItem> allItems = new ArrayList<>();
+        allItems.addAll(itemsToInsert);
+        allItems.addAll(itemsToUpdate);
+        List<WarehouseTransaction.InventoryItemTicket> itemTicketToLog = allItems.stream().map(mapper::toInventoryItemTicket).collect(Collectors.toList());
+        createImportTransaction(warehouseId, itemTicketToLog, WarehouseSubTranType.EXCEL_TO_PRODUCTION_SPARE_PART);
+        
+        return new BulkImportResultDto(
+            dtos.size(),
+            itemsToInsert.size(),
+            0, // Không có skip cho spare parts
+            itemsToUpdate.size(),
+            skippedItems,
+            updatedItems
+        );
+    }
+    
+    /**
+     * Bulk import xe & phụ kiện với thông tin chi tiết về kết quả
+     */
+    public BulkImportResultDto bulkImportProductsWithDetails(
+            String warehouseId,
+            List<ExcelImportProductionProductDto> dtos,
+            String productType
+    ) {
+        if (dtos == null || dtos.isEmpty()) {
+            return new BulkImportResultDto(0, 0, 0, 0);
+        }
+        
+        List<InventoryItem> itemsToInsert = new ArrayList<>();
+        List<String> skippedItems = new ArrayList<>();
+        
+        if (productType.equals(WarehouseSubTranType.EXCEL_TO_PRODUCTION_PRODUCT.getId())) {
+            // Xử lý xe
+            for (ExcelImportProductionProductDto dto : dtos) {
+                InventoryItem item = mapper.toInventoryItem(dto);
+                item.setIsFullyComponent();
+                item.setSpecificationsBase(item.getSpecifications());
+                
+                if (isVehicleDuplicate(item)) {
+                    skippedItems.add("Vehicle: " + item.getProductCode() + " - " + item.getModel());
+                    continue;
+                }
+                
+                buildComponentItems(item, itemsToInsert);
+            }
+        } else {
+            // Xử lý phụ kiện
+            ComponentType componentType = mapToComponentType(productType);
+            for (ExcelImportProductionProductDto dto : dtos) {
+                InventoryItem item = mapper.toInventoryItem(dto);
+                item.setInventoryType(InventoryType.ACCESSORY.getId());
+                item.setStatus(InventoryItemStatus.IN_STOCK);
+                item.setComponentType(componentType == null ? null : componentType.getId());
+                item.setCategory(componentType == null ? null : componentType.getValue());
+                
+                if (isVehicleOrAccessoryDuplicate(item)) {
+                    skippedItems.add("Accessory: " + item.getProductCode() + " - " + item.getModel());
+                    continue;
+                }
+                
+                itemsToInsert.add(item);
+            }
+        }
+        
+        // Insert items
+        List<InventoryItem> saved = new ArrayList<>();
+        if (!itemsToInsert.isEmpty()) {
+            saved.addAll(inventoryItemRepository.bulkInsert(itemsToInsert));
+        }
+        
+        // Tạo transaction log
+        List<WarehouseTransaction.InventoryItemTicket> itemTicketToLog = itemsToInsert.stream().map(mapper::toInventoryItemTicket).collect(Collectors.toList());
+        createImportTransaction(warehouseId, itemTicketToLog, WarehouseSubTranType.EXCEL_TO_PRODUCTION_PRODUCT);
+        
+        return new BulkImportResultDto(
+            dtos.size(),
+            itemsToInsert.size(),
+            skippedItems.size(),
+            0, // Không có update cho xe & phụ kiện
+            skippedItems,
+            List.of() // Không có updated items
+        );
+    }
+
+    /**
+     * Xử lý import xe từ Excel
+     */
+    private List<WarehouseTransaction.InventoryItemTicket> processVehicleImport(
+            List<ExcelImportProductionProductDto> dtos, 
+            List<InventoryItem> itemsToInsert) {
+        List<InventoryItem> itemToLog = new ArrayList<>();
+        
+        for (ExcelImportProductionProductDto dto : dtos) {
+            InventoryItem item = mapper.toInventoryItem(dto);
+            item.setIsFullyComponent();
+            item.setSpecificationsBase(item.getSpecifications());
+            
+            if (isVehicleDuplicate(item)) {
+                logDuplicateVehicle(item);
+                continue;
+            }
+            
+            itemToLog.add(item);
+            buildComponentItems(item, itemsToInsert);
+        }
+        
+        return itemToLog.stream().map(mapper::toInventoryItemTicket).collect(Collectors.toList());
+    }
+    
+    /**
+     * Xử lý import phụ kiện từ Excel
+     */
+    private List<WarehouseTransaction.InventoryItemTicket> processAccessoryImport(
+            List<ExcelImportProductionProductDto> dtos, 
+            List<InventoryItem> itemsToInsert, 
+            ComponentType componentType) {
+        
+        for (ExcelImportProductionProductDto dto : dtos) {
+            InventoryItem item = mapper.toInventoryItem(dto);
+            item.setInventoryType(InventoryType.ACCESSORY.getId());
+            item.setStatus(InventoryItemStatus.IN_STOCK);
+            item.setComponentType(componentType == null ? null : componentType.getId());
+            item.setCategory(componentType == null ? null : componentType.getValue());
+            
+            if (isVehicleOrAccessoryDuplicate(item)) {
+                logDuplicateAccessory(item);
+                continue;
+            }
+            
+            itemsToInsert.add(item);
+        }
+        
+        return itemsToInsert.stream().map(mapper::toInventoryItemTicket).collect(Collectors.toList());
+    }
+    
+    /**
+     * Check xe có trùng lặp không
+     */
+    private boolean isVehicleDuplicate(InventoryItem item) {
+        Optional<InventoryItem> existing = inventoryItemRepository.findDuplicateVehicleOrAccessory(
+            item.getPoNumber(),
+            item.getProductCode(),
+            item.getModel(),
+            item.getWarehouseId(),
+            item.getCategory()
+        );
+        return existing.isPresent();
+    }
+    
+    /**
+     * Check xe/phụ kiện có trùng lặp không
+     */
+    private boolean isVehicleOrAccessoryDuplicate(InventoryItem item) {
+        Optional<InventoryItem> existing = inventoryItemRepository.findDuplicateVehicleOrAccessory(
+            item.getPoNumber(),
+            item.getProductCode(),
+            item.getModel(),
+            item.getWarehouseId(),
+            item.getCategory()
+        );
+        return existing.isPresent();
+    }
+    
+    /**
+     * Log xe trùng lặp
+     */
+    private void logDuplicateVehicle(InventoryItem item) {
+        System.out.println("INFO: Bỏ qua xe trùng lặp - poNumber: " + item.getPoNumber() + 
+                         ", productCode: " + item.getProductCode() + 
+                         ", model: " + item.getModel());
+    }
+    
+    /**
+     * Log phụ kiện trùng lặp
+     */
+    private void logDuplicateAccessory(InventoryItem item) {
+        System.out.println("INFO: Bỏ qua phụ kiện trùng lặp - poNumber: " + item.getPoNumber() + 
+                         ", productCode: " + item.getProductCode() + 
+                         ", model: " + item.getModel());
+    }
+    
+    /**
+     * Xử lý spare part item - check trùng lặp và cộng quantity hoặc tạo mới
+     */
+    private void processSparePartItem(InventoryItem item, List<InventoryItem> itemsToInsert, List<InventoryItem> itemsToUpdate) {
+        Optional<InventoryItem> existingSparePart = inventoryItemRepository.findDuplicateSparePart(
+            item.getPoNumber(),
+            item.getModel(), 
+            item.getCommodityCode(),
+            item.getDescription(),
+            item.getWarehouseId(),
+            InventoryItemStatus.IN_STOCK.getId()
+        );
+        
+        if (existingSparePart.isPresent()) {
+            // Cộng quantity vào item đã tồn tại
+            InventoryItem existingItem = existingSparePart.get();
+            existingItem.setQuantity(existingItem.getQuantity() + item.getQuantity());
+            itemsToUpdate.add(existingItem);
+        } else {
+            // Tạo mới nếu không trùng lặp
+            itemsToInsert.add(item);
+        }
     }
 
     private void buildComponentItems(
