@@ -33,5 +33,17 @@ public class CustomerService {
     }
 
 
+    public BaseListResponse<CustomerDto> getCustomers() {
+        return customerIntegrationClient.getCustomers(customAuthentication.getUser().getAnatk());
+    }
+    
+    /**
+     * Get tất cả customers không phân trang
+     */
+    public BaseListResponse<CustomerDto> getAllCustomers() {
+        return customerIntegrationClient.getAllCustomers(customAuthentication.getUser().getAnatk());
+    }
+
+
 }
 

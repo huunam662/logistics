@@ -32,4 +32,11 @@ public class CustomerIntegrationClient {
     public BaseListResponse<CustomerDto> getCustomers(String token) {
         return genericIntegrationClient.getList(GeneralUtil.GET_CUSTOMERS, token);
     }
+    
+    /**
+     * Get tất cả customers không phân trang
+     */
+    public BaseListResponse<CustomerDto> getAllCustomers(String token) {
+        return genericIntegrationClient.getList(GeneralUtil.GET_CUSTOMERS_ALL, token);
+    }
 }
