@@ -5,26 +5,31 @@ import lombok.Data;
 
 @Data
 public class CustomerDto {
-    
+
     @JsonProperty("id")
     private String id;
-    
-    @JsonProperty("first_name")
-    private String firstName;
-    
-    @JsonProperty("last_name")
-    private String lastName;
-    
+
     @JsonProperty("email")
     private String email;
-    
+
     @JsonProperty("is_customer")
     private Boolean isCustomer;
-    
+
     @JsonProperty("cell_phone")
     private String cellPhone;
-    
-    @JsonProperty("customer_level")
-    private String customerLevel;
-}
 
+    @JsonProperty("full_name")
+    private String fullName;
+
+    @JsonProperty("address")
+    private String address;
+
+    @JsonProperty("customer_level_id")
+    private String customerLevelId;
+
+    @JsonProperty("customer_level_name")
+    private String customerLevelName;
+
+    @JsonProperty("customer_level_note")
+    private String customerLevelNote;
+}
