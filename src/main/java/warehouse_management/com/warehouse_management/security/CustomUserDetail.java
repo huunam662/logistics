@@ -23,6 +23,7 @@ public class CustomUserDetail implements UserDetails {
     private final String email;
     private final List<String> permisions;
     private final String fullName;
+    private final String anatk;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
