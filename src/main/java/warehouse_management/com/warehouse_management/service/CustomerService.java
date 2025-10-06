@@ -4,9 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import warehouse_management.com.warehouse_management.app.CustomAuthentication;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
-import warehouse_management.com.warehouse_management.integration.anabase.dto.response.BaseListResponse;
 import warehouse_management.com.warehouse_management.integration.customer.client.CustomerIntegrationClient;
-import warehouse_management.com.warehouse_management.integration.customer.dto.response.CustomerDto;
+import warehouse_management.com.warehouse_management.integration.customer.dto.response.CustomerListRes;
 import warehouse_management.com.warehouse_management.utils.AnaConverterUtils;
 
 @Service
@@ -25,22 +24,19 @@ public class CustomerService {
      * @param queryParams Query parameters theo SieveModel format từ React
      * @return BaseListResponse<CustomerDto> chứa danh sách customers và pagination info
      */
-    public BaseListResponse<CustomerDto> getCustomers(PageOptionsDto pageOptionsDto) {
+    public CustomerListRes getCustomers(PageOptionsDto pageOptionsDto) {
         String queryString = AnaConverterUtils.convertToSieveQueryString(pageOptionsDto);
-
-
         return customerIntegrationClient.getCustomers(customAuthentication.getUser().getAnatk(), queryString);
     }
 
-
-    public BaseListResponse<CustomerDto> getCustomers() {
+    public CustomerListRes getCustomers() {
         return customerIntegrationClient.getCustomers(customAuthentication.getUser().getAnatk());
     }
     
     /**
      * Get tất cả customers không phân trang
      */
-    public BaseListResponse<CustomerDto> getAllCustomers() {
+    public CustomerListRes getAllCustomers() {
         return customerIntegrationClient.getAllCustomers(customAuthentication.getUser().getAnatk());
     }
 

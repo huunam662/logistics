@@ -24,18 +24,14 @@ public class GenericIntegrationClient {
      * @param <T> Generic type cho response data
      * @return BaseListResponse<T> chứa data và pagination info
      */
-    public <T> BaseListResponse<T> getList(String interfaceCode, String token, String queryParams) {
+    public <T> T getList(String interfaceCode, String token, String queryParams, Class<T> responseType) {
         try {
             String url = integrationUtils.getConnectUrl(interfaceCode);
             String fullUrl = queryParams != null && !queryParams.isEmpty() 
                 ? url + "?" + queryParams 
                 : url;
             
-            BaseListResponse<T> response = integrationUtils.performGet(fullUrl, token, BaseListResponse.class);
-            
-            if (!response.getSuccess()) {
-                throw IntegrationException.of("Lỗi tích hợp " + interfaceCode);
-            }
+            T response = integrationUtils.performGet(fullUrl, token, responseType);
             return response;
         } catch (Exception e) {
             throw IntegrationException.of("Lỗi tích hợp " + interfaceCode + ": " + e.getMessage());
@@ -45,7 +41,61 @@ public class GenericIntegrationClient {
     /**
      * Overloaded method không cần queryParams
      */
-    public <T> BaseListResponse<T> getList(String interfaceCode, String token) {
-        return getList(interfaceCode, token, null);
+    public <T> T getList(String interfaceCode, String token, Class<T> responseType) {
+        return getList(interfaceCode, token, null, responseType);
+    }
+    
+    /**
+     * Generic method để call .NET API với path parameters
+     */
+    public <T> T getListWithPathParams(String interfaceCode, String token, java.util.Map<String, String> pathParams, Class<T> responseType) {
+        try {
+            String url = integrationUtils.getConnectUrl(interfaceCode);
+            String fullUrl = url;
+            
+            // Thay thế tất cả path parameters trong URL
+            if (pathParams != null && !pathParams.isEmpty()) {
+                for (java.util.Map.Entry<String, String> entry : pathParams.entrySet()) {
+                    String placeholder = "{" + entry.getKey() + "}";
+                    fullUrl = fullUrl.replace(placeholder, entry.getValue());
+                }
+            }
+            
+            T response = integrationUtils.performGet(fullUrl, token, responseType);
+            
+            return response;
+        } catch (Exception e) {
+            throw IntegrationException.of("Lỗi tích hợp " + interfaceCode + ": " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Generic method để call .NET API với path parameters + query parameters
+     */
+    public <T> T getListWithPathAndQueryParams(String interfaceCode, String token, 
+            java.util.Map<String, String> pathParams, String queryParams, Class<T> responseType) {
+        try {
+            String url = integrationUtils.getConnectUrl(interfaceCode);
+            String fullUrl = url;
+            
+            // Thay thế path parameters
+            if (pathParams != null && !pathParams.isEmpty()) {
+                for (java.util.Map.Entry<String, String> entry : pathParams.entrySet()) {
+                    String placeholder = "{" + entry.getKey() + "}";
+                    fullUrl = fullUrl.replace(placeholder, entry.getValue());
+                }
+            }
+            
+            // Thêm query parameters
+            if (queryParams != null && !queryParams.isEmpty()) {
+                fullUrl = fullUrl + "?" + queryParams;
+            }
+            
+            T response = integrationUtils.performGet(fullUrl, token, responseType);
+            
+            return response;
+        } catch (Exception e) {
+            throw IntegrationException.of("Lỗi tích hợp " + interfaceCode + ": " + e.getMessage());
+        }
     }
 }
