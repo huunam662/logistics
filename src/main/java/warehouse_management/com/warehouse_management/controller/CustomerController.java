@@ -8,9 +8,11 @@ import warehouse_management.com.warehouse_management.dto.ApiResponse;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.pagination.response.PageInfoDto;
 import warehouse_management.com.warehouse_management.utils.AnaConverterUtils;
-import warehouse_management.com.warehouse_management.integration.anabase.dto.response.BaseListResponse;
+import warehouse_management.com.warehouse_management.integration.customer.dto.response.CustomerListRes;
 import warehouse_management.com.warehouse_management.integration.customer.dto.response.CustomerDto;
 import warehouse_management.com.warehouse_management.service.CustomerService;
+
+import java.util.List;
 
 @RestController
 @Tag(name = "Customer")
@@ -30,10 +32,10 @@ public class CustomerController {
             @ModelAttribute PageOptionsDto pageOptions
     ) {
         // Get data từ .NET API
-        BaseListResponse<CustomerDto> baseListResponse = customerService.getCustomers(pageOptions);
+        CustomerListRes customerListRes = customerService.getCustomers(pageOptions);
         
-        // Convert BaseListResponse sang PageInfoDto
-        PageInfoDto<CustomerDto> pageInfo = AnaConverterUtils.convertBaseListResponseToPageInfo(baseListResponse, pageOptions);
+        // Convert CustomerListRes sang PageInfoDto
+        PageInfoDto<CustomerDto> pageInfo = AnaConverterUtils.convertBaseListResponseToPageInfo(customerListRes, pageOptions);
         
         return ApiResponse.success(pageInfo);
     }
@@ -44,11 +46,17 @@ public class CustomerController {
             description = "Lấy tất cả customers từ .NET API không phân trang. " +
                     "Sử dụng intercode GET_CUSTOMERS_ALL."
     )
-    public ApiResponse<BaseListResponse<CustomerDto>> getAllCustomers() {
+    public ApiResponse<List<CustomerDto>> getAllCustomers() {
         // Get tất cả customers từ .NET API
-        BaseListResponse<CustomerDto> baseListResponse = customerService.getAllCustomers();
+        CustomerListRes customerListRes = customerService.getAllCustomers();
+        List<CustomerDto> customers = customerListRes.getData().getCollection();
         
-        return ApiResponse.success(baseListResponse);
+        // Test loop - sẽ hoạt động vì CustomerDto đã được deserialize đúng cách
+        for(CustomerDto c : customers) {
+            System.out.println("Customer: " + c.getCellPhone() + " - " + c.getEmail());
+        }
+        
+        return ApiResponse.success(customers);
     }
 
 

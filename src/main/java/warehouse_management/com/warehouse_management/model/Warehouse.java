@@ -34,6 +34,7 @@ public class Warehouse implements Persistable<ObjectId> {
 
     private String note;       // Ghi chú thêm
 
+    private String officeId;
     @CreatedBy
     private String createdBy;
     @LastModifiedBy
