@@ -35,7 +35,7 @@ public class IntegrationUtils {
             throw IntegrationException.of("Không tìm thấy ConnInterface với interfaceCode = {" + interfaceCode + "}");
         }
         String url = connectionInterface.getInterfaceURL();
-//        url = url.replace("https://gateway.dev.meu-solutions.com/permission-erp", "http://localhost:8089");
+        url = url.replace("https://gateway.dev.meu-solutions.com/permission-erp", "http://localhost:8089");
         return url;
     }
 

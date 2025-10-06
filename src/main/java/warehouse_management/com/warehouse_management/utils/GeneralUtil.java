@@ -14,6 +14,7 @@ public class GeneralUtil {
     public static final String AUTH_GET_INFO = "AUTH_GET_INFO";
     public static final String GET_CUSTOMERS = "GET_CUSTOMERS";
     public static final String GET_CUSTOMERS_ALL = "GET_CUSTOMERS_ALL";
+    public static final String GET_USERS_BY_ROLE = "GET_USERS_BY_ROLE";
 
     public static final String secretKey = "rO0ABXNyABFqYXZhLnV0aWwuUmFuZG9tU3RyZWFtVmFsdWVxPGRG1ZYr6g6B8u8fFw==";
 
