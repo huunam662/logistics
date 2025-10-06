@@ -73,7 +73,7 @@ public interface CustomInventoryItemRepository {
 
     void updateIsFullyComponent(ObjectId vehicleId, Boolean isFullyComponent);
 
-    List<InventoryItemModelDto> findAllModelsAndItems(List<String> inventoryTypes, List<ObjectId> warehouseIds);
+    List<InventoryItemModelDto> findAllModelsAndItems(List<String> inventoryTypes, List<ObjectId> warehouseIds, String filter);
 
     Page<ReportInventoryDto> findPageReportItemProductionConsignmentToDashBoard(ReportParamsDto params);
 
