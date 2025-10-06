@@ -262,6 +262,7 @@ public class RepairService {
         res.setRepairId(repair.getId());
         res.setRepairCode(repair.getRepairCode());
         res.setStatus(repair.getStatus());
+        res.setExpectedCompletionDate(repair.getExpectedCompletionDate());
 
         return res;
     }
@@ -281,6 +282,7 @@ public class RepairService {
         res.setRepairId(repair.getId());
         res.setRepairCode(repair.getRepairCode());
         res.setStatus(repair.getStatus());
+        res.setExpectedCompletionDate(repair.getExpectedCompletionDate());
         res.setComponentId(repair.getComponentId());
         res.setSerialNumber(repair.getComponentSerial());
         res.setWarehouseCode(warehouseComponent.getCode());
