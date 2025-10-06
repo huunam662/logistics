@@ -6,6 +6,10 @@ import warehouse_management.com.warehouse_management.app.CustomAuthentication;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.integration.customer.client.CustomerIntegrationClient;
 import warehouse_management.com.warehouse_management.integration.customer.dto.response.CustomerListRes;
+import warehouse_management.com.warehouse_management.integration.customer.dto.response.CustomerDto;
+import warehouse_management.com.warehouse_management.dto.pagination.response.PageInfoDto;
+
+import java.util.List;
 import warehouse_management.com.warehouse_management.utils.AnaConverterUtils;
 
 @Service
@@ -24,20 +28,36 @@ public class CustomerService {
      * @param queryParams Query parameters theo SieveModel format từ React
      * @return BaseListResponse<CustomerDto> chứa danh sách customers và pagination info
      */
-    public CustomerListRes getCustomers(PageOptionsDto pageOptionsDto) {
+    public PageInfoDto<CustomerDto> getCustomers(PageOptionsDto pageOptionsDto) {
         String queryString = AnaConverterUtils.convertToSieveQueryString(pageOptionsDto);
-        return customerIntegrationClient.getCustomers(customAuthentication.getUser().getAnatk(), queryString);
+        CustomerListRes customerListRes = customerIntegrationClient.getCustomers(customAuthentication.getUser().getAnatk(), queryString);
+        List<CustomerDto> customers = customerListRes.getData().getCollection();
+        
+        // Test loop - sẽ hoạt động vì CustomerDto đã được deserialize đúng cách
+        for(CustomerDto c : customers) {
+            System.out.println("Customer (paginated): " + c.getCellPhone() + " - " + c.getEmail());
+        }
+        
+        // Convert CustomerListRes sang PageInfoDto
+        PageInfoDto<CustomerDto> pageInfo = AnaConverterUtils.convertBaseListResponseToPageInfo(customerListRes, pageOptionsDto);
+        
+        return pageInfo;
     }
 
-    public CustomerListRes getCustomers() {
-        return customerIntegrationClient.getCustomers(customAuthentication.getUser().getAnatk());
-    }
     
     /**
      * Get tất cả customers không phân trang
      */
-    public CustomerListRes getAllCustomers() {
-        return customerIntegrationClient.getAllCustomers(customAuthentication.getUser().getAnatk());
+    public List<CustomerDto> getAllCustomers() {
+        CustomerListRes customerListRes = customerIntegrationClient.getAllCustomers(customAuthentication.getUser().getAnatk());
+        List<CustomerDto> customers = customerListRes.getData().getCollection();
+        
+        // Test loop - sẽ hoạt động vì CustomerDto đã được deserialize đúng cách
+        for(CustomerDto c : customers) {
+            System.out.println("Customer: " + c.getCellPhone() + " - " + c.getEmail());
+        }
+        
+        return customers;
     }
 
 

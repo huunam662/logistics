@@ -29,14 +29,8 @@ public class UserController {
     public ApiResponse<List<UserDto>> getUsersByRole(
             @PathVariable("roleName") String roleName
     ) {
-        // Get users by role từ .NET API
-        UserListRes userListRes = userService.getUsersByRole(roleName);
-        List<UserDto> users = userListRes.getData().getCollection();
-        
-        // Test loop - sẽ hoạt động vì UserDto đã được deserialize đúng cách
-        for(UserDto u : users) {
-            System.out.println(u.getEmail());
-        }
+        // Get users by role từ Service (đã có for loop test bên trong)
+        List<UserDto> users = userService.getUsersByRole(roleName);
         
         return ApiResponse.success(users);
     }
