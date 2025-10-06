@@ -13,6 +13,7 @@ public class GeneralUtil {
     public static final String AUTH_GET_PERMISSION = "AUTH_GET_PERMISSION";
     public static final String AUTH_GET_INFO = "AUTH_GET_INFO";
     public static final String GET_CUSTOMERS = "GET_CUSTOMERS";
+    public static final String GET_CUSTOMERS_ALL = "GET_CUSTOMERS_ALL";
 
     public static final String secretKey = "rO0ABXNyABFqYXZhLnV0aWwuUmFuZG9tU3RyZWFtVmFsdWVxPGRG1ZYr6g6B8u8fFw==";
 
