@@ -22,7 +22,7 @@ public class CustomerController {
 
     @GetMapping
     @Operation(
-            summary = "POST danh sách customers",
+            summary = "GET danh sách customers",
             description = "Lấy danh sách customers từ .NET API. " +
                     "React gửi PageOptionsDto object, Spring build SieveModel query string và forward đến .NET API."
     )
@@ -37,6 +37,21 @@ public class CustomerController {
         
         return ApiResponse.success(pageInfo);
     }
+    
+    @GetMapping("/all")
+    @Operation(
+            summary = "GET tất cả customers",
+            description = "Lấy tất cả customers từ .NET API không phân trang. " +
+                    "Sử dụng intercode GET_CUSTOMERS_ALL."
+    )
+    public ApiResponse<BaseListResponse<CustomerDto>> getAllCustomers() {
+        // Get tất cả customers từ .NET API
+        BaseListResponse<CustomerDto> baseListResponse = customerService.getAllCustomers();
+        
+        return ApiResponse.success(baseListResponse);
+    }
+
+
 
 
 }
