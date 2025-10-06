@@ -31,11 +31,8 @@ public class CustomerController {
     public ApiResponse<PageInfoDto<CustomerDto>> getCustomers(
             @ModelAttribute PageOptionsDto pageOptions
     ) {
-        // Get data từ .NET API
-        CustomerListRes customerListRes = customerService.getCustomers(pageOptions);
-        
-        // Convert CustomerListRes sang PageInfoDto
-        PageInfoDto<CustomerDto> pageInfo = AnaConverterUtils.convertBaseListResponseToPageInfo(customerListRes, pageOptions);
+        // Get data từ Service (đã có for loop test và convert sang PageInfoDto bên trong)
+        PageInfoDto<CustomerDto> pageInfo = customerService.getCustomers(pageOptions);
         
         return ApiResponse.success(pageInfo);
     }
@@ -47,14 +44,8 @@ public class CustomerController {
                     "Sử dụng intercode GET_CUSTOMERS_ALL."
     )
     public ApiResponse<List<CustomerDto>> getAllCustomers() {
-        // Get tất cả customers từ .NET API
-        CustomerListRes customerListRes = customerService.getAllCustomers();
-        List<CustomerDto> customers = customerListRes.getData().getCollection();
-        
-        // Test loop - sẽ hoạt động vì CustomerDto đã được deserialize đúng cách
-        for(CustomerDto c : customers) {
-            System.out.println("Customer: " + c.getCellPhone() + " - " + c.getEmail());
-        }
+        // Get tất cả customers từ Service (đã có for loop test bên trong)
+        List<CustomerDto> customers = customerService.getAllCustomers();
         
         return ApiResponse.success(customers);
     }
