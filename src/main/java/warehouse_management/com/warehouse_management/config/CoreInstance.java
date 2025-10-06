@@ -57,7 +57,7 @@ public class CoreInstance {
             if(!(authentication.getPrincipal() instanceof CustomUserDetail user)){
                 return Optional.empty();
             }
-            return Optional.of((user.getId()));
+            return Optional.of(user.getEmail());
         };
     }
 
