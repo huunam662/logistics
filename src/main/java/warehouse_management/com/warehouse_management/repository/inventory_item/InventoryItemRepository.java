@@ -17,6 +17,12 @@ public interface InventoryItemRepository extends MongoRepository<InventoryItem, 
     @Query("{poNumber: ?0, model: ?1, commodityCode: ?2, description: ?3, warehouseId: ?4, status: ?5, deletedAt: null}")
     Optional<InventoryItem> findByCommodityCode(String poNumber, String model, String commodityCode, String description, ObjectId warehouseId, String status);
 
+    @Query("{poNumber: ?0, model: ?1, commodityCode: ?2, description: ?3, warehouseId: ?4, status: ?5, deletedAt: null}")
+    Optional<InventoryItem> findDuplicateSparePart(String poNumber, String model, String commodityCode, String description, ObjectId warehouseId, String status);
+
+    @Query("{poNumber: ?0, productCode: ?1, model: ?2, warehouseId: ?3, category: ?4, deletedAt: null}")
+    Optional<InventoryItem> findDuplicateVehicleOrAccessory(String poNumber, String productCode, String model, ObjectId warehouseId, String category);
+
     Optional<InventoryItem> findByProductCode(String productCode);
 
     Optional<InventoryItem> findBySerialNumber(String serialNumber);
