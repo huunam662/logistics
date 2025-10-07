@@ -2,7 +2,7 @@ package warehouse_management.com.warehouse_management.integration.user.client;
 
 import org.springframework.stereotype.Component;
 import warehouse_management.com.warehouse_management.integration.anabase.GenericIntegrationClient;
-import warehouse_management.com.warehouse_management.integration.user.dto.response.UserListRes;
+import warehouse_management.com.warehouse_management.integration.user.dto.response.UserListIRes;
 import warehouse_management.com.warehouse_management.utils.GeneralUtil;
 
 @Component
@@ -17,10 +17,10 @@ public class UserIntegrationClient {
     /**
      * Get users by role name từ .NET API
      */
-    public UserListRes getUsersByRole(String token, String roleName) {
+    public UserListIRes getUsersByRole(String token, String roleCode) {
         // Sử dụng method linh hoạt với Map path parameters
         java.util.Map<String, String> pathParams = new java.util.HashMap<>();
-        pathParams.put("roleName", roleName);
-        return genericIntegrationClient.getListWithPathParams(GeneralUtil.GET_USERS_BY_ROLE, token, pathParams, UserListRes.class);
+        pathParams.put("roleCode", roleCode);
+        return genericIntegrationClient.getListWithPathParams(GeneralUtil.GET_USERS_BY_ROLE, token, pathParams, UserListIRes.class);
     }
 }
