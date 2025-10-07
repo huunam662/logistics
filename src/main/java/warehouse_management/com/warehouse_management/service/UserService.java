@@ -6,6 +6,7 @@ import warehouse_management.com.warehouse_management.app.CustomAuthentication;
 import warehouse_management.com.warehouse_management.integration.user.client.UserIntegrationClient;
 import warehouse_management.com.warehouse_management.integration.user.dto.response.UserListRes;
 import warehouse_management.com.warehouse_management.integration.user.dto.response.UserDto;
+import warehouse_management.com.warehouse_management.exceptions.LogicErrException;
 
 import java.util.List;
 
@@ -20,8 +21,14 @@ public class UserService {
     /**
      * Get users by role name từ .NET API
      */
-    public List<UserDto> getUsersByRole(String roleName) {
-        UserListRes userListRes = userIntegrationClient.getUsersByRole(customAuthentication.getUser().getAnatk(), roleName);
+    public List<UserDto> getUsersByRole(String roleCode) {
+        UserListRes userListRes = userIntegrationClient.getUsersByRole(customAuthentication.getUser().getAnatk(), roleCode);
+        
+        // Check success ở tầng service
+        if (!userListRes.getSuccess()) {
+            throw LogicErrException.of("Lỗi lấy users theo role: API trả về success = false");
+        }
+        
         List<UserDto> users = userListRes.getData().getCollection();
         
         // Test loop - sẽ hoạt động vì UserDto đã được deserialize đúng cách

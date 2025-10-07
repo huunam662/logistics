@@ -34,7 +34,10 @@ public class UserDto {
     
     @JsonProperty("role_name")
     private String roleName;
-    
+
+    @JsonProperty("role_code")
+    private String roleCode;
+
     @JsonProperty("role_id")
     private String roleId;
     

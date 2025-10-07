@@ -21,12 +21,6 @@ public class CustomerIntegrationClient {
         return genericIntegrationClient.getList(GeneralUtil.GET_CUSTOMERS, token, queryParams, CustomerListRes.class);
     }
 
-    /**
-     * Get customers list không có filter
-     */
-    public CustomerListRes getCustomers(String token) {
-        return genericIntegrationClient.getList(GeneralUtil.GET_CUSTOMERS, token, CustomerListRes.class);
-    }
     
     /**
      * Get tất cả customers không phân trang

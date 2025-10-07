@@ -20,17 +20,17 @@ public class UserController {
     private final UserService userService;
 
 
-    @GetMapping("/by-role/{roleName}")
+    @GetMapping("/by-role/{roleCode}")
     @Operation(
             summary = "GET users by role name",
             description = "Lấy danh sách users theo role name từ .NET API. " +
                     "Sử dụng intercode GET_USERS_BY_ROLE."
     )
     public ApiResponse<List<UserDto>> getUsersByRole(
-            @PathVariable("roleName") String roleName
+            @PathVariable("roleCode") String roleCode
     ) {
         // Get users by role từ Service (đã có for loop test bên trong)
-        List<UserDto> users = userService.getUsersByRole(roleName);
+        List<UserDto> users = userService.getUsersByRole(roleCode);
         
         return ApiResponse.success(users);
     }

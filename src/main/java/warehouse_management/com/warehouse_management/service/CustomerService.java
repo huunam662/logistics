@@ -8,6 +8,7 @@ import warehouse_management.com.warehouse_management.integration.customer.client
 import warehouse_management.com.warehouse_management.integration.customer.dto.response.CustomerListRes;
 import warehouse_management.com.warehouse_management.integration.customer.dto.response.CustomerDto;
 import warehouse_management.com.warehouse_management.dto.pagination.response.PageInfoDto;
+import warehouse_management.com.warehouse_management.exceptions.LogicErrException;
 
 import java.util.List;
 import warehouse_management.com.warehouse_management.utils.AnaConverterUtils;
@@ -31,6 +32,12 @@ public class CustomerService {
     public PageInfoDto<CustomerDto> getCustomers(PageOptionsDto pageOptionsDto) {
         String queryString = AnaConverterUtils.convertToSieveQueryString(pageOptionsDto);
         CustomerListRes customerListRes = customerIntegrationClient.getCustomers(customAuthentication.getUser().getAnatk(), queryString);
+        
+        // Check success ở tầng service
+        if (!customerListRes.getSuccess()) {
+            throw LogicErrException.of("Lỗi lấy danh sách customers: API trả về success = false");
+        }
+        
         List<CustomerDto> customers = customerListRes.getData().getCollection();
         
         // Test loop - sẽ hoạt động vì CustomerDto đã được deserialize đúng cách
@@ -50,6 +57,12 @@ public class CustomerService {
      */
     public List<CustomerDto> getAllCustomers() {
         CustomerListRes customerListRes = customerIntegrationClient.getAllCustomers(customAuthentication.getUser().getAnatk());
+        
+        // Check success ở tầng service
+        if (!customerListRes.getSuccess()) {
+            throw LogicErrException.of("Lỗi lấy tất cả customers: API trả về success = false");
+        }
+        
         List<CustomerDto> customers = customerListRes.getData().getCollection();
         
         // Test loop - sẽ hoạt động vì CustomerDto đã được deserialize đúng cách

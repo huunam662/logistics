@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.*;
 import org.springframework.data.domain.Persistable;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import warehouse_management.com.warehouse_management.enumerate.ActiveStatus;
 import warehouse_management.com.warehouse_management.enumerate.WarehouseType;
@@ -34,7 +35,10 @@ public class Warehouse implements Persistable<ObjectId> {
 
     private String note;       // Ghi chú thêm
 
+    //    1-1 office trên ana
+    @Indexed(unique = true)
     private String officeId;
+
     @CreatedBy
     private String createdBy;
     @LastModifiedBy

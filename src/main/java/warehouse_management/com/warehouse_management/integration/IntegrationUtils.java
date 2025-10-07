@@ -156,4 +156,19 @@ public class IntegrationUtils {
         logger.info("=====OUTBOUND REQUEST=====[GET]"+url);
         return performGet(url, buildHeaderWithToken(token), responseType);
     }
+
+    public <T> T performPost(String url, String token, Object requestBody, Class<T> responseType) {
+        logger.info("=====OUTBOUND REQUEST=====[POST]"+url);
+        HttpEntity<?> requestEntity = new HttpEntity<>(requestBody, buildHeaderWithToken(token));
+        try {
+            ResponseEntity<T> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, responseType);
+            if (response.getStatusCode().is2xxSuccessful()) {
+                return Objects.requireNonNull(response.getBody(), "External service response body was null for URL: " + url);
+            } else {
+                throw IntegrationException.of("External service responded with unexpected status: " + response.getStatusCode() + " for URL: " + url);
+            }
+        } catch (Exception e) {
+            throw IntegrationException.of("An unexpected error occurred while calling external service at " + url + ": " + e.getMessage());
+        }
+    }
 }
