@@ -7,7 +7,7 @@ public enum WarehouseType {
     PRODUCTION("PRODUCTION", "VPK_CHOSANXUAT"),      // Kho chờ sản xuất
     DEPARTURE("DEPARTURE", "VPK_KHODI"),             // Kho đi
     DESTINATION("DESTINATION", "VPK_KHODEN"),        // Kho đến
-    CONSIGNMENT("CONSIGNMENT", "VPK_KYGOI");         // Kho ký gửi
+    CONSIGNMENT("CONSIGNMENT", "VPK_KYGUI");         // Kho ký gửi
 
     private final String id;
     private final String officeTypeCode;
