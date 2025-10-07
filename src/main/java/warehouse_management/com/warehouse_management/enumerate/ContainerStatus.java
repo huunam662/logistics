@@ -2,7 +2,7 @@ package warehouse_management.com.warehouse_management.enumerate;
 
 import org.springframework.lang.Nullable;
 
-public enum ContainerStatus implements EnumClass<String> {
+public enum ContainerStatus {
 
     PENDING("PENDING"),          // Chờ xác nhận
     APPROVED("APPROVED"),        // Đã xác nhận

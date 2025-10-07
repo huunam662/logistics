@@ -17,6 +17,8 @@ public class InventorySparePartDetailsDto {
     private String model;
     private String description;
     private ObjectId warehouseId; // Mã kho
+    private String warehouseCode;
+    private String warehouseName;
     private String inventoryType;   // Loại hàng tồn (VD: phụ kiện, ...) - Bắt buộc
     private String notes;                  // Ghi chú chung – Không bắt buộc
     private String contractNumber; // Số hợp đồng
@@ -30,5 +32,6 @@ public class InventorySparePartDetailsDto {
         private BigDecimal salePriceR0;         // Giá bán đề xuất R0
         private BigDecimal salePriceR1;         // Giá bán đề xuất R1
         private BigDecimal actualSalePrice;
+        private BigDecimal otherPrice;      // Giá khác
     }
 }

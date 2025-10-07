@@ -6,4 +6,6 @@ import lombok.Data;
 public class UpdateInventorySparePartDto {
     private String poNumber;
     private String commodityCode;
+    private String contactNumber;
+    private String notes;
 }

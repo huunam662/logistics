@@ -5,10 +5,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.*;
+import org.springframework.data.domain.Persistable;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.mapping.FieldType;
 import warehouse_management.com.warehouse_management.enumerate.ContainerStatus;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,7 +19,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "container")
-public class Container {
+public class Container implements Persistable<ObjectId> {
     @Id
     private ObjectId id;  // _id – Khóa chính
 
@@ -37,7 +39,7 @@ public class Container {
 
     @CreatedBy
     private String createdBy;
-     @LastModifiedBy
+    @LastModifiedBy
     private String updatedBy;
     private ObjectId deletedBy;
 
@@ -46,6 +48,11 @@ public class Container {
     @LastModifiedDate
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;
+
+    @Override
+    public boolean isNew() {
+        return createdAt == null;
+    }
 
     public ContainerStatus getContainerStatus() {
         return containerStatus == null ? null : ContainerStatus.fromId(containerStatus);
@@ -58,7 +65,7 @@ public class Container {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class InventoryItemContainer{
+    public static class InventoryItemContainer {
         private ObjectId id; // _id – Khóa chính
         private String poNumber;       // Số của Đơn đặt hàng (Purchase Order) – Bắt buộc
         private String productCode;    // Mã định danh của sản phẩm (đối với sản phẩm xe & phụ kiện, phụ tùng thuộc sản phẩm này) – Bắt buộc
@@ -82,16 +89,16 @@ public class Container {
         @NoArgsConstructor
         @AllArgsConstructor
         public static class Specifications {
-            private Integer liftingCapacityKg;      // Sức nâng (kg)
+            private String liftingCapacityKg;      // Sức nâng (kg)
             private String chassisType;             // Loại khung nâng
-            private Integer liftingHeightMm;        // Độ cao nâng (mm)
+            private String liftingHeightMm;        // Độ cao nâng (mm)
             private String engineType;              // Loại động cơ
             private String batteryInfo;             // Thông tin bình điện
             private String batterySpecification;    // Thông số bình điện
             private String chargerSpecification;    // Thông số bộ sạc
             private String forkDimensions;          // Thông số càng
-            private Integer valveCount;             // Số lượng van
-            private Boolean hasSideShift;           // Có side shift không
+            private String valveCount;             // Số lượng van
+            private String hasSideShift;           // Có side shift không
             private String otherDetails;            // Chi tiết khác
         }
 

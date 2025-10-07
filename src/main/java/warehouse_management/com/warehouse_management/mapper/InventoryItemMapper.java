@@ -4,8 +4,6 @@ import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.*;
-import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportDestinationProductDto;
-import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportDestinationSparePartDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportProductionProductDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportProductionSparePartDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
@@ -54,4 +52,15 @@ public interface InventoryItemMapper {
 
     InventoryItem toInventoryItem(Container.InventoryItemContainer item);
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "productCode", ignore = true)
+    @Mapping(target = "quantity", ignore = true)
+    @Mapping(target = "specifications", ignore = true)
+    @Mapping(target = "specificationsBase", ignore = true)
+    @Mapping(target = "pricing", ignore = true)
+    @Mapping(target = "serialNumber", ignore = true)
+    @Mapping(target = "notes", ignore = true)
+    @Mapping(target = "isFullyComponent", ignore = true)
+    @Mapping(target = "initialCondition", ignore = true)
+    InventoryItem cloneToComponent(InventoryItem inventoryItem);
 }

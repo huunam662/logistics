@@ -13,7 +13,7 @@ public class InventoryDepartureSparePartsDto {
     private String poNumber;       // Số của Đơn đặt hàng (Purchase Order) – Bắt buộc
     private String model;          // Model sản phẩm – Bắt buộc
     private String commodityCode;  // Mã hàng hóa (đôi với phụ tùng)
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    
     private LocalDateTime orderDate;        // Ngày đặt hàng
     private String notes;                  // Ghi chú chung – Không bắt buộc
     private String description;       // Mô tả
@@ -21,5 +21,6 @@ public class InventoryDepartureSparePartsDto {
     private BigDecimal purchasePrice;       // Giá mua vào
     private BigDecimal salePriceR0;         // Giá bán đề xuất R0
     private BigDecimal salePriceR1;         // Giá bán đề xuất R1
+    private BigDecimal otherPrice;      // Giá khác
 
 }

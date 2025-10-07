@@ -6,7 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import warehouse_management.com.warehouse_management.app.CustomAuthentication;
-import warehouse_management.com.warehouse_management.dto.delivery_order.response.WarehouseForOrder;
+import warehouse_management.com.warehouse_management.dto.delivery_order.response.WarehouseForOrderDto;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
 import warehouse_management.com.warehouse_management.dto.warehouse.response.GetDepartureWarehouseForContainerDto;
@@ -15,11 +15,12 @@ import warehouse_management.com.warehouse_management.exceptions.LogicErrExceptio
 import warehouse_management.com.warehouse_management.dto.warehouse.request.CreateWarehouseDto;
 import warehouse_management.com.warehouse_management.dto.warehouse.request.UpdateWarehouseDto;
 import warehouse_management.com.warehouse_management.dto.warehouse.response.WarehouseResponseDto;
+import warehouse_management.com.warehouse_management.integration.office.dto.request.CreateOfficeFromWarehouseIReq;
+import warehouse_management.com.warehouse_management.integration.office.dto.response.OfficeIDto;
 import warehouse_management.com.warehouse_management.mapper.warehouse.WarehouseMapper;
 import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
 import warehouse_management.com.warehouse_management.repository.warehouse.WarehouseRepository;
-import warehouse_management.com.warehouse_management.security.CustomUserDetail;
 
 import java.util.List;
 import java.util.Optional;
@@ -34,13 +35,15 @@ public class WarehouseService {
     private final WarehouseMapper mapper;
     private final InventoryItemRepository inventoryItemRepository;
     private final CustomAuthentication customAuthentication;
+    private final OfficeService officeService;
 
-    public WarehouseService(InventoryItemRepository inventoryItemRepository, WarehouseRepository repository, WarehouseMapper mapper, WarehouseRepository warehouseRepository, CustomAuthentication customAuthentication) {
+    public WarehouseService(InventoryItemRepository inventoryItemRepository, WarehouseRepository repository, WarehouseMapper mapper, WarehouseRepository warehouseRepository, CustomAuthentication customAuthentication, OfficeService officeService) {
         this.repository = repository;
         this.mapper = mapper;
         this.warehouseRepository = warehouseRepository;
         this.inventoryItemRepository = inventoryItemRepository;
         this.customAuthentication = customAuthentication;
+        this.officeService = officeService;
     }
 
     public Warehouse getWarehouseToId(ObjectId warehouseId) {
@@ -73,6 +76,9 @@ public class WarehouseService {
 
     public WarehouseResponseDto createWarehouse(CreateWarehouseDto createDto) {
         Warehouse warehouse = mapper.toEntity(createDto);
+        WarehouseType warehouseType = warehouse.getType();
+        OfficeIDto res = officeService.createOfficeFromWarehouse(new CreateOfficeFromWarehouseIReq(warehouse.getName(), warehouse.getCode(), warehouseType.getOfficeTypeCode()));
+        warehouse.setOfficeId(res.getId());
         Warehouse savedWarehouse = repository.save(warehouse);
         return mapper.toResponseDto(savedWarehouse);
     }
@@ -160,6 +166,14 @@ public class WarehouseService {
         return inventoryItemRepository.findPageInventoryCentralWarehouse(optionsReq);
     }
 
+    public Page<InventoryCentralWarehouseProductDto> getPageInventoryCentralWarehouseConsignment(PageOptionsDto optionsReq){
+        return inventoryItemRepository.findPageInventoryCentralWarehouseConsignment(optionsReq);
+    }
+
+    public Page<InventoryCentralWarehouseSparePartDto> getPageInventoryCentralWarehouseConsignmentSparePart(PageOptionsDto optionsReq){
+        return inventoryItemRepository.findPageInventoryCentralWarehouseConsignmentSparePart(optionsReq);
+    }
+
     public Page<InventoryCentralWarehouseSparePartDto> getPageInventoryCentralWarehouseSparePart(PageOptionsDto optionsReq){
         return inventoryItemRepository.findPageInventoryCentralWarehouseSparePart(optionsReq);
     }
@@ -184,7 +198,7 @@ public class WarehouseService {
         return warehouseRepository.getDepartureWarehousesForContainer(warehouseType);
     }
 
-    public List<WarehouseForOrder> getWarehousesForOrder() {
+    public List<WarehouseForOrderDto> getWarehousesForOrder() {
         return warehouseRepository.getWarehousesForOrder();
     }
 

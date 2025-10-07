@@ -9,7 +9,7 @@ import java.util.List;
 
 @Data
 @NoArgsConstructor
-public class InventoryTransferDestinationConsignmentDto {
+public class    InventoryTransferDestinationConsignmentDto {
     private String consignmentWarehouseId;
     @Schema(example = "yyyy-MM-dd")
     private String consignmentDate;

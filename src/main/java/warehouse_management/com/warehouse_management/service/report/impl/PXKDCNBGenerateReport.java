@@ -12,7 +12,7 @@ import warehouse_management.com.warehouse_management.enumerate.TransactionModule
 import warehouse_management.com.warehouse_management.model.WarehouseTransaction;
 import warehouse_management.com.warehouse_management.repository.warehouse_transaction.WarehouseTransactionRepository;
 import warehouse_management.com.warehouse_management.service.report.GenerateReportStrategy;
-import warehouse_management.com.warehouse_management.utils.GeneralResource;
+import warehouse_management.com.warehouse_management.utils.GeneralUtil;
 
 
 import java.util.*;
@@ -76,7 +76,7 @@ public class PXKDCNBGenerateReport implements GenerateReportStrategy {
         List<?> items = (List<?>) context.get("dataset"); // Lấy danh sách item từ context
         if (items != null && items.size() > 1) {
             Sheet sheet = workbook.getSheetAt(0);
-            int datasetRowIdx = GeneralResource.PXKDCNB_DATASET_ROW_IDX;
+            int datasetRowIdx = GeneralUtil.PXKDCNB_DATASET_ROW_IDX;
             sheet.shiftRows(datasetRowIdx, sheet.getLastRowNum(), items.size() - 1);
         }
     }
@@ -176,7 +176,7 @@ public class PXKDCNBGenerateReport implements GenerateReportStrategy {
             sb.append("\nSố lượng van: ").append(specs.getValveCount());
         }
         if (specs.getHasSideShift() != null) {
-            sb.append("\nCó side shift: ").append(specs.getHasSideShift() ? "Có" : "Không");
+            sb.append("\nCó side shift: ").append(specs.getHasSideShift() );
         }
         if (specs.getOtherDetails() != null) {
             sb.append("\nChi tiết khác: ").append(specs.getOtherDetails());

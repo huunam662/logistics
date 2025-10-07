@@ -18,28 +18,30 @@ public class InventoryConsignmentDto {
     private String model;          // Model
     private String inventoryType;           // Loại
     private String category;       // Chủng loại
-    private Boolean hasSideShift;           // SS (Side Shift)
+    private String hasSideShift;           // SS (Side Shift)
     private String serialNumber;   // Số seri
-    private Integer liftingCapacityKg;      // Sức nâng (kg)
+    private String liftingCapacityKg;      // Sức nâng (kg)
     private String chassisType;             // Loại khung nâng
-    private Integer liftingHeightMm;        // Độ cao nâng (mm)
+    private String liftingHeightMm;        // Độ cao nâng (mm)
     private String engineType;              // Loại động cơ
     private String batteryInfo;             // Bình điện
     private String batterySpecification;    // Thông số bình điện
     private String chargerSpecification;    // Thông số bộ sạc
     private String forkDimensions;          // Thông số càng
+    private String wheelInfo;   // Thông tin bánh xe
     private String warehouseName;           // Tên kho
     private String warehouseType;           // Loại kho
-    private Integer valveCount;             // Số lượng van
+    private String valveCount;             // Số lượng van
     private String otherDetails;            // Chi tiết khác
     private String notes;                  // Ghi chú
     private BigDecimal purchasePrice;       // Giá mua
     private BigDecimal salePriceR0;         // Giá R0
     private BigDecimal salePriceR1;         // Giá R1
     private BigDecimal actualSalePrice;     // Giá bán thực tế
+    private BigDecimal otherPrice;      // Giá khác
     private String agent;       // Đại lý
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    
     private LocalDateTime arrivalDate;    // Ngày giao hàng
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    
     private LocalDateTime consignmentDate;  // Ngày ký gửi
 }

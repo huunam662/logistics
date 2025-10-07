@@ -2,6 +2,8 @@ package warehouse_management.com.warehouse_management.dto.warehouse.response;
 
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Data
 public class WarehouseResponseDto {
     private String id;
@@ -12,7 +14,7 @@ public class WarehouseResponseDto {
     private String address;
     private String managedById;
     private String note;
-    private String deletedAt;
+    private LocalDateTime deletedAt;
     private String deletedBy;
-    private String createdAt;
+    private LocalDateTime createdAt;
 }

@@ -9,13 +9,14 @@ import warehouse_management.com.warehouse_management.dto.report.PNKPXKInventoryI
 import warehouse_management.com.warehouse_management.enumerate.InventoryType;
 import warehouse_management.com.warehouse_management.enumerate.TransactionModule;
 import warehouse_management.com.warehouse_management.model.Container;
+import warehouse_management.com.warehouse_management.model.InventoryItem;
 import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.model.WarehouseTransaction;
 import warehouse_management.com.warehouse_management.repository.container.ContainerRepository;
 import warehouse_management.com.warehouse_management.repository.warehouse.WarehouseRepository;
 import warehouse_management.com.warehouse_management.repository.warehouse_transaction.WarehouseTransactionRepository;
 import warehouse_management.com.warehouse_management.service.report.GenerateReportStrategy;
-import warehouse_management.com.warehouse_management.utils.GeneralResource;
+import warehouse_management.com.warehouse_management.utils.GeneralUtil;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -48,58 +49,92 @@ public class PNKGenerateReport implements GenerateReportStrategy {
         Map<String, Object> result = new HashMap<>();
         switch (transactionModule) {
             case WAREHOUSE:
-                // Logic cho domain WAREHOUSE
-                Optional<WarehouseTransaction> warehouseTransaction = Optional.of(warehouseTransferTicketRepository.findById(new ObjectId(ticketId))
-                        .orElseThrow(() -> new RuntimeException("Warehouse transaction not found with id: " + ticketId)));
-
-                WarehouseTransaction transaction = warehouseTransaction.get();
-
-                result.put("dataset", buildDataSetItems(transaction.getInventoryItems()));
-
-                int totalQuantity = Optional.ofNullable(transaction.getInventoryItems())
-                        .orElse(List.of())
-                        .stream()
-                        .mapToInt(item -> Optional.ofNullable(item.getQuantity()).orElse(0))
-                        .sum();
-                result.put("total1", totalQuantity);
-                result.put("total2", totalQuantity);
-                result.put("dayString", buildDayString(transaction.getCreatedAt()));
-
-                WarehouseTransaction.Department inDept = transaction.getStockInDepartment();
-                if (inDept != null) {
-                    result.put("inDeptName", inDept.getName());
-                    result.put("inDeptAddress", inDept.getAddress());
-                    result.put("inDeptPosition", inDept.getPosition());
-                }
-
-                result.put("reason", transaction.getReason());
+                prepareWarehouseContext(ticketId, result);
                 break;
 
             case CONTAINER:
-                Container container = containerRepository.findById(new ObjectId(ticketId))
-                        .orElseThrow(() -> new RuntimeException("Container not found with id: " + ticketId));
-                int containerTotalQuantity = Optional.ofNullable(container.getInventoryItems())
-                        .orElse(List.of())
-                        .stream()
-                        .mapToInt(item -> Optional.ofNullable(item.getQuantity()).orElse(0))
-                        .sum();
-
-                Optional<Warehouse> containerDestWh = warehouseRepository.findById(container.getToWarehouseId());
-
-                result.put("dataset", buildDataSetContainerTranItems(container.getInventoryItems()));
-                result.put("total1", containerTotalQuantity);
-                result.put("total2", containerTotalQuantity);
-                result.put("dayString", buildDayString(container.getCreatedAt()));
-                result.put("inDeptName", containerDestWh.map(Warehouse::getName).orElse(null));
-                result.put("inDeptAddress", containerDestWh.map(Warehouse::getAddress).orElse(null));
-                result.put("reason", "_");
-
+                prepareContainerContext(ticketId, result);
                 break;
             default:
-                // Trường hợp không xác định
                 result = new HashMap<>();
         }
         return result;
+    }
+
+    private void prepareWarehouseContext(String ticketId, Map<String, Object> result) {
+        WarehouseTransaction transaction = warehouseTransferTicketRepository
+                .findByIdWithReportFields(new ObjectId(ticketId)) // Use custom query with fetch join
+                .orElseThrow(() -> new RuntimeException("Warehouse transaction not found with id: " + ticketId));
+
+        List<WarehouseTransaction.InventoryItemTicket> inventoryItems = transaction.getInventoryItems();
+
+        int totalQuantity = calculateTotalQuantity(inventoryItems);
+
+        // Build result map efficiently
+        result.put("dataset", buildDataSetItems(inventoryItems));
+        result.put("total1", totalQuantity);
+        result.put("total2", totalQuantity);
+        result.put("dayString", buildDayString(transaction.getCreatedAt()));
+        result.put("reason", transaction.getReason());
+
+        WarehouseTransaction.Department inDept = transaction.getStockInDepartment();
+        if (inDept != null) {
+            result.put("inDeptName", inDept.getName());
+            result.put("inDeptAddress", inDept.getAddress());
+            result.put("inDeptPosition", inDept.getPosition());
+        } else {
+            result.put("inDeptName", "");
+            result.put("inDeptAddress", "");
+            result.put("inDeptPosition", "");
+        }
+    }
+
+    private void prepareContainerContext(String ticketId, Map<String, Object> result) {
+        Container container = containerRepository
+                .findByIdForReport(new ObjectId(ticketId))
+                .orElseThrow(() -> new RuntimeException("Container not found with id: " + ticketId));
+
+        List<Container.InventoryItemContainer> inventoryItems = container.getInventoryItems();
+
+        int totalQuantity = calculateTotalQuantityCont(inventoryItems);
+
+        Warehouse destWarehouse = warehouseRepository
+                .findById(container.getToWarehouseId())
+                .orElse(null);
+
+        result.put("dataset", buildDataSetContainerTranItems(inventoryItems));
+        result.put("total1", totalQuantity);
+        result.put("total2", totalQuantity);
+        result.put("dayString", buildDayString(container.getCreatedAt()));
+        result.put("reason", "_");
+
+        if (destWarehouse != null) {
+            result.put("inDeptName", destWarehouse.getName());
+            result.put("inDeptAddress", destWarehouse.getAddress());
+        } else {
+            result.put("inDeptName", "");
+            result.put("inDeptAddress", "");
+        }
+    }
+
+    private int calculateTotalQuantity(List<WarehouseTransaction.InventoryItemTicket> items) {
+        if (items == null || items.isEmpty()) {
+            return 0;
+        }
+
+        return items.stream()
+                .mapToInt(item -> item.getQuantity() != null ? item.getQuantity() : 0)
+                .sum();
+    }
+
+    private int calculateTotalQuantityCont(List<Container.InventoryItemContainer> items) {
+        if (items == null || items.isEmpty()) {
+            return 0;
+        }
+
+        return items.stream()
+                .mapToInt(item -> item.getQuantity() != null ? item.getQuantity() : 0)
+                .sum();
     }
 
     @Override
@@ -109,12 +144,12 @@ public class PNKGenerateReport implements GenerateReportStrategy {
 
     @Override
     public void preprocessWorkbook(Workbook workbook, Map<String, Object> context) {
-        List<?> items = (List<?>) context.get("dataset"); // Lấy danh sách item từ context
-        if (items != null && items.size() > 1) {
-            Sheet sheet = workbook.getSheetAt(0);
-            int datasetRowIdx = GeneralResource.PXK_PNK_DATASET_ROW_IDX;
-            sheet.shiftRows(datasetRowIdx, sheet.getLastRowNum(), items.size() - 1);
-        }
+//        List<?> items = (List<?>) context.get("dataset"); // Lấy danh sách item từ context
+//        if (items != null && items.size() > 1) {
+//            Sheet sheet = workbook.getSheetAt(0);
+//            int datasetRowIdx = GeneralUtil.PXK_PNK_DATASET_ROW_IDX;
+//            sheet.shiftRows(datasetRowIdx, sheet.getLastRowNum(), items.size() - 1);
+//        }
     }
 
 
@@ -278,7 +313,7 @@ public class PNKGenerateReport implements GenerateReportStrategy {
             sb.append("\nSố lượng van: ").append(specs.getValveCount());
         }
         if (specs.getHasSideShift() != null) {
-            sb.append("\nCó side shift: ").append(specs.getHasSideShift() ? "Có" : "Không");
+            sb.append("\nCó side shift: ").append(specs.getHasSideShift());
         }
         if (specs.getOtherDetails() != null) {
             sb.append("\nChi tiết khác: ").append(specs.getOtherDetails());
@@ -320,7 +355,7 @@ public class PNKGenerateReport implements GenerateReportStrategy {
             sb.append("\nSố lượng van: ").append(specs.getValveCount());
         }
         if (specs.getHasSideShift() != null) {
-            sb.append("\nCó side shift: ").append(specs.getHasSideShift() ? "Có" : "Không");
+            sb.append("\nCó side shift: ").append(specs.getHasSideShift());
         }
         if (specs.getOtherDetails() != null) {
             sb.append("\nChi tiết khác: ").append(specs.getOtherDetails());

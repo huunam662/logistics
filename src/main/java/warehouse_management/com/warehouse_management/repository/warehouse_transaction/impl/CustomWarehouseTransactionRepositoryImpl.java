@@ -38,7 +38,6 @@ public class CustomWarehouseTransactionRepositoryImpl implements CustomWarehouse
         Criteria criteria = Criteria.where("deletedAt").isNull();
         if (tranType != null) {
             criteria.and("tranType").is(tranType.getId());
-
         }
 
         List<AggregationOperation> pipelines = List.of(

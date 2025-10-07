@@ -16,7 +16,7 @@ import warehouse_management.com.warehouse_management.repository.container.Contai
 import warehouse_management.com.warehouse_management.repository.warehouse.WarehouseRepository;
 import warehouse_management.com.warehouse_management.repository.warehouse_transaction.WarehouseTransactionRepository;
 import warehouse_management.com.warehouse_management.service.report.GenerateReportStrategy;
-import warehouse_management.com.warehouse_management.utils.GeneralResource;
+import warehouse_management.com.warehouse_management.utils.GeneralUtil;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -108,7 +108,7 @@ public class PXKGenerateReport implements GenerateReportStrategy {
         List<?> items = (List<?>) context.get("dataset"); // Lấy danh sách item từ context
         if (items != null && items.size() > 1) {
             Sheet sheet = workbook.getSheetAt(0);
-            int datasetRowIdx = GeneralResource.PXK_PNK_DATASET_ROW_IDX;
+            int datasetRowIdx = GeneralUtil.PXK_PNK_DATASET_ROW_IDX;
             sheet.shiftRows(datasetRowIdx, sheet.getLastRowNum(), items.size() - 1);
         }
     }
@@ -129,7 +129,7 @@ public class PXKGenerateReport implements GenerateReportStrategy {
                 dto.setCode(item.getCommodityCode());
             }
 
-            // Set Unit theo inventoryType
+            // Set Unit theo InventoryType
             if (type == InventoryType.VEHICLE) {
                 dto.setUnit("Chiếc");
             } else {
@@ -163,7 +163,7 @@ public class PXKGenerateReport implements GenerateReportStrategy {
                 dto.setCode(item.getCommodityCode());
             }
 
-            // Set Unit theo inventoryType
+            // Set Unit theo InventoryType
             if (type == InventoryType.VEHICLE) {
                 dto.setUnit("Chiếc");
             } else {
@@ -274,7 +274,7 @@ public class PXKGenerateReport implements GenerateReportStrategy {
             sb.append("\nSố lượng van: ").append(specs.getValveCount());
         }
         if (specs.getHasSideShift() != null) {
-            sb.append("\nCó side shift: ").append(specs.getHasSideShift() ? "Có" : "Không");
+            sb.append("\nCó side shift: ").append(specs.getHasSideShift());
         }
         if (specs.getOtherDetails() != null) {
             sb.append("\nChi tiết khác: ").append(specs.getOtherDetails());
@@ -319,7 +319,7 @@ public class PXKGenerateReport implements GenerateReportStrategy {
             sb.append("\nSố lượng van: ").append(specs.getValveCount());
         }
         if (specs.getHasSideShift() != null) {
-            sb.append("\nCó side shift: ").append(specs.getHasSideShift() ? "Có" : "Không");
+            sb.append("\nCó side shift: ").append(specs.getHasSideShift());
         }
         if (specs.getOtherDetails() != null) {
             sb.append("\nChi tiết khác: ").append(specs.getOtherDetails());

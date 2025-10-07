@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.*;
+import org.springframework.data.domain.Persistable;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.mapping.FieldType;
@@ -17,7 +18,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "delivery_order")
-public class DeliveryOrder {
+public class DeliveryOrder implements Persistable<ObjectId> {
 
     @Id
     private ObjectId id; // _id Khóa chính
@@ -25,10 +26,9 @@ public class DeliveryOrder {
     private String deliveryOrderCode;   // Mã đơn giao hàng (tự sinh hoặc nhập tay).
 
     private ObjectId customerId;    // Mã khách hàng (chọn từ danh sách tài khoản).
+    private ObjectId deliveryDepartmentId; // Bộ phận giao hàng
 
     private LocalDateTime deliveryDate;  // Ngày giao hàng (hỗ trợ chọn quá khứ).
-
-    private Integer overdueDays;    // Số ngày quá hạn
 
     private Integer holdingDays;    // Số ngày giữ hàng (số nguyên dương).
 
@@ -37,10 +37,11 @@ public class DeliveryOrder {
     private List<InventoryItemDelivery> inventoryItems; // Các mặt hàng trong đơn giao
 
     private List<NoteDeliveryModel> modelNotes;  // Các Model còn nợ
+    private List<DeliveryHistory> deliveryHistories; // Lịch sử thao tác đơn hàng
 
     @CreatedBy
     private String createdBy;
-     @LastModifiedBy
+    @LastModifiedBy
     private String updatedBy;
     private ObjectId deletedBy;
 
@@ -50,10 +51,15 @@ public class DeliveryOrder {
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;
 
+    @Override
+    public boolean isNew() {
+        return createdAt == null;
+    }
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class NoteDeliveryModel{
+    public static class NoteDeliveryModel {
         private String model; // Model sản phẩm
         private Boolean isSparePart;
     }
@@ -84,21 +90,20 @@ public class DeliveryOrder {
         private InventoryItemDelivery.Pricing pricing;
         private InventoryItemDelivery.Logistics logistics;
 
-
         @Data
         @NoArgsConstructor
         @AllArgsConstructor
         public static class Specifications {
-            private Integer liftingCapacityKg;      // Sức nâng (kg)
+            private String liftingCapacityKg;      // Sức nâng (kg)
             private String chassisType;             // Loại khung nâng
-            private Integer liftingHeightMm;        // Độ cao nâng (mm)
+            private String liftingHeightMm;        // Độ cao nâng (mm)
             private String engineType;              // Loại động cơ
             private String batteryInfo;             // Thông tin bình điện
             private String batterySpecification;    // Thông số bình điện
             private String chargerSpecification;    // Thông số bộ sạc
             private String forkDimensions;          // Thông số càng
-            private Integer valveCount;             // Số lượng van
-            private Boolean hasSideShift;           // Có side shift không
+            private String valveCount;             // Số lượng van
+            private String hasSideShift;           // Có side shift không
             private String otherDetails;            // Chi tiết khác
         }
 
@@ -128,5 +133,22 @@ public class DeliveryOrder {
             private LocalDateTime plannedProductionDate; // Ngày dự kiến sản xuất
             private LocalDateTime estimateCompletionDate; // Ngày dự kiến sản xuất xong
         }
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class DeliveryHistory {
+        private ObjectId id;
+        private String action; // "ADD_ITEM", "REMOVE_ITEM", "UPDATE_ITEM"
+        private String productCode;
+        private String commodityCode;
+        private String model;
+        private Integer originalQuantity;
+        private Integer newQuantity;
+        private String reason;
+        private String performedBy;
+        private LocalDateTime performedAt;
+        private Boolean isSparePart;
     }
 }

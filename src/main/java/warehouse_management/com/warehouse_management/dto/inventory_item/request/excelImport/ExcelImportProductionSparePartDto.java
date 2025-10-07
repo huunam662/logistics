@@ -17,7 +17,6 @@ public class ExcelImportProductionSparePartDto {
 
     private String inventoryType;
 
-
     @Validation(label = "PO", required = true)
     private String poNumber;
     @Validation(label = "Mã hàng hóa", required = true)
@@ -25,7 +24,7 @@ public class ExcelImportProductionSparePartDto {
     @Validation(label = "Số lượng", required = true)
     private Integer quantity;
     private String description;
-
+    private String model;
     private String notes;                  // Ghi chú chung – Không bắt buộc
     private String contractNumber; // Số hợp đồng
 
@@ -39,6 +38,7 @@ public class ExcelImportProductionSparePartDto {
         private BigDecimal salePriceR0;         // Giá bán đề xuất R0
         private BigDecimal salePriceR1;         // Giá bán đề xuất R1
         private BigDecimal actualSalePrice;
+        private BigDecimal otherPrice;
     }
 
     @Valid

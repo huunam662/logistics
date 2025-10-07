@@ -5,9 +5,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class WarehouseManagementApplication {
-
+	// Version 3
 	public static void main(String[] args) {
 		SpringApplication.run(WarehouseManagementApplication.class, args);
 	}
-
 }

@@ -49,18 +49,19 @@ public class ExcelImportProductionProductDto {
     @Data
     @AllArgsConstructor
     public static class Specifications {
-        private Boolean hasSideShift; // Có side shift không 9
+        private String hasSideShift; // Có side shift không 9
         private String otherDetails; // Chi tiết khác 10
 
-        private Integer liftingCapacityKg; // Sức nâng (Kg) 12
+        private String liftingCapacityKg; // Sức nâng (Kg) 12
         private String chassisType; // Loại khung nâng 13
-        private Integer liftingHeightMm; // Độ cao nâng (mm) 14
+        private String liftingHeightMm; // Độ cao nâng (mm) 14
         private String engineType; // Động cơ 15
         private String batteryInfo; // Bình điện 16
         private String forkDimensions;          // Thông số càng
         private String batterySpecification; // Thông số bình điện 17
         private String chargerSpecification; // Thông số sạc 18
-        private Integer valveCount; // Số van 20
+        private String valveCount; // Số van 20
+        private String wheelInfo; // Bánh xe
 
     }
 
@@ -75,7 +76,7 @@ public class ExcelImportProductionProductDto {
         private BigDecimal salePriceR0; // Giá bán R0 23
         private BigDecimal salePriceR1; // Giá bán R1 24
         private BigDecimal actualSalePrice; // Giá bán thực tế 25
-
+        private BigDecimal otherPrice;
         @Validation(label = "Đại lý", required = true)
         private String agent; // Tên đại lý hoặc khách hàng đặt hàng 3
 

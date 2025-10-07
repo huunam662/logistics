@@ -11,11 +11,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.*;
-import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportDestinationProductDto;
-import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportDestinationSparePartDto;
+
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportProductionProductDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.request.excelImport.ExcelImportProductionSparePartDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
+import warehouse_management.com.warehouse_management.dto.inventory_item.response.BulkImportResultDto;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.pagination.response.PageInfoDto;
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@Tag(name = "Inventory Item")
+@Tag(name = "Inventory ItemData")
 @RequestMapping("/v1/inventory-items")
 @RequiredArgsConstructor
 public class InventoryItemController {
@@ -120,14 +120,12 @@ public class InventoryItemController {
     public ApiResponse<?> getInventoryInStockPoNumbers(
             @Parameter(description = "[VEHICLE, ACCESSORY, SPARE_PART]")
             @RequestParam("inventoryType") List<String> inventoryTypes,
-            @Parameter(description = "Tìm kiếm theo mã Po number (Nếu cần).")
-            @RequestParam(value = "poNumber", required = false, defaultValue = "") String poNumber,
             @RequestParam(value = "model", required = false) String model,
             @RequestParam(value = "warehouseId", required = false) String warehouseId,
             @Parameter(description = "[PRODUCTION, DEPARTURE, DESTINATION, CONSIGNMENT]")
             @RequestParam(value = "warehouseType", required = false) String warehouseType
     ){
-        List<InventoryPoWarehouseDto> poNumbers = inventoryItemService.getInventoryInStockPoNumbers(inventoryTypes, poNumber, model, warehouseId, warehouseType);
+        List<InventoryPoWarehouseDto> poNumbers = inventoryItemService.getInventoryInStockPoNumbers(inventoryTypes, model, warehouseId, warehouseType);
         return ApiResponse.success(poNumbers);
     }
 
@@ -172,6 +170,18 @@ public class InventoryItemController {
         return apiResponse;
     }
 
+    @PostMapping("/transfer/consignment-to-destination")
+    @Operation(
+            summary = "POST chuyển hàng hóa từ kho kí gửi sang kho đến.",
+            description = "POST chuyển hàng hóa từ kho kí gửi sang kho đến."
+    )
+    public ApiResponse<?> transferItemsConsignmentToDestination(@RequestBody InventoryTransferConsignmentDestinationDto dto){
+        Warehouse warehouse = inventoryItemService.transferItemsConsignmentToDestination(dto);
+        ApiResponse<?> apiResponse = ApiResponse.success();
+        apiResponse.setMessage("Nhập hàng sang kho " + warehouse.getName() + " thành công.");
+        return apiResponse;
+    }
+
     @GetMapping("/warehouse/{warehouseId}")
     public ResponseEntity<PageInfoDto<InventoryItemProductionVehicleTypeDto>> searchItemsInWarehouse(
             @PathVariable("warehouseId") String warehouseId,
@@ -185,19 +195,19 @@ public class InventoryItemController {
 // Bulk insert kho production - xe phụ kiện (import Excel)
     @PostMapping("/production/{warehouseId}/products-import")
     public ResponseEntity<ApiResponse<?>> bulkCreateProductionProducts(
-            @PathVariable("warehouseId") String warehouseId,  @RequestBody List<ExcelImportProductionProductDto> dtos) {
-        List<InventoryItem> created = inventoryItemService.bulkCreateProductionProducts(warehouseId, dtos);
+            @PathVariable("warehouseId") String warehouseId, @RequestParam("productType") String productType, @RequestBody List<ExcelImportProductionProductDto> dtos) {
+        BulkImportResultDto result = inventoryItemService.bulkImportProductsWithDetails(warehouseId, dtos, productType);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(Map.of("createdCount", created.size())));
+                .body(ApiResponse.success(result));
     }
 
     //     Bulk insert kho production - phụ tùng (import Excel)
     @PostMapping("/production/{warehouseId}/spare-parts-import")
     public ResponseEntity<ApiResponse<?>> bulkCreateProductionSpareParts(
             @PathVariable("warehouseId") String warehouseId, @RequestBody List<ExcelImportProductionSparePartDto> dtos) {
-        List<InventoryItem> created = inventoryItemService.bulkCreateProductionSpareParts(warehouseId, dtos);
+        BulkImportResultDto result = inventoryItemService.bulkImportWithDetails(warehouseId, dtos);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(Map.of("createdCount", created.size())));
+                .body(ApiResponse.success(result));
     }
 
     @PostMapping("/warehouse/stock-transfer")
@@ -252,10 +262,27 @@ public class InventoryItemController {
             @RequestParam("warehouseIds") List<String> warehouseIds,
             @Parameter(description = "[VEHICLE, ACCESSORY, SPARE_PART]")
             @RequestParam("inventoryTypes") List<String> inventoryTypes,
-            @Parameter(description = "Tìm kiếm theo mã Model (Nếu cần).")
-            @RequestParam(value = "model", required = false, defaultValue = "") String model
+            @RequestParam(value = "filter", required = false) String filter
     ){
-        List<InventoryItemModelDto> models = inventoryItemService.getAllModels(inventoryTypes, warehouseIds, model);
+        List<InventoryItemModelDto> models = inventoryItemService.getAllModels(inventoryTypes, warehouseIds, filter);
         return ResponseEntity.ok().body(ApiResponse.success(models));
+    }
+
+    @GetMapping("/warranty")
+    @Operation(
+            summary = "GET sản phẩm thuộc loại xe cho bảo hành",
+            description = "GET sản phẩm thuộc loại xe cho bảo hành"
+    )
+    public ApiResponse<?> getInventoryItemForWarranty(@ModelAttribute PageOptionsDto pageOptionsDto) {
+        return ApiResponse.success(inventoryItemService.getInventoryItemForWarranty(pageOptionsDto));
+    }
+
+    @GetMapping("/repair")
+    @Operation(
+            summary = "GET sản phẩm thuộc loại xe cho sửa chữa",
+            description = "GET sản phẩm thuộc loại xe cho sửa chữa"
+    )
+    public ApiResponse<?> getInventoryItemForRepair(@ModelAttribute PageOptionsDto pageOptionsDto) {
+        return ApiResponse.success(inventoryItemService.getInventoryItemForRepair(pageOptionsDto));
     }
 }

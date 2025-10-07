@@ -2,7 +2,7 @@ package warehouse_management.com.warehouse_management.enumerate;
 
 import org.springframework.lang.Nullable;
 
-public enum ActiveStatus implements EnumClass<String> {
+public enum ActiveStatus {
 
     ACTIVE("ACTIVE"),   // HOẠT ĐỘNG
     INACTIVE("INACTIVE"); // KHÔNG HOẠT ĐỘNG

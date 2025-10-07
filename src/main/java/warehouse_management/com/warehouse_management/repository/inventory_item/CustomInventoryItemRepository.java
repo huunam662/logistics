@@ -2,8 +2,12 @@ package warehouse_management.com.warehouse_management.repository.inventory_item;
 
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
+import warehouse_management.com.warehouse_management.dto.configuration_history.response.ConfigVehicleSpecPageDto;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.inventory_item.response.*;
+import warehouse_management.com.warehouse_management.dto.quotation_form.response.QuotationProductWarehouseDto;
+import warehouse_management.com.warehouse_management.dto.quotation_form.response.QuotationSparePartWarehouseDto;
+import warehouse_management.com.warehouse_management.dto.repair.response.RepairVehicleSpecPageDto;
 import warehouse_management.com.warehouse_management.dto.report_inventory.request.ReportParamsDto;
 import warehouse_management.com.warehouse_management.dto.report_inventory.response.ReportInventoryDto;
 import warehouse_management.com.warehouse_management.model.InventoryItem;
@@ -33,9 +37,13 @@ public interface CustomInventoryItemRepository {
 
     Page<InventoryCentralWarehouseProductDto> findPageInventoryCentralWarehouse(PageOptionsDto optionsReq);
 
+    Page<InventoryCentralWarehouseProductDto> findPageInventoryCentralWarehouseConsignment(PageOptionsDto optionsReq);
+
     Page<InventoryCentralWarehouseSparePartDto> findPageInventoryCentralWarehouseSparePart(PageOptionsDto optionsReq);
 
-    List<InventoryPoWarehouseDto> findPoNumbersOfInventoryInStock(String warehouseType, List<String> inventoryTypes, String poNumber, String model, String warehouseId);
+    Page<InventoryCentralWarehouseSparePartDto> findPageInventoryCentralWarehouseConsignmentSparePart(PageOptionsDto optionsReq);
+
+    List<InventoryPoWarehouseDto> findPoNumbersOfInventoryInStock(String warehouseType, List<String> inventoryTypes, String model, String warehouseId);
 
     List<InventoryItemPoNumberDto> findInventoryInStockByPoNumber(String warehouseType, String warehouseId, String poNumber, String filter);
 
@@ -44,6 +52,10 @@ public interface CustomInventoryItemRepository {
     void bulkUpdateTransfer(Collection<InventoryItem> inventoryItems);
 
     void bulkUpdateStatusAndQuantity(Collection<InventoryItem> inventoryItems);
+
+    void bulkUpdateSpecAndPricing(Collection<InventoryItem> inventoryItems);
+
+    void bulkUpdateComponentSerial(Collection<InventoryItem> inventoryItems);
 
     void updateStatusAndUnRefContainer(Collection<ObjectId> ids, String status);
 
@@ -59,11 +71,36 @@ public interface CustomInventoryItemRepository {
 
     long bulkHardDelete(Collection<ObjectId> ids);
 
-    List<InventoryItemModelDto> findAllModelsAndItems(List<String> inventoryTypes, List<ObjectId> warehouseIds, String model);
+    void updateIsFullyComponent(ObjectId vehicleId, Boolean isFullyComponent);
 
-    Page<ReportInventoryDto> findPageReportInventoryToDashBoard(ReportParamsDto params);
+    List<InventoryItemModelDto> findAllModelsAndItems(List<String> inventoryTypes, List<ObjectId> warehouseIds, String filter);
 
-    List<InventoryProductDetailsDto> findProductsByWarehouseId(ObjectId warehouseId, String poNumber);
+    Page<ReportInventoryDto> findPageReportItemProductionConsignmentToDashBoard(ReportParamsDto params);
 
-    List<InventorySparePartDetailsDto> findSparePartByWarehouseId(ObjectId warehouseId, String poNumber);
+    Page<ReportInventoryDto> findPageReportItemInTransitContainerToDashBoard(ReportParamsDto params);
+
+    List<InventoryProductDetailsDto> findProductsByWarehouseId(ObjectId warehouseId, String filter);
+
+    List<InventoryProductDetailsDto> findProductsByWarehouseIdIn(List<ObjectId> warehouseIds, String filter);
+
+    List<InventorySparePartDetailsDto> findSparePartByWarehouseId(ObjectId warehouseId, String filter);
+
+    List<InventorySparePartDetailsDto> findSparePartByWarehouseIdIn(List<ObjectId> warehouseIds, String filter);
+
+    List<InventoryProductDetailsDto> findVehicles(PageOptionsDto optionsReq);
+
+    Page<InventoryItemWarrantyDto> findItemForWarranty(PageOptionsDto optionsDto);
+
+    Page<InventoryItemRepairDto> findItemForRepair(PageOptionsDto optionsDto);
+
+    Page<ConfigVehicleSpecPageDto> findPageConfigVehicleSpec(PageOptionsDto optionsDto);
+
+    Page<RepairVehicleSpecPageDto> findPageRepairVehicleSpec(PageOptionsDto optionsDto);
+
+    Page<ItemCodeModelSerialDto> findPageVehicleInStock(PageOptionsDto optionsDto);
+
+    Page<QuotationProductWarehouseDto> findPageQuotationProductWarehouse(PageOptionsDto optionsDto);
+
+    Page<QuotationSparePartWarehouseDto> findPageQuotationSparePartWarehouse(PageOptionsDto optionsDto);
+
 }

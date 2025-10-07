@@ -21,6 +21,8 @@ public class InventoryProductDetailsDto {
     private Boolean initialCondition;       // Mô tả nguyên trạng khi nhập kho – Không bắt buộc
     private String notes;                  // Ghi chú chung – Không bắt buộc
     private ObjectId warehouseId; // Mã kho
+    private String warehouseCode;
+    private String warehouseName;
     private Specifications specifications;
     private Pricing pricing;
     private Logistics logistics;
@@ -28,16 +30,16 @@ public class InventoryProductDetailsDto {
 
     @Data
     public static class Specifications {
-        private Integer liftingCapacityKg;      // Sức nâng (kg)
+        private String liftingCapacityKg;      // Sức nâng (kg)
         private String chassisType;             // Loại khung nâng
-        private Integer liftingHeightMm;        // Độ cao nâng (mm)
+        private String liftingHeightMm;        // Độ cao nâng (mm)
         private String engineType;              // Loại động cơ
         private String batteryInfo;             // Thông tin bình điện
         private String batterySpecification;    // Thông số bình điện
         private String chargerSpecification;    // Thông số bộ sạc
         private String forkDimensions;          // Thông số càng
-        private Integer valveCount;             // Số lượng van
-        private Boolean hasSideShift;           // Có side shift không
+        private String valveCount;             // Số lượng van
+        private String hasSideShift;           // Có side shift không
         private String otherDetails;            // Chi tiết khác
     }
 
@@ -47,14 +49,15 @@ public class InventoryProductDetailsDto {
         private BigDecimal salePriceR0;         // Giá bán đề xuất R0
         private BigDecimal salePriceR1;         // Giá bán đề xuất R1
         private BigDecimal actualSalePrice;     // Giá bán thực tế
+        private BigDecimal otherPrice;      // Giá khác
         private String agent;                   // Đại lý (nếu có)
     }
 
     @Data
     public static class Logistics {
-        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+        
         private LocalDateTime orderDate; // Ngày đặt hàng 2
-        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+        
         private LocalDateTime estimateCompletionDate; // Chỉ dùng trong báo cáo hàng chờ SX 27
     }
 }

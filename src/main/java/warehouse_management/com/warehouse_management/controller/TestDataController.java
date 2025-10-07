@@ -25,7 +25,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Random;
 
 @Hidden
 @RestController
@@ -187,7 +186,7 @@ public class TestDataController {
                     item.setProductCode(productCode);
                     item.setInventoryType(InventoryType.VEHICLE.getId());
                     item.setSerialNumber("SERIAL_" + faker.number().digits(6));
-                    item.setCategory(faker.random().nextInt(5) % 2 == 0 ? "Ngồi lái" : "Đứng lái");
+//                    item.setCategory(faker.random().nextInt(5) % 2 == 0 ? "Ngồi lái" : "Đứng lái");
                     item.setManufacturingYear(2020 + faker.random().nextInt(5));
                 }
                 else{
@@ -224,30 +223,30 @@ public class TestDataController {
 
                 items.add(item);
                 // Specifications
-                InventoryItem.Specifications specs = new InventoryItem.Specifications(
-                        faker.number().numberBetween(1000, 5000), // liftingCapacityKg
-                        "Khung " + faker.letterify("??"),         // chassisType
-                        faker.number().numberBetween(2000, 7000), // liftingHeightMm
-                        "Động cơ " + faker.letterify("??"),       // engineType
-                        "Bình điện " + faker.bothify("??-###"),   // batteryInfo
-                        "Thông số bình " + faker.bothify("??-##"),// batterySpecification
-                        "Thông số sạc " + faker.bothify("??-##"), // chargerSpecification
-                        "",
-                        faker.number().numberBetween(2, 6),       // valveCount
-                        faker.bool().bool(),                      // hasSideShift
-                        faker.lorem().sentence()                  // otherDetails
-                );
-                item.setSpecifications(specs);
+//                InventoryItem.Specifications specs = new InventoryItem.Specifications(
+//                        faker.number().numberBetween(1000, 5000), // liftingCapacityKg
+//                        "Khung " + faker.letterify("??"),         // chassisType
+//                        faker.number().numberBetween(2000, 7000), // liftingHeightMm
+//                        "Động cơ " + faker.letterify("??"),       // engineType
+//                        "Bình điện " + faker.bothify("??-###"),   // batteryInfo
+//                        "Thông số bình " + faker.bothify("??-##"),// batterySpecification
+//                        "Thông số sạc " + faker.bothify("??-##"), // chargerSpecification
+//                        "",
+//                        faker.number().numberBetween(2, 6),       // valveCount
+//                        faker.bool().bool(),                      // hasSideShift
+//                        faker.lorem().sentence()                  // otherDetails
+//                );
+//                item.setSpecifications(specs);
 
 // Pricing
-                InventoryItem.Pricing pricing = new InventoryItem.Pricing(
-                        BigDecimal.valueOf(faker.number().randomDouble(2, 100, 500)),  // purchasePrice
-                        BigDecimal.valueOf(faker.number().randomDouble(2, 550, 650)),  // salePriceR0
-                        BigDecimal.valueOf(faker.number().randomDouble(2, 700, 800)),  // salePriceR1
-                        BigDecimal.valueOf(faker.number().randomDouble(2, 600, 900)),  // actualSalePrice
-                        "Đại lý " + faker.company().name()                             // agent
-                );
-                item.setPricing(pricing);
+//                InventoryItem.Pricing pricing = new InventoryItem.Pricing(
+//                        BigDecimal.valueOf(faker.number().randomDouble(2, 100, 500)),  // purchasePrice
+//                        BigDecimal.valueOf(faker.number().randomDouble(2, 550, 650)),  // salePriceR0
+//                        BigDecimal.valueOf(faker.number().randomDouble(2, 700, 800)),  // salePriceR1
+//                        BigDecimal.valueOf(faker.number().randomDouble(2, 600, 900)),  // actualSalePrice
+//                        "Đại lý " + faker.company().name()                             // agent
+//                );
+//                item.setPricing(pricing);
 
 // Logistics
                 InventoryItem.Logistics logistics = new InventoryItem.Logistics(

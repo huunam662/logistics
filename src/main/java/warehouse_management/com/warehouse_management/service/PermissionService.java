@@ -13,29 +13,5 @@ import java.util.stream.Collectors;
 @Service
 public class PermissionService {
 
-    @Autowired
-    private RoleRepository roleRepository;
 
-    public boolean hasPermission(String userId, String resource, String httpMethod) {
-        List<Role> roles = roleRepository.findRolesByUserId(userId)
-                .orElseThrow(() -> new UsernameNotFoundException("user not found"));
-
-        return roles.stream()
-                .flatMap(role -> role.getPermissions().stream())
-                .anyMatch(perm ->
-                        perm.getType() == Permission.PermissionType.API &&
-                                perm.getResource().equals(resource) &&
-                                perm.getHttpMethod().equalsIgnoreCase(httpMethod)
-                );
-    }
-
-    public List<Permission> getUIPermissions(String userId) {
-        List<Role> roles = roleRepository.findRolesByUserId(userId)
-                .orElseThrow(() -> new UsernameNotFoundException("user not found"));
-
-        return roles.stream()
-                .flatMap(role -> role.getPermissions().stream())
-                .filter(perm -> perm.getType() == Permission.PermissionType.UI)
-                .collect(Collectors.toList());
-    }
 }

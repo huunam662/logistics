@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.*;
+import org.springframework.data.domain.Persistable;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.mapping.FieldType;
@@ -22,7 +23,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "warehouse_transaction")
-public class WarehouseTransaction {
+public class WarehouseTransaction implements Persistable<ObjectId> {
 
     @Id
     private ObjectId id; // _id – Khóa chính
@@ -36,6 +37,9 @@ public class WarehouseTransaction {
     private ObjectId originWarehouseId;     // Kho nguồn
     private ObjectId destinationWarehouseId; // Kho đích
 
+    private ObjectId orderId; // Cho loại phiếu duyệt giao hàng
+    private List<ObjectId> orderItemIds;
+
     private ObjectId requesterId;               // Người tạo yêu cầu
     private ObjectId approverId;                // Người duyệt hoặc từ chối
 
@@ -43,7 +47,7 @@ public class WarehouseTransaction {
 
     @CreatedBy
     private String createdBy;
-     @LastModifiedBy
+    @LastModifiedBy
     private String updatedBy;
     private ObjectId deletedBy;
 
@@ -60,8 +64,9 @@ public class WarehouseTransaction {
     private Department stockOutDepartment;  // Bộ phận xuất kho
     private ShipUnitInfo shipUnitInfo;  //  Thông tin vận chuyển
 
-    public WarehouseTransactionStatus getStatusEnum() {
-        return status == null ? null : WarehouseTransactionStatus.fromId(status);
+    @Override
+    public boolean isNew() {
+        return createdAt == null;
     }
 
     public void setStatusEnum(WarehouseTransactionStatus status) {
@@ -71,7 +76,7 @@ public class WarehouseTransaction {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class ShipUnitInfo{
+    public static class ShipUnitInfo {
         private String fullName;    // Họ tên
         private String licensePlate;    // Biển số xe
         private String phone;   // Số điện thoại
@@ -83,7 +88,7 @@ public class WarehouseTransaction {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class Department{
+    public static class Department {
         private String name; // Tên bộ phận
         private String address; // Địa chỉ
         private String phone;   // Số điện thoại
@@ -93,7 +98,7 @@ public class WarehouseTransaction {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class InventoryItemTicket{
+    public static class InventoryItemTicket {
         private ObjectId id; // _id – Khóa chính
         private String poNumber;       // Số của Đơn đặt hàng (Purchase Order) – Bắt buộc
         private String productCode;    // Mã định danh của sản phẩm (đối với sản phẩm xe & phụ kiện, phụ tùng thuộc sản phẩm này) – Bắt buộc
@@ -117,16 +122,16 @@ public class WarehouseTransaction {
         @NoArgsConstructor
         @AllArgsConstructor
         public static class Specifications {
-            private Integer liftingCapacityKg;      // Sức nâng (kg)
+            private String liftingCapacityKg;      // Sức nâng (kg)
             private String chassisType;             // Loại khung nâng
-            private Integer liftingHeightMm;        // Độ cao nâng (mm)
+            private String liftingHeightMm;        // Độ cao nâng (mm)
             private String engineType;              // Loại động cơ
             private String batteryInfo;             // Thông tin bình điện
             private String batterySpecification;    // Thông số bình điện
             private String chargerSpecification;    // Thông số bộ sạc
             private String forkDimensions;          // Thông số càng
-            private Integer valveCount;             // Số lượng van
-            private Boolean hasSideShift;           // Có side shift không
+            private String valveCount;             // Số lượng van
+            private String hasSideShift;           // Có side shift không
             private String otherDetails;            // Chi tiết khác
         }
 

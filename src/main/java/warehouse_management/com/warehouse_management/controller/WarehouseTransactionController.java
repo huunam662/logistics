@@ -14,9 +14,11 @@ import warehouse_management.com.warehouse_management.dto.ApiResponse;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.pagination.response.PageInfoDto;
 import warehouse_management.com.warehouse_management.dto.warehouse_transaction.request.ApprovalTicketDto;
+import warehouse_management.com.warehouse_management.dto.warehouse_transaction.request.CreateDeliveryTicketDTO;
 import warehouse_management.com.warehouse_management.dto.warehouse_transaction.request.CreateWarehouseTransactionDto;
 import warehouse_management.com.warehouse_management.dto.warehouse_transaction.response.WarehouseTransactionPageDto;
 import warehouse_management.com.warehouse_management.enumerate.WarehouseTranType;
+import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.model.WarehouseTransaction;
 import warehouse_management.com.warehouse_management.service.WarehouseTransactionService;
 import warehouse_management.com.warehouse_management.service.report.ReportService;
@@ -32,18 +34,6 @@ public class WarehouseTransactionController {
 
     private final WarehouseTransactionService warehouseTransferTicketService;
     private final ReportService reportService;
-
-//    @GetMapping("/{ticketId}/inventory-items")
-//    @Operation(
-//            summary = "GET Lấy các mặt hàng đang trong phiếu duyệt",
-//            description = "GET Lấy các mặt hàng đang trong phiếu duyệt"
-//    )
-//    public ApiResponse<?> approvalTicket(
-//            @PathVariable("ticketId") String ticketId
-//    ){
-//        List<InventoryItemPoNumberDto> items = warehouseTransferTicketService.getItemsInTicket(ticketId);
-//        return ApiResponse.success(items);
-//    }
 
     @GetMapping("/page")
     @Operation(
@@ -163,4 +153,9 @@ public class WarehouseTransactionController {
         return ResponseEntity.ok(res);
     }
 
+    @PostMapping("order")
+    public ResponseEntity<?> createDeliveryTicket(@RequestBody CreateDeliveryTicketDTO dto) {
+        warehouseTransferTicketService.createDeliveryTicket(dto);
+        return ResponseEntity.ok(null);
+    }
 }

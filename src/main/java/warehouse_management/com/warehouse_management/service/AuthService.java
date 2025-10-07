@@ -2,28 +2,23 @@ package warehouse_management.com.warehouse_management.service;
 
 
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import io.swagger.v3.core.util.Json;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import warehouse_management.com.warehouse_management.dto.auth.request.LoginRequest;
-import warehouse_management.com.warehouse_management.dto.auth.response.LoginResponse;
+import warehouse_management.com.warehouse_management.dto.auth.request.LoginRequestDto;
+import warehouse_management.com.warehouse_management.dto.auth.response.LoginResponseDto;
 
 import warehouse_management.com.warehouse_management.integration.auth.dto.request.AuthLoginRequest;
 import warehouse_management.com.warehouse_management.integration.auth.dto.response.AuthGetInfoResponse;
 import warehouse_management.com.warehouse_management.integration.auth.dto.response.AuthGetPermissionResponse;
 import warehouse_management.com.warehouse_management.integration.auth.dto.response.AuthLoginResponse;
 import warehouse_management.com.warehouse_management.integration.auth.client.AuthIntegrationClient;
-import warehouse_management.com.warehouse_management.pojo.AnaworkToken;
-import warehouse_management.com.warehouse_management.utils.GeneralResource;
+import warehouse_management.com.warehouse_management.dto.auth.response.AnaworkTokenDto;
+import warehouse_management.com.warehouse_management.utils.GeneralUtil;
 import warehouse_management.com.warehouse_management.utils.JsonUtils;
 import warehouse_management.com.warehouse_management.utils.JwtUtils;
 
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
-import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Base64;
 import java.util.Date;
@@ -43,7 +38,7 @@ public class AuthService {
         this.jwtUtils = jwtUtils;
     }
 
-    public LoginResponse login(LoginRequest loginRequest) {
+    public LoginResponseDto login(LoginRequestDto loginRequest) {
         AuthLoginResponse authLoginResponse = authIntegrationClient.login(buildAuthLoginRequest(loginRequest));
         AuthGetInfoResponse authGetInfoResponse = authIntegrationClient.getInfo(authLoginResponse.getToken());
         AuthGetPermissionResponse authGetPermissionResponse = authIntegrationClient.getPermission(authLoginResponse.getToken());
@@ -52,7 +47,7 @@ public class AuthService {
         return buildLoginResponse(authLoginResponse, authGetInfoResponse, authGetPermissionResponse);
     }
 
-    private AuthLoginRequest buildAuthLoginRequest(LoginRequest loginRequest) {
+    private AuthLoginRequest buildAuthLoginRequest(LoginRequestDto loginRequest) {
         AuthLoginRequest authLoginRequest = new AuthLoginRequest();
         authLoginRequest.setUsername(loginRequest.getEmail());
         authLoginRequest.setPassword(loginRequest.getPassword());
@@ -60,40 +55,51 @@ public class AuthService {
         return authLoginRequest;
     }
 
-    private LoginResponse buildLoginResponse(AuthLoginResponse authLoginResponse, AuthGetInfoResponse authGetInfoResponse, AuthGetPermissionResponse authGetPermissionResponse) {
-        String decodePayload = jwtUtils.decodePayload(authLoginResponse.getToken());
-        AnaworkToken anaworkToken = JsonUtils.parseJsonToDto(decodePayload, AnaworkToken.class);
-//        long expirationEpochSeconds = anaworkToken.getExpiration();
-//        Date expirationDate = new Date(expirationEpochSeconds * 1000);
-        List<String> permissions = authGetPermissionResponse.getData();
-        byte[] keyBytes;
-        try {
-            keyBytes = Base64.getDecoder().decode(GeneralResource.secretKey);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Khóa bí mật không phải là chuỗi Base64 hợp lệ: " + e.getMessage());
-        }
-        Key signingKey = Keys.hmacShaKeyFor(keyBytes);
+//    private LoginResponseDto buildLoginResponse(AuthLoginResponse authLoginResponse, AuthGetInfoResponse authGetInfoResponse, AuthGetPermissionResponse authGetPermissionResponse) {
+//        String decodePayload = jwtUtils.decodePayload(authLoginResponse.getToken());
+//        AnaworkTokenDto anaworkToken = JsonUtils.parseJsonToDto(decodePayload, AnaworkTokenDto.class);
 
-        String tk = Jwts.builder()
-                .setSubject(authGetInfoResponse.getUser().getEmail())
-                .claim("id", authGetInfoResponse.getUser().getId())
-                .claim("permissions", permissions) // nhúng permission vào JWT
-                .setIssuedAt(new Date())
-                .setExpiration(generateExpiration())
-                .signWith(signingKey, io.jsonwebtoken.SignatureAlgorithm.HS256)
-                .compact();
-        LoginResponse loginResponse = new LoginResponse();
-        AuthGetInfoResponse.UserDTO user = authGetInfoResponse.getUser();
-        loginResponse.setToken(tk);
-        loginResponse.setFullName(user.getFirstName() + " " + user.getLastName());
-        loginResponse.setEmail(user.getEmail());
-        loginResponse.setPhone(user.getCellPhone());
-        loginResponse.setDepartment(user.getDepartment());
-        loginResponse.setPosition(user.getPosition());
-        loginResponse.setAvatar(user.getAvatar());
+    /// /        long expirationEpochSeconds = anaworkToken.getExpiration();
+    /// /        Date expirationDate = new Date(expirationEpochSeconds * 1000);
+//        AuthGetInfoResponse.UserDTO user = authGetInfoResponse.getUser();
+//        List<String> permissions = authGetPermissionResponse.getData();
+//        byte[] keyBytes;
+//        try {
+//            keyBytes = Base64.getDecoder().decode(GeneralUtil.secretKey);
+//        } catch (IllegalArgumentException e) {
+//            throw new IllegalArgumentException("Khóa bí mật không phải là chuỗi Base64 hợp lệ: " + e.getMessage());
+//        }
+//        Key signingKey = Keys.hmacShaKeyFor(keyBytes);
+//
+//        String tk = Jwts.builder()
+//                .setSubject(authGetInfoResponse.getUser().getEmail())
+//                .claim("id", authGetInfoResponse.getUser().getId())
+//                .claim("permissions", permissions) // nhúng permission vào JWT
+//                .claim("fullName", user.getFirstName() + " " + user.getLastName())
+//                .setIssuedAt(new Date())
+//                .setExpiration(generateExpiration())
+//                .signWith(signingKey, io.jsonwebtoken.SignatureAlgorithm.HS256)
+//                .compact();
+//        LoginResponseDto loginResponse = new LoginResponseDto();
+//        loginResponse.setToken(tk);
+//        loginResponse.setFullName(user.getFirstName() + " " + user.getLastName());
+//        loginResponse.setEmail(user.getEmail());
+//        loginResponse.setPhone(user.getCellPhone());
+//        loginResponse.setDepartment(user.getDepartment());
+//        loginResponse.setPosition(user.getPosition());
+//        loginResponse.setAvatar(user.getAvatar());
+//
+//        return loginResponse;
+//    }
+    private LoginResponseDto buildLoginResponse(AuthLoginResponse authLoginResponse, AuthGetInfoResponse authGetInfoResponse, AuthGetPermissionResponse authGetPermissionResponse) {
+        LoginResponseDto loginResponse = new LoginResponseDto();
+        loginResponse.setToken(authLoginResponse.getToken());
+        loginResponse.setPermissions(authGetPermissionResponse.getData());
+
 
         return loginResponse;
     }
+
 
     private Date generateExpiration() {
         long nowMillis = System.currentTimeMillis();
