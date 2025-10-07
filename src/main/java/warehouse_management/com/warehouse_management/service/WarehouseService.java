@@ -15,6 +15,9 @@ import warehouse_management.com.warehouse_management.exceptions.LogicErrExceptio
 import warehouse_management.com.warehouse_management.dto.warehouse.request.CreateWarehouseDto;
 import warehouse_management.com.warehouse_management.dto.warehouse.request.UpdateWarehouseDto;
 import warehouse_management.com.warehouse_management.dto.warehouse.response.WarehouseResponseDto;
+import warehouse_management.com.warehouse_management.integration.office.dto.request.CreateOfficeFromWarehouseReq;
+import warehouse_management.com.warehouse_management.integration.office.dto.response.CreateOfficeFromWarehouseRes;
+import warehouse_management.com.warehouse_management.integration.office.dto.response.OfficeDto;
 import warehouse_management.com.warehouse_management.mapper.warehouse.WarehouseMapper;
 import warehouse_management.com.warehouse_management.model.Warehouse;
 import warehouse_management.com.warehouse_management.repository.inventory_item.InventoryItemRepository;
@@ -33,13 +36,15 @@ public class WarehouseService {
     private final WarehouseMapper mapper;
     private final InventoryItemRepository inventoryItemRepository;
     private final CustomAuthentication customAuthentication;
+    private final OfficeService officeService;
 
-    public WarehouseService(InventoryItemRepository inventoryItemRepository, WarehouseRepository repository, WarehouseMapper mapper, WarehouseRepository warehouseRepository, CustomAuthentication customAuthentication) {
+    public WarehouseService(InventoryItemRepository inventoryItemRepository, WarehouseRepository repository, WarehouseMapper mapper, WarehouseRepository warehouseRepository, CustomAuthentication customAuthentication, OfficeService officeService) {
         this.repository = repository;
         this.mapper = mapper;
         this.warehouseRepository = warehouseRepository;
         this.inventoryItemRepository = inventoryItemRepository;
         this.customAuthentication = customAuthentication;
+        this.officeService = officeService;
     }
 
     public Warehouse getWarehouseToId(ObjectId warehouseId) {
@@ -72,6 +77,9 @@ public class WarehouseService {
 
     public WarehouseResponseDto createWarehouse(CreateWarehouseDto createDto) {
         Warehouse warehouse = mapper.toEntity(createDto);
+        WarehouseType warehouseType = warehouse.getType();
+        OfficeDto res = officeService.createOfficeFromWarehouse(new CreateOfficeFromWarehouseReq(warehouse.getName(), warehouse.getCode(), warehouseType.getOfficeTypeCode()));
+        warehouse.setOfficeId(res.getId());
         Warehouse savedWarehouse = repository.save(warehouse);
         return mapper.toResponseDto(savedWarehouse);
     }

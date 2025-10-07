@@ -17,10 +17,10 @@ public class UserIntegrationClient {
     /**
      * Get users by role name từ .NET API
      */
-    public UserListRes getUsersByRole(String token, String roleName) {
+    public UserListRes getUsersByRole(String token, String roleCode) {
         // Sử dụng method linh hoạt với Map path parameters
         java.util.Map<String, String> pathParams = new java.util.HashMap<>();
-        pathParams.put("roleName", roleName);
+        pathParams.put("roleCode", roleCode);
         return genericIntegrationClient.getListWithPathParams(GeneralUtil.GET_USERS_BY_ROLE, token, pathParams, UserListRes.class);
     }
 }

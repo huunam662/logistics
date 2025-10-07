@@ -98,4 +98,17 @@ public class GenericIntegrationClient {
             throw IntegrationException.of("Lỗi tích hợp " + interfaceCode + ": " + e.getMessage());
         }
     }
+    
+    /**
+     * Generic method để call .NET API với POST request
+     */
+    public <T> T post(String interfaceCode, String token, Object requestBody, Class<T> responseType) {
+        try {
+            String url = integrationUtils.getConnectUrl(interfaceCode);
+            T response = integrationUtils.performPost(url, token, requestBody, responseType);
+            return response;
+        } catch (Exception e) {
+            throw IntegrationException.of("Lỗi tích hợp " + interfaceCode + ": " + e.getMessage());
+        }
+    }
 }
