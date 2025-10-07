@@ -5,8 +5,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
-import warehouse_management.com.warehouse_management.integration.user.dto.response.UserListRes;
-import warehouse_management.com.warehouse_management.integration.user.dto.response.UserDto;
+import warehouse_management.com.warehouse_management.integration.user.dto.response.UserIDto;
 import warehouse_management.com.warehouse_management.service.UserService;
 
 import java.util.List;
@@ -26,11 +25,11 @@ public class UserController {
             description = "Lấy danh sách users theo role name từ .NET API. " +
                     "Sử dụng intercode GET_USERS_BY_ROLE."
     )
-    public ApiResponse<List<UserDto>> getUsersByRole(
+    public ApiResponse<List<UserIDto>> getUsersByRole(
             @PathVariable("roleCode") String roleCode
     ) {
         // Get users by role từ Service (đã có for loop test bên trong)
-        List<UserDto> users = userService.getUsersByRole(roleCode);
+        List<UserIDto> users = userService.getUsersByRole(roleCode);
         
         return ApiResponse.success(users);
     }

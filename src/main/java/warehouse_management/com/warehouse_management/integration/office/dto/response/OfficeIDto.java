@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class OfficeDto {
+public class OfficeIDto {
 
     private String id;
     private String name;
