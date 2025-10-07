@@ -1,14 +1,10 @@
 package warehouse_management.com.warehouse_management.integration.customer.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class CustomerDto {
+public class CreateConsignmentCustomerIDto {
 
     @JsonProperty("id")
     private String id;
@@ -28,6 +24,9 @@ public class CustomerDto {
     @JsonProperty("address")
     private String address;
 
+    @JsonProperty("employee_code")
+    private String employeeCode;
+
     @JsonProperty("customer_level_id")
     private String customerLevelId;
 
@@ -36,4 +35,10 @@ public class CustomerDto {
 
     @JsonProperty("customer_level_note")
     private String customerLevelNote;
+
+    //
+    @JsonProperty("office_id")
+    private String officeId;
+
+
 }

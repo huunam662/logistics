@@ -4,9 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import warehouse_management.com.warehouse_management.app.CustomAuthentication;
 import warehouse_management.com.warehouse_management.integration.office.client.OfficeIntegrationClient;
-import warehouse_management.com.warehouse_management.integration.office.dto.request.CreateOfficeFromWarehouseReq;
-import warehouse_management.com.warehouse_management.integration.office.dto.response.CreateOfficeFromWarehouseRes;
-import warehouse_management.com.warehouse_management.integration.office.dto.response.OfficeDto;
+import warehouse_management.com.warehouse_management.integration.office.dto.request.CreateOfficeFromWarehouseIReq;
+import warehouse_management.com.warehouse_management.integration.office.dto.response.CreateOfficeFromWarehouseIRes;
+import warehouse_management.com.warehouse_management.integration.office.dto.response.OfficeIDto;
 import warehouse_management.com.warehouse_management.exceptions.LogicErrException;
 
 @Service
@@ -19,8 +19,8 @@ public class OfficeService {
     /**
      * Tạo office từ warehouse
      */
-    public OfficeDto createOfficeFromWarehouse(CreateOfficeFromWarehouseReq request) {
-        CreateOfficeFromWarehouseRes response = officeIntegrationClient.createOfficeFromWarehouse(
+    public OfficeIDto createOfficeFromWarehouse(CreateOfficeFromWarehouseIReq request) {
+        CreateOfficeFromWarehouseIRes response = officeIntegrationClient.createOfficeFromWarehouse(
                 customAuthentication.getUser().getAnatk(), 
                 request
         );

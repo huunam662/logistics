@@ -20,7 +20,7 @@ public class GenericIntegrationClient {
      * @param interfaceCode Mã interface từ GeneralUtil (VD: GET_CUSTOMERS, GET_PRODUCTS)
      * @param token JWT token để authenticate
      * @param queryParams Query parameters theo SieveModel format (VD: "page=1&pageSize=10&filters=status==ACTIVE")
-     * @param responseType Class type của response (VD: CustomerDto.class)
+     * @param responseType Class type của response (VD: CustomerIDto.class)
      * @param <T> Generic type cho response data
      * @return BaseListResponse<T> chứa data và pagination info
      */

@@ -7,9 +7,9 @@ import org.springframework.web.bind.annotation.*;
 import warehouse_management.com.warehouse_management.dto.ApiResponse;
 import warehouse_management.com.warehouse_management.dto.pagination.request.PageOptionsDto;
 import warehouse_management.com.warehouse_management.dto.pagination.response.PageInfoDto;
-import warehouse_management.com.warehouse_management.utils.AnaConverterUtils;
-import warehouse_management.com.warehouse_management.integration.customer.dto.response.CustomerListRes;
-import warehouse_management.com.warehouse_management.integration.customer.dto.response.CustomerDto;
+import warehouse_management.com.warehouse_management.dto.customer.request.CreateConsignmentCustomerReq;
+import warehouse_management.com.warehouse_management.integration.customer.dto.response.CreateConsignmentCustomerIDto;
+import warehouse_management.com.warehouse_management.integration.customer.dto.response.CustomerIDto;
 import warehouse_management.com.warehouse_management.service.CustomerService;
 
 import java.util.List;
@@ -28,11 +28,11 @@ public class CustomerController {
             description = "Lấy danh sách customers từ .NET API. " +
                     "React gửi PageOptionsDto object, Spring build SieveModel query string và forward đến .NET API."
     )
-    public ApiResponse<PageInfoDto<CustomerDto>> getCustomers(
+    public ApiResponse<PageInfoDto<CustomerIDto>> getCustomers(
             @ModelAttribute PageOptionsDto pageOptions
     ) {
         // Get data từ Service (đã có for loop test và convert sang PageInfoDto bên trong)
-        PageInfoDto<CustomerDto> pageInfo = customerService.getCustomers(pageOptions);
+        PageInfoDto<CustomerIDto> pageInfo = customerService.getCustomers(pageOptions);
         
         return ApiResponse.success(pageInfo);
     }
@@ -43,14 +43,26 @@ public class CustomerController {
             description = "Lấy tất cả customers từ .NET API không phân trang. " +
                     "Sử dụng intercode GET_CUSTOMERS_ALL."
     )
-    public ApiResponse<List<CustomerDto>> getAllCustomers() {
+    public ApiResponse<List<CustomerIDto>> getAllCustomers() {
         // Get tất cả customers từ Service (đã có for loop test bên trong)
-        List<CustomerDto> customers = customerService.getAllCustomers();
+        List<CustomerIDto> customers = customerService.getAllCustomers();
         
         return ApiResponse.success(customers);
     }
-
-
-
+    
+    @PostMapping("/createConsignmentCustomer")
+    @Operation(
+            summary = "POST tạo customer mới",
+            description = "Tạo customer mới thông qua .NET API. " +
+                    "Sử dụng intercode CREATE_CONSIGNMENT_CUSTOMER."
+    )
+    public ApiResponse<?> createConsigmentCustomer(
+            @RequestBody CreateConsignmentCustomerReq request
+    ) {
+        // Tạo customer mới
+        CreateConsignmentCustomerIDto response = customerService.createConsigmentCustomer(request);
+        
+        return ApiResponse.success(response);
+    }
 
 }

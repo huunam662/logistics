@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateOfficeFromWarehouseReq {
+public class CreateOfficeFromWarehouseIReq {
     private String name;
     private String code;
 

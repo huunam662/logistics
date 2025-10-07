@@ -2,11 +2,9 @@ package warehouse_management.com.warehouse_management.integration.office.client;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import warehouse_management.com.warehouse_management.integration.IntegrationException;
 import warehouse_management.com.warehouse_management.integration.anabase.GenericIntegrationClient;
-import warehouse_management.com.warehouse_management.integration.office.dto.request.CreateOfficeFromWarehouseReq;
-import warehouse_management.com.warehouse_management.integration.office.dto.response.CreateOfficeFromWarehouseRes;
-import warehouse_management.com.warehouse_management.integration.office.dto.response.OfficeDto;
+import warehouse_management.com.warehouse_management.integration.office.dto.request.CreateOfficeFromWarehouseIReq;
+import warehouse_management.com.warehouse_management.integration.office.dto.response.CreateOfficeFromWarehouseIRes;
 import warehouse_management.com.warehouse_management.utils.GeneralUtil;
 
 @Component
@@ -18,13 +16,13 @@ public class OfficeIntegrationClient {
     /**
      * Tạo office từ warehouse
      */
-    public CreateOfficeFromWarehouseRes createOfficeFromWarehouse(String token, CreateOfficeFromWarehouseReq request) {
+    public CreateOfficeFromWarehouseIRes createOfficeFromWarehouse(String token, CreateOfficeFromWarehouseIReq request) {
 
         return genericIntegrationClient.post(
                 GeneralUtil.CREATE_OFFICE_FROM_WAREHOUSE,
                 token,
                 request,
-                CreateOfficeFromWarehouseRes.class
+                CreateOfficeFromWarehouseIRes.class
         );
 
 
